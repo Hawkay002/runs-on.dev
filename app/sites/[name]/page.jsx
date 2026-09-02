@@ -103,17 +103,19 @@ export default async function Site({ params }) {
           )}
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-(family-name:--font-display) text-2xl font-medium tracking-tight text-(--color-ink) sm:text-3xl">
-                {name}.runs-on.dev
-              </h1>
               <a
                 href={`https://${name}.runs-on.dev`}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={`Open ${name}.runs-on.dev`}
-                className="flex h-7 w-7 items-center justify-center border border-(--color-rule) font-(family-name:--font-mono) text-sm text-(--color-muted) transition-colors hover:border-(--color-signal) hover:text-(--color-signal)"
+                className="font-(family-name:--font-display) text-2xl font-medium tracking-tight text-(--color-ink) underline decoration-(--color-muted) underline-offset-4 transition-colors hover:text-(--color-signal) hover:decoration-(--color-signal) sm:text-3xl"
               >
-                ↗
+                {name}.runs-on.dev
+              </a>
+              <a
+                href="/manage"
+                className="flex items-center justify-center border border-(--color-rule) px-2.5 py-1 font-(family-name:--font-mono) text-xs text-(--color-muted) transition-colors hover:border-(--color-signal) hover:text-(--color-signal)"
+              >
+                manage
               </a>
             </div>
             {displayName && <p className="text-sm text-(--color-muted)">{displayName}</p>}
