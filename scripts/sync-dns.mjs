@@ -1,5 +1,13 @@
-import { readFile } from 'node:fs/promises';
-import { planDnsChanges, listPath, createPath, removePath } from '../lib/dns.js';
+import { readFile, readdir } from 'node:fs/promises';
+import {
+  planDnsChanges,
+  planZoneVerificationRecords,
+  reconcileZoneVerification,
+  listPath,
+  createPath,
+  removePath,
+  ZONE_VERIFICATION_LABEL,
+} from '../lib/dns.js';
 
 const DOMAIN = 'runs-on.dev';
 const TOKEN = process.env.VERCEL_TOKEN;
@@ -110,4 +118,57 @@ for (const file of changed) {
   }
 
   if (desired.length === 0) console.log(`${name}: no records, wildcard serves the profile card`);
+}
+
+// Zone-level verification mirror (see lib/dns.js for why planDnsChanges can
+// never publish this host). The desired set is the union across ALL claims,
+// not CHANGED_FILES: any other name's sync must preserve every claim's
+// mirrored TXT, so reconciling against only the changed files would delete
+// the rest as "unclaimed".
+const claims = [];
+for (const file of await readdir('domains')) {
+  if (!file.endsWith('.json')) continue;
+  try {
+    claims.push(JSON.parse(await readFile(`domains/${file}`, 'utf8')));
+  } catch (err) {
+    // validate blocks unparsable claims from reaching main; crashing here
+    // instead would leave the names above already applied and the run half
+    // finished with no record of what was skipped.
+    console.error(`zone mirror: skipping unreadable ${file}: ${err.message}`);
+  }
+}
+
+// `_vercel.<name>` children belong to their claim's own sync pass above; the
+// mirror only owns the zone-level host itself.
+const existingVerification = (await existingFor(ZONE_VERIFICATION_LABEL)).filter(
+  (record) => record.name === ZONE_VERIFICATION_LABEL,
+);
+const { create: toMirror, remove: toUnmirror } = reconcileZoneVerification(
+  planZoneVerificationRecords(claims),
+  existingVerification,
+);
+
+for (const stale of toUnmirror) {
+  const res = await vercel(removePath(DOMAIN, stale.id), { method: 'DELETE' });
+  if (!res.ok) {
+    console.error(`sync-dns: failed to delete ${stale.type} ${stale.name}: ${res.status} ${res.statusText}`);
+    process.exit(1);
+  }
+  console.log(`deleted ${stale.type} ${stale.name}`);
+}
+
+for (const change of toMirror) {
+  const res = await vercel(createPath(DOMAIN), {
+    method: 'POST',
+    body: JSON.stringify({ type: change.type, name: change.name, value: change.value, ttl: 3600 }),
+  });
+  if (!res.ok) {
+    console.error(`failed to create ${change.type} ${change.name}: ${res.status}`);
+    process.exit(1);
+  }
+  console.log(`created ${change.type} ${change.name} -> ${change.value}`);
+}
+
+if (toMirror.length === 0 && toUnmirror.length === 0) {
+  console.log('zone verification: in sync');
 }

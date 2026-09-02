@@ -1,6 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { planDnsChanges, listPath, createPath, removePath } from '../lib/dns.js';
+import {
+  planDnsChanges,
+  planZoneVerificationRecords,
+  reconcileZoneVerification,
+  listPath,
+  createPath,
+  removePath,
+} from '../lib/dns.js';
 
 const base = { name: 'lucas', owner: { github: 'zordhalo' }, claimedAt: '2026-08-30T00:00:00Z' };
 
@@ -87,4 +94,62 @@ test('createPath posts under the domain', () => {
 
 test('removePath includes the domain, not just the record id', () => {
   assert.equal(removePath('runs-on.dev', 'rec_abc'), '/v2/domains/runs-on.dev/records/rec_abc');
+});
+
+test('the zone mirror unions _vercel TXT values across claims, deduplicated', () => {
+  const claims = [
+    { ...base, subdomains: { _vercel: { TXT: ['vc-domain-verify=lucas.runs-on.dev,a1'] } } },
+    {
+      name: 'shrey',
+      owner: { github: 'someone' },
+      claimedAt: '2026-09-01T00:00:00Z',
+      subdomains: {
+        _vercel: { TXT: ['vc-domain-verify=shrey.runs-on.dev,b2', 'vc-domain-verify=lucas.runs-on.dev,a1'] },
+      },
+    },
+    { ...base, name: 'dexi', records: { CNAME: 'cname.vercel-dns.com' } },
+  ];
+
+  assert.deepEqual(planZoneVerificationRecords(claims), [
+    { type: 'TXT', name: '_vercel', value: 'vc-domain-verify=lucas.runs-on.dev,a1' },
+    { type: 'TXT', name: '_vercel', value: 'vc-domain-verify=shrey.runs-on.dev,b2' },
+  ]);
+});
+
+test('claims without _vercel TXTs plan no zone records', () => {
+  assert.deepEqual(
+    planZoneVerificationRecords([
+      { ...base, records: { CNAME: 'cname.vercel-dns.com' } },
+      { ...base, name: 'hussain', subdomains: { _atproto: { TXT: ['did=did:plc:abc123'] } } },
+    ]),
+    [],
+  );
+});
+
+test('reconcile creates missing values and drops only unclaimed vc-domain-verify TXTs', () => {
+  const { create, remove } = reconcileZoneVerification(
+    [{ type: 'TXT', name: '_vercel', value: 'vc-domain-verify=lucas.runs-on.dev,a1' }],
+    [
+      { id: 'rec_stays', type: 'TXT', name: '_vercel', value: 'vc-domain-verify=lucas.runs-on.dev,a1' },
+      { id: 'rec_dropped', type: 'TXT', name: '_vercel', value: 'vc-domain-verify=gone.runs-on.dev,z9' },
+      // Hand-placed by the operator: no vc-domain-verify= prefix, so the
+      // mirror must never claim ownership of it.
+      { id: 'rec_manual', type: 'TXT', name: '_vercel', value: 'operator-note=keep-me' },
+      // A claim's own child record: belongs to that claim's sync pass.
+      { id: 'rec_child', type: 'TXT', name: '_vercel.lucas', value: 'vc-domain-verify=lucas.runs-on.dev,a1' },
+    ],
+  );
+
+  assert.deepEqual(create, []);
+  assert.deepEqual(remove.map((record) => record.id), ['rec_dropped']);
+});
+
+test('reconcile creates a value the zone does not hold yet', () => {
+  const { create, remove } = reconcileZoneVerification(
+    [{ type: 'TXT', name: '_vercel', value: 'vc-domain-verify=shovith.runs-on.dev,c3' }],
+    [],
+  );
+
+  assert.deepEqual(create, [{ type: 'TXT', name: '_vercel', value: 'vc-domain-verify=shovith.runs-on.dev,c3' }]);
+  assert.deepEqual(remove, []);
 });
