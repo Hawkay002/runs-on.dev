@@ -10,6 +10,14 @@ name: deploy
 on:
   push:
     branches: [main]
+    # Registry data pushes — claims, record edits, the owners index, docs —
+    # change nothing the site serves, but each one used to build and upload
+    # the full app anyway. The day the registry got busy that burned through
+    # Vercel's free-tier upload quota ("api-upload-paid … more than 40000"),
+    # and every deploy after it failed while claims kept landing. Data
+    # commits no longer deploy at all; workflow_dispatch remains the manual
+    # path for forcing one.
+    paths-ignore: ['domains/**', 'owners/**', 'data/**', 'docs/**', '*.md']
   workflow_dispatch:
 
 permissions:
