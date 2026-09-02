@@ -153,3 +153,42 @@ test('reconcile creates a value the zone does not hold yet', () => {
   assert.deepEqual(create, [{ type: 'TXT', name: '_vercel', value: 'vc-domain-verify=shovith.runs-on.dev,c3' }]);
   assert.deepEqual(remove, []);
 });
+
+// The mirror publishes to the apex, one label above every claim, from a field
+// its owner controls and can edit from /manage with no review. What it accepts
+// is therefore a security boundary, not a formatting detail.
+test('a claim may only mirror a challenge naming its own hostname', () => {
+  const attacker = {
+    name: 'attacker',
+    subdomains: { _vercel: { TXT: [
+      'vc-domain-verify=runs-on.dev,ATTACKERTOKEN',
+      'vc-domain-verify=hussain.runs-on.dev,ATTACKERTOKEN',
+      'vc-domain-verify=attacker.runs-on.dev,OWNTOKEN',
+    ] } },
+  };
+  const values = planZoneVerificationRecords([attacker]).map((r) => r.value);
+  assert.deepEqual(values, ['vc-domain-verify=attacker.runs-on.dev,OWNTOKEN']);
+});
+
+test('a challenge for the apex itself is never mirrored', () => {
+  // Publishing this would let the claimant attach runs-on.dev to their own
+  // Vercel account: the apex, not their one name.
+  const claim = { name: 'x', subdomains: { _vercel: { TXT: ['vc-domain-verify=runs-on.dev,T'] } } };
+  assert.deepEqual(planZoneVerificationRecords([claim]), []);
+});
+
+test('a name that merely prefixes another cannot borrow its challenge', () => {
+  // "hussain" must not satisfy the prefix check for "hussain-two".
+  const claim = { name: 'hussain', subdomains: { _vercel: { TXT: [
+    'vc-domain-verify=hussain-two.runs-on.dev,T',
+  ] } } };
+  assert.deepEqual(planZoneVerificationRecords([claim]), []);
+});
+
+test('every real _vercel claim still mirrors', () => {
+  const claims = ['hussain', 'shovith', 'laurentmaxhuni', 'feel-your-phone'].map((name) => ({
+    name,
+    subdomains: { _vercel: { TXT: [`vc-domain-verify=${name}.runs-on.dev,tok`] } },
+  }));
+  assert.equal(planZoneVerificationRecords(claims).length, 4);
+});
