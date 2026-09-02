@@ -4,5 +4,14 @@
     "github": "Hawkay002"
   },
   "claimedAt": "2026-09-02T06:50:41.000Z",
-  "records": {}
+  "records": {
+    "CNAME": "cname.vercel-dns.com"
+  },
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=shovith.runs-on.dev,41524820ec7711f5f3ac"
+      ]
+    }
+  }
 }
