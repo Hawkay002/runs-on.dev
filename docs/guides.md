@@ -59,7 +59,11 @@ If Vercel also shows a TXT record starting `vc-domain-verify=`, it goes at
 ```
 
 `CNAME` cannot coexist with `TXT` at the same name, so putting it in
-`records` is rejected. Full walkthrough:
+`records` is rejected. The registry also mirrors that `_vercel` TXT to
+`_vercel.runs-on.dev` — the zone-level host Vercel actually reads the
+challenge from, since the apex sits in a Vercel account — automatically on
+every DNS sync, so verification can complete without the registry operator
+touching DNS by hand. Full walkthrough:
 [`/docs/guides/vercel`](https://runs-on.dev/docs/guides/vercel).
 
 ## Netlify

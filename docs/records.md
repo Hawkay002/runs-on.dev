@@ -76,6 +76,19 @@ verification.
 `lib/dns.js`'s `planDnsChanges` emits these as `<label>.<name>` DNS entries,
 so `_atproto` under `you` becomes `_atproto.you`.
 
+### The `_vercel` zone mirror
+
+`_vercel` is the one label with a second life. Vercel reads its ownership
+challenge for `<name>.runs-on.dev` from `_vercel.runs-on.dev` — zone level,
+one label ABOVE every claim — because the apex itself sits in a Vercel
+account. No claim file can express that host: `subdomains` records are
+always children of the claim's own name. So `sync-dns` mirrors every
+claim's `_vercel` TXT values to the zone-level host as well; TXT values
+coexist on one host, so each claim's `vc-domain-verify=…` string sits there
+alongside everyone else's. Reconciliation only ever deletes zone-level TXTs
+whose value starts `vc-domain-verify=` and is claimed by nobody — anything
+an operator places at that host by hand survives every sync.
+
 ## Why CNAME can't coexist with other record types
 
 This isn't a rule the registry invented. It's a DNS protocol constraint.

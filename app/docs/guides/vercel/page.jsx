@@ -67,6 +67,13 @@ export default function VercelGuide() {
           this without a pull request: add a subdomain row, label it <C>_vercel</C>, pick{' '}
           <C>TXT</C>, and paste the value.
         </p>
+        <p className="text-sm leading-relaxed sm:text-base">
+          The registry mirrors that <C>TXT</C> to{' '}
+          <C>_vercel.runs-on.dev</C> — the zone-level host Vercel actually reads the challenge
+          from, since the apex itself sits in a Vercel account — automatically on every DNS sync.
+          You only ever manage the <C>subdomains</C> entry above; the zone-level copy is how the
+          registry completes the handshake.
+        </p>
       </Section>
 
       <Section title="How to tell it worked">
