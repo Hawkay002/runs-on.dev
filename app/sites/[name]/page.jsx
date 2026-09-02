@@ -102,9 +102,20 @@ export default async function Site({ params }) {
             />
           )}
           <div>
-            <h1 className="font-(family-name:--font-display) text-2xl font-medium tracking-tight text-(--color-ink) sm:text-3xl">
-              {name}.runs-on.dev
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="font-(family-name:--font-display) text-2xl font-medium tracking-tight text-(--color-ink) sm:text-3xl">
+                {name}.runs-on.dev
+              </h1>
+              <a
+                href={`https://${name}.runs-on.dev`}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Open ${name}.runs-on.dev`}
+                className="flex h-7 w-7 items-center justify-center border border-(--color-rule) font-(family-name:--font-mono) text-sm text-(--color-muted) transition-colors hover:border-(--color-signal) hover:text-(--color-signal)"
+              >
+                ↗
+              </a>
+            </div>
             {displayName && <p className="text-sm text-(--color-muted)">{displayName}</p>}
           </div>
         </div>
@@ -147,6 +158,32 @@ export default async function Site({ params }) {
               <dd className="text-(--color-ink)">{record.claimedAt}</dd>
             </div>
           )}
+          {/* The banner links must be absolute to the apex: this page renders
+              on <name>.runs-on.dev hosts, where a relative /banner/<name>
+              would be rewritten by proxy.js into /sites/<name>/banner/... and
+              404. The banner route lives on runs-on.dev itself. */}
+          <div className="flex gap-2">
+            <dt className="w-24 shrink-0 text-(--color-muted)">share</dt>
+            <dd>
+              <a
+                className="text-(--color-signal) underline"
+                href={`https://runs-on.dev/banner/${name}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                banner
+              </a>
+              {' / '}
+              <a
+                className="text-(--color-signal) underline"
+                href={`https://runs-on.dev/banner/${name}?theme=dark`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                dark
+              </a>
+            </dd>
+          </div>
         </dl>
       </div>
 
