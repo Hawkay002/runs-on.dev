@@ -42,7 +42,15 @@ export async function generateMetadata({ params }) {
   if (!record) return { title: { absolute: 'Not found' }, robots: { index: false } };
 
   const profile = await githubProfile(record.owner.github);
-  return cardMetadata({ name, record, profile });
+  // Field-by-field merge, same as the page below: record.profile wins where
+  // set, GitHub fills the rest, so title/description and the rendered card
+  // can never disagree.
+  const merged = {
+    ...profile,
+    name: record.profile?.name ?? profile?.name,
+    bio: record.profile?.bio ?? profile?.bio,
+  };
+  return cardMetadata({ name, record, profile: merged });
 }
 
 export default async function Site({ params }) {
@@ -63,6 +71,16 @@ export default async function Site({ params }) {
   }
 
   const profile = await githubProfile(record.owner.github);
+
+  // The record's profile block overrides what GitHub reports, field by
+  // field: an owner who set profile.name keeps their chosen display name
+  // even when the GitHub profile says something else, and an unset field
+  // falls back rather than blanking the card. cardMetadata receives the
+  // merged view so the page and its meta tags can never disagree.
+  const overrides = record.profile ?? {};
+  const displayName = overrides.name ?? profile?.name;
+  const bio = overrides.bio ?? profile?.bio;
+  const links = Array.isArray(overrides.links) ? overrides.links : [];
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-16 sm:py-24">
@@ -85,11 +103,29 @@ export default async function Site({ params }) {
             <h1 className="font-(family-name:--font-display) text-2xl font-medium tracking-tight text-(--color-ink) sm:text-3xl">
               {name}.runs-on.dev
             </h1>
-            {profile?.name && <p className="text-sm text-(--color-muted)">{profile.name}</p>}
+            {displayName && <p className="text-sm text-(--color-muted)">{displayName}</p>}
           </div>
         </div>
 
-        {profile?.bio && <p className="mt-4 text-sm leading-relaxed">{profile.bio}</p>}
+        {bio && <p className="mt-4 text-sm leading-relaxed">{bio}</p>}
+
+        {links.length > 0 && (
+          <ul className="mt-6 space-y-2">
+            {links.map((link) => (
+              <li key={`${link.label}-${link.url}`}>
+                <a
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between border border-(--color-rule) px-4 py-3 font-(family-name:--font-mono) text-sm text-(--color-ink) transition-colors hover:border-(--color-signal)"
+                >
+                  <span className="truncate">{link.label}</span>
+                  <span aria-hidden className="ml-3 shrink-0 text-(--color-muted)">↗</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
 
         <dl className="mt-6 space-y-1 border-t border-(--color-rule) pt-4 font-(family-name:--font-mono) text-xs sm:text-[13px]">
           <div className="flex gap-2">
