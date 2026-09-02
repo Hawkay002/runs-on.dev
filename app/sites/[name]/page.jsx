@@ -15,10 +15,12 @@ const CARD_TOKEN = process.env.CARD_TOKEN ?? process.env.REGISTRY_TOKEN;
 
 async function githubProfile(login) {
   const res = await fetch(`https://api.github.com/users/${login}`, {
-    headers: {
-      Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${CARD_TOKEN}`,
-    },
+    // Authorization only when a token actually exists: `Bearer undefined`
+    // is a malformed credential GitHub answers with 401, not an anonymous
+    // request — the same trap lib/claim-banner.jsx guards against.
+    headers: CARD_TOKEN
+      ? { Accept: 'application/vnd.github+json', Authorization: `Bearer ${CARD_TOKEN}` }
+      : { Accept: 'application/vnd.github+json' },
     next: { revalidate: 3600 },
   });
   if (!res.ok) return null;
