@@ -4,7 +4,9 @@
     "github": "BartSimpson001"
   },
   "claimedAt": "2026-09-03T01:54:36.463Z",
-  "records": {},
+  "records": {
+    "CNAME": "59c8406e70d87c96.vercel-dns-017.com"
+  },
   "subdomains": {
     "_vercel": {
       "TXT": [
