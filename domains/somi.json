@@ -4,5 +4,9 @@
     "github": "SomuG25"
   },
   "claimedAt": "2026-09-03T14:09:47.519Z",
-  "records": {}
+  "records": {
+    "TXT": [
+      "vc-domain-verify=runs-on.dev,6d35cb5960a3a257c750"
+    ]
+  }
 }
