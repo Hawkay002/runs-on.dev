@@ -5,6 +5,15 @@
   },
   "claimedAt": "2026-09-03T06:22:45.198Z",
   "records": {
-    "CNAME": "fe07046227d65908.vercel-dns-017.com"
+    "TXT": [
+      "vc-domain-verify=unimarky.runs-on.dev,8eba43fb847ce6a55808"
+    ]
+  },
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=unimarky.runs-on.dev,8eba43fb847ce6a55808"
+      ]
+    }
   }
 }
