@@ -4,7 +4,9 @@
     "github": "ANMOLGOLA"
   },
   "claimedAt": "2026-09-03T18:07:59.073Z",
-  "records": {},
+  "records": {
+    "URL": "https://launchpad-site-two.vercel.app/"
+  },
   "subdomains": {
     "_vercel": {
       "TXT": [
