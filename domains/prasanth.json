@@ -12,9 +12,6 @@
       "TXT": [
         "vc-domain-verify=prasanth.runs-on.dev,d38728ca8f199d65ab11"
       ]
-    },
-    "prasanth": {
-      "CNAME": "cname.vercel-dns.com"
     }
   }
 }
