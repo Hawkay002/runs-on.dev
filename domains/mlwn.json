@@ -4,13 +4,16 @@
     "github": "mlwn4096"
   },
   "claimedAt": "2026-09-02T14:40:05.084Z",
-  "records": {
-    "CNAME": "6af5ca2fc1de7a6f.vercel-dns-017.com"
-  },
+  "records": {},
   "subdomains": {
     "_vercel": {
       "TXT": [
         "vc-domain-verify=mlwn.runs-on.dev,6fcc5b4fff21c59c270b"
+      ]
+    },
+    "_gooogle": {
+      "TXT": [
+        "google-site-verification=64GRvb6iuiEALBALfkoyOsWehqy4AmwmQeZ5bC641qY"
       ]
     }
   }
