@@ -4,7 +4,9 @@
     "github": "mlwn4096"
   },
   "claimedAt": "2026-09-02T14:40:05.084Z",
-  "records": {},
+  "records": {
+    "CNAME": "6af5ca2fc1de7a6f.vercel-dns-017.com"
+  },
   "subdomains": {
     "_vercel": {
       "TXT": [
