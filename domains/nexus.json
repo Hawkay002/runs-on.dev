@@ -10,7 +10,7 @@
   "subdomains": {
     "_vercel": {
       "TXT": [
-        "vc-domain-verify=recruitment.nexus.runs-on.dev,d8d01cfd675744079257"
+        "vc-domain-verify=nexus.runs-on.dev,9c44879cbb082a321d49"
       ]
     },
     "recruitment": {
