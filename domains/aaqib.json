@@ -4,5 +4,12 @@
     "github": "AaqibShaikh10"
   },
   "claimedAt": "2026-09-03T03:56:43.614Z",
-  "records": {}
+  "records": {},
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=aaqib.runs-on.dev,faee72c2a55272acc4f4"
+      ]
+    }
+  }
 }
