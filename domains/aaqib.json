@@ -4,7 +4,9 @@
     "github": "AaqibShaikh10"
   },
   "claimedAt": "2026-09-03T03:56:43.614Z",
-  "records": {},
+  "records": {
+    "CNAME": "9b0e4a947152a144.vercel-dns-017.com"
+  },
   "subdomains": {
     "_vercel": {
       "TXT": [
