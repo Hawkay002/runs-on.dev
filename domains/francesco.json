@@ -4,5 +4,7 @@
     "github": "FrancescoContinella"
   },
   "claimedAt": "2026-09-02T21:19:08.647Z",
-  "records": {}
+  "records": {
+    "CNAME": "francesco-continella.pages.dev"
+  }
 }
