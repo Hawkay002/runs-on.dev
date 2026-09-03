@@ -4,5 +4,7 @@
     "github": "adenhilde"
   },
   "claimedAt": "2026-09-02T19:39:12.829Z",
-  "records": {}
+  "records": {
+    "CNAME": "adenhilde.github.io"
+  }
 }
