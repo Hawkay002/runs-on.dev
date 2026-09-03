@@ -4,5 +4,14 @@
     "github": "liamatienza"
   },
   "claimedAt": "2026-09-03T07:27:50.713Z",
-  "records": {}
+  "records": {
+    "CNAME": "a30ed0bcc944a709.vercel-dns-017.com"
+  },
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=liamatienza.runs-on.dev,545be8562ac3be26c1af"
+      ]
+    }
+  }
 }
