@@ -5,6 +5,8 @@
   },
   "claimedAt": "2026-09-03T15:38:41.023Z",
   "records": {
-    "CNAME": "a8320507a835c512.vercel-dns-017.com"
+    "TXT": [
+      "vc-domain-verify=rishabh.runs-on.dev,94a988a16fdfcfdf30d0"
+    ]
   }
 }
