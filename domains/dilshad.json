@@ -8,5 +8,12 @@
     "TXT": [
       "vc-domain-verify=dilshad.runs-on.dev,5881e860726d4429c386"
     ]
+  },
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=dilshad.runs-on.dev,5881e860726d4429c386"
+      ]
+    }
   }
 }
