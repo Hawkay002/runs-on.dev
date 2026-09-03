@@ -4,14 +4,5 @@
     "github": "agarwalaryansh22-web"
   },
   "claimedAt": "2026-09-03T09:47:48.150Z",
-  "records": {
-    "CNAME": "d26603e2904585f4.vercel-dns-017.com"
-  },
-  "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=wisflux.runs-on.dev,285a1bc154aa783c733a"
-      ]
-    }
-  }
+  "records": {}
 }
