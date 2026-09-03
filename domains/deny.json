@@ -4,9 +4,12 @@
     "github": "denyryn"
   },
   "claimedAt": "2026-09-03T21:41:06.027Z",
-  "records": {
-    "TXT": [
-      "_vercel=vc-domain-verify=runs-on.dev,91cf2402ccdb418f7418"
-    ]
+  "records": {},
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=runs-on.dev,91cf2402ccdb418f7418"
+      ]
+    }
   }
 }
