@@ -4,5 +4,7 @@
     "github": "raiyanu"
   },
   "claimedAt": "2026-09-03T07:05:02.636Z",
-  "records": {}
+  "records": {
+    "CNAME": "raiyanu.vercel.app"
+  }
 }
