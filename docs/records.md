@@ -98,11 +98,11 @@ profile; `links` exist only here.
 
 ```json
 "profile": {
-  "name": "Shovith Debnath",
-  "bio": "Full stack & AI developer",
+  "name": "Your Display Name",
+  "bio": "A line about what you build",
   "links": [
-    { "label": "Portfolio", "url": "https://shovith-dev.vercel.app" },
-    { "label": "GitHub", "url": "https://github.com/Hawkay002" }
+    { "label": "Portfolio", "url": "https://your-site.example.com" },
+    { "label": "GitHub", "url": "https://github.com/your-login" }
   ]
 }
 ```
