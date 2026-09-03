@@ -4,5 +4,9 @@
     "github": "koustavx08"
   },
   "claimedAt": "2026-09-03T07:37:58.510Z",
-  "records": {}
+  "records": {
+    "TXT": [
+      "vc-domain-verify=koustavx08.runs-on.dev,f2bffffef1664b42a425"
+    ]
+  }
 }
