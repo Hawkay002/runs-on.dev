@@ -12,9 +12,6 @@
       "TXT": [
         "vc-domain-verify=typeshift.junaidahamed.runs-on.dev,bc2388a8ce2eb98520a3"
       ]
-    },
-    "typeshift": {
-      "CNAME": "cname.vercel-dns.com"
     }
   }
 }
