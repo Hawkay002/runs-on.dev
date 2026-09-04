@@ -8,5 +8,10 @@
   "profile": {
     "name": "SujayYadav776",
     "bio": "skillydv"
+  },
+  "subdomains": {
+    "semassist": {
+      "CNAME": "cname.vercel-dns.com"
+    }
   }
 }
