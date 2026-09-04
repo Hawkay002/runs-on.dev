@@ -14,12 +14,5 @@
         "url": "https://x.com/kxrbx"
       }
     ]
-  },
-  "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=runs-on.dev,62fc51c71f6145333930"
-      ]
-    }
   }
 }
