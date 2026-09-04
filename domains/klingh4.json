@@ -4,12 +4,10 @@
     "github": "klingh4"
   },
   "claimedAt": "2026-09-04T09:26:12.365Z",
-  "records": {},
-  "subdomains": {
-    "yt": {
-      "A": [
-        "192.168.10.222"
-      ]
-    }
+  "records": {
+    "TXT": [
+      "Hello :) this is a test",
+      "//Schmul"
+    ]
   }
 }
