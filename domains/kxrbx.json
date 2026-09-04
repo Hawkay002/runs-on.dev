@@ -14,5 +14,12 @@
         "url": "https://x.com/kxrbx"
       }
     ]
+  },
+  "subdomains": {
+    "viberoulette": {
+      "TXT": [
+        "vc-domain-verify=runs-on.dev,62fc51c71f6145333930"
+      ]
+    }
   }
 }
