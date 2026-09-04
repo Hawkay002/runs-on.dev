@@ -5,6 +5,8 @@
   },
   "claimedAt": "2026-09-04T22:07:30.486Z",
   "records": {
-    "URL": "https://portfolio-livid-theta-58.vercel.app/"
+    "TXT": [
+      "vc-domain-verify=tanmaywankhede.runs-on.dev,54c6a334010605fa6371"
+    ]
   }
 }
