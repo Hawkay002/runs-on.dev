@@ -16,9 +16,9 @@
     ]
   },
   "subdomains": {
-    "viberoulette": {
+    "_vercel": {
       "TXT": [
-        "vc-domain-verify=viberoulette.kxrbx.runs-on.dev,d98fcc5a21ff059d6374"
+        "vc-domain-verify=runs-on.dev,62fc51c71f6145333930"
       ]
     }
   }
