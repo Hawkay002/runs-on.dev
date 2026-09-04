@@ -12,11 +12,6 @@
   "subdomains": {
     "upload": {
       "CNAME": "xmpp.runs-on.dev"
-    },
-    "_acme-challenge": {
-      "TXT": [
-        "sw2Plh95z6ZFeWS5htJPXf8wMiQuwo9Drt8Gm3Tpexg"
-      ]
     }
   }
 }
