@@ -5,8 +5,6 @@
   },
   "claimedAt": "2026-09-04T22:07:30.486Z",
   "records": {
-    "TXT": [
-      "vc-domain-verify=tanmaywankhede.runs-on.dev,54c6a334010605fa6371"
-    ]
+    "CNAME": "a2aaeb2aa973cbc9.vercel-dns-017.com"
   }
 }
