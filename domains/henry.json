@@ -4,9 +4,5 @@
     "github": "nyator"
   },
   "claimedAt": "2026-09-03T11:10:03.160Z",
-  "records": {
-    "TXT": [
-      "vc-domain-verify=henry.runs-on.dev,013d6da90738a5cfcba6"
-    ]
-  }
+  "records": {}
 }
