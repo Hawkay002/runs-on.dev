@@ -4,5 +4,12 @@
     "github": "krreeshhh"
   },
   "claimedAt": "2026-09-02T16:54:48.607Z",
-  "records": {}
+  "records": {},
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=krish.runs-on.dev,5bccacd5246b6634d159"
+      ]
+    }
+  }
 }
