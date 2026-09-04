@@ -10,7 +10,7 @@
   "subdomains": {
     "_vercel": {
       "TXT": [
-        "vc-domain-verify=junaidahamed.runs-on.dev,25e8b2b4a9c1b606ae48"
+        "vc-domain-verify=typeshift.junaidahamed.runs-on.dev,bc2388a8ce2eb98520a3"
       ]
     },
     "typeshift": {
