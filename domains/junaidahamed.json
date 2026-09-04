@@ -10,6 +10,11 @@
   "subdomains": {
     "junaidahamed": {
       "CNAME": "f2969c747c6b302e.vercel-dns-017.com"
+    },
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=typeshift.junaidahamed.runs-on.dev,486f4502f1f5e2d14893"
+      ]
     }
   }
 }
