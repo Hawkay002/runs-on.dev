@@ -4,7 +4,9 @@
     "github": "krreeshhh"
   },
   "claimedAt": "2026-09-02T16:54:48.607Z",
-  "records": {},
+  "records": {
+    "CNAME": "76f568eacb62cd8c.vercel-dns-017.com"
+  },
   "subdomains": {
     "_vercel": {
       "TXT": [
