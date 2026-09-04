@@ -36,14 +36,14 @@ const PRIVATE_RANGES = [
   /^f[cd][0-9a-f]{2}:/i,
 ];
 
-export function isPrivateAddress(host) {
-  if (PRIVATE_RANGES.some((pattern) => pattern.test(host))) return true;
-  // An A record pointing at a private range is the same attack: the name
-  // resolves, the fetch goes to the private address, and the response body
-  // comes back through this endpoint.
-  return false;
-}
-
+// TOCTOU: this resolves the name once, then `fetch` below resolves it again
+// independently. A short-TTL record could answer public here and private on
+// the second lookup (DNS rebinding). Fixing properly means resolving once and
+// connecting to the pinned address, which is more machinery than this
+// endpoint warrants today: `redirect: 'manual'` means at most a `<title>`
+// comes back, from a host inside our own zone, and the schema only accepts
+// A records (no AAAA, so no `::1` bypass). The reasoning lives here so it
+// isn't rediscovered.
 async function resolveAndCheckPrivate(hostname) {
   const addresses = await dns.resolve4(hostname).catch(() => []);
   return addresses.some((addr) => PRIVATE_RANGES.some((pattern) => pattern.test(addr)));
