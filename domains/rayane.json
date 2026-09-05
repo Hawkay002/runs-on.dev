@@ -5,8 +5,6 @@
   },
   "claimedAt": "2026-09-05T01:28:46.340Z",
   "records": {
-    "TXT": [
-      "vc-domain-verify=rayane.runs-on.dev,3b0856ffda70e9ac91b6"
-    ]
+    "URL": "https://portdolio-beta.vercel.app/"
   }
 }
