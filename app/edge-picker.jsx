@@ -76,6 +76,9 @@ export default function EdgePicker() {
   const [isRevealed, setIsRevealed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isCompact, setIsCompact] = useState(false);
+  const isDraggingRef = useRef(false);
+  isDraggingRef.current = isDragging;
 
   const scrollPosRef = useRef(initialIndex);
   scrollPosRef.current = scrollPos;
@@ -212,7 +215,10 @@ export default function EdgePicker() {
   // --------------------------------------------------------------------------
   // Geometry & Spec Formulas (46px rest, 96px revealed, locked 12px gap)
   // --------------------------------------------------------------------------
-  const effectiveRevealed = isRevealed || isHovered;
+  // isDragging shows text too: on mobile there's no hover, so the only way
+  // to see which route you're on while scrolling the reel is for the pill
+  // to be in its text state during the drag itself.
+  const effectiveRevealed = isRevealed || isHovered || isDragging;
   const pillHeight = effectiveRevealed ? 96 : 46;
 
   const getSlotY = useCallback((relOffset, currentPillH) => {
@@ -232,6 +238,15 @@ export default function EdgePicker() {
   // Gesture & Touch Interactions
   // --------------------------------------------------------------------------
   const handlePointerDown = (e, specificIndex = null) => {
+    // Tapping the compact dock expands it back to full size; the drag/tap
+    // behavior only resumes once the dock is at its normal size.
+    if (isCompact) {
+      setIsCompact(false);
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
       animFrameRef.current = null;
@@ -388,6 +403,25 @@ export default function EdgePicker() {
     return () => clearInterval(interval);
   }, [router]);
 
+  // Compact the dock when the page scrolls: the full-height dock can cover
+  // text on smaller screens, so it deflates to a small pill anchored to the
+  // edge. Tapping it bounces it back to full size. Only fires when the dock
+  // itself isn't being dragged (isDraggingRef prevents a scroll inside the
+  // dock from compacting it).
+  useEffect(() => {
+    let timer;
+    const onPageScroll = () => {
+      if (isDraggingRef.current) return;
+      clearTimeout(timer);
+      timer = setTimeout(() => setIsCompact(true), 120);
+    };
+    window.addEventListener('scroll', onPageScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onPageScroll);
+      clearTimeout(timer);
+    };
+  }, []);
+
   // Restore the picker's saved position from IndexedDB on mount
   useEffect(() => {
     openPickerDb()
@@ -436,7 +470,16 @@ export default function EdgePicker() {
       onPointerCancel={handlePointerUp}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="fixed right-0 top-1/2 -translate-y-1/2 z-50 h-[380px] w-[56px] select-none touch-none cursor-ns-resize flex items-center justify-end"
+      style={{
+        top: '50%',
+        right: 0,
+        position: 'fixed',
+        transform: `translateY(-50%) scale(${isCompact ? 0.3 : 1})`,
+        transformOrigin: 'center right',
+        transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        opacity: isCompact ? 0.7 : 1,
+      }}
+      className="z-50 h-[380px] w-[56px] select-none touch-none cursor-ns-resize flex items-center justify-end"
       aria-label="Page navigation"
       role="navigation"
     >
@@ -534,8 +577,9 @@ export default function EdgePicker() {
           </div>
         </div>
 
-        {/* Looping Reel Neighbors */}
-        {visibleItemOffsets.map((offset) => {
+        {/* Looping Reel Neighbors (hidden when compact: the dock deflates
+            to just the active pill so it stops covering page text) */}
+        {!isCompact && visibleItemOffsets.map((offset) => {
           const integerIdx = currentNearestCenter + offset;
           const catalogIdx = ((integerIdx % itemCount) + itemCount) % itemCount;
           const item = items[catalogIdx];
