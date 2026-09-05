@@ -66,6 +66,11 @@ verification.
 - Each label matches `^_?[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$`, the same
   grammar as `name`, plus one optional leading underscore, and no dots (a
   subdomain is exactly one level deep).
+- A two-label form `_<label>.<label>` is also accepted for verification
+  records: Vercel reads its challenge from `_vercel.<domain>` and a
+  subdomain of a claim (e.g. `recruitment.you.runs-on.dev`) needs its TXT
+  at `_vercel.recruitment.you.runs-on.dev`. Only underscore-first is
+  allowed; a bare `a.b` is still rejected.
 - Each value holds `A`, `TXT`, `CNAME`, or `MX` under the same coexistence
   rules as the root `records` object. `URL` is not allowed on a
   subdomain. The app only ever looks up the claimed name itself, so a

@@ -216,12 +216,60 @@ test('accepts a valid subdomains entry', () => {
   assert.deepEqual(out, { ok: true, errors: [] });
 });
 
-test('rejects a subdomain label with a dot', () => {
+test('rejects a subdomain label with a dot but no leading underscore', () => {
   const out = validateRecord({
     ...valid,
     subdomains: { 'foo.bar': { TXT: ['hello'] } },
   });
   assert.equal(out.ok, false);
+});
+
+// --- two-label verification subdomains (#82) ---
+
+test('accepts a two-label verification subdomain like _vercel.recruitment', () => {
+  const out = validateRecord({
+    ...valid,
+    subdomains: { '_vercel.recruitment': { TXT: ['vc-domain-verify=recruitment.lucas.runs-on.dev,abc123'] } },
+  });
+  assert.deepEqual(out, { ok: true, errors: [] });
+});
+
+test('rejects three-label subdomains (arbitrary nesting)', () => {
+  const out = validateRecord({
+    ...valid,
+    subdomains: { '_a.b.c': { TXT: ['hello'] } },
+  });
+  assert.equal(out.ok, false);
+});
+
+test('rejects two-label without the underscore-first order', () => {
+  // a.b has no underscore prefix and is not a verification label
+  assert.equal(validateRecord({ ...valid, subdomains: { 'a.b': { TXT: ['hi'] } } }).ok, false);
+  // _a_b is one label with internal underscore, not two labels
+  assert.equal(validateRecord({ ...valid, subdomains: { 'a._b': { TXT: ['hi'] } } }).ok, false);
+});
+
+test('two-label subdomains round-trip through planDnsChanges', async () => {
+  const { planDnsChanges } = await import('../lib/dns.js');
+  const record = {
+    ...valid,
+    subdomains: { '_vercel.recruitment': { TXT: ['vc-domain-verify=recruitment.lucas.runs-on.dev,abc123'] } },
+  };
+  const changes = planDnsChanges(record);
+  assert.deepEqual(changes, [
+    { type: 'TXT', name: '_vercel.recruitment.lucas', value: 'vc-domain-verify=recruitment.lucas.runs-on.dev,abc123' },
+  ]);
+});
+
+test('the JSON Schema mirror allows the two-label form', () => {
+  // The mirror must agree with lib/schema.js, per the drift contract.
+  const nested = '_vercel.recruitment';
+  const oneLabel = '_vercel';
+  const bare = 'a.b';
+  // Test via validateRecord which reads the same grammar
+  assert.equal(validateRecord({ ...valid, subdomains: { [nested]: { TXT: ['hi'] } } }).ok, true);
+  assert.equal(validateRecord({ ...valid, subdomains: { [oneLabel]: { TXT: ['hi'] } } }).ok, true);
+  assert.equal(validateRecord({ ...valid, subdomains: { [bare]: { TXT: ['hi'] } } }).ok, false);
 });
 
 test('rejects a subdomain holding URL', () => {

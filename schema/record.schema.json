@@ -23,7 +23,12 @@
     "subdomains": {
       "type": "object",
       "maxProperties": 10,
-      "propertyNames": { "pattern": "^_?[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$" },
+      "propertyNames": {
+        "anyOf": [
+          { "pattern": "^_?[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$" },
+          { "pattern": "^_[a-z0-9]([a-z0-9-]{0,61}[a-z0-9]?)?\\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9]?)?$" }
+        ]
+      },
       "additionalProperties": { "$ref": "#/$defs/subdomainRecords" }
     },
     "profile": { "$ref": "#/$defs/profile" }
