@@ -108,10 +108,6 @@ export default function EdgePicker() {
 
       osc.start();
       osc.stop(ctx.currentTime + 0.035);
-
-      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-        navigator.vibrate(8);
-      }
     } catch {
       // Audio awaiting user gesture
     }
