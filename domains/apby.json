@@ -10,7 +10,7 @@
   "subdomains": {
     "_vercel": {
       "TXT": [
-        "vc-domain-verify=apby.runs-on.dev,7580e14ae871ca5644c6"
+        "vc-domain-verify=runs-on.dev,3ee595e937a204106e17"
       ]
     }
   }
