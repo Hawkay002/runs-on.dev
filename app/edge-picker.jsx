@@ -489,13 +489,27 @@ export default function EdgePicker() {
         </defs>
       </svg>
 
-      {/* Compact Capsule Backing (hugs active item when site scrolls) */}
-      <div
-        className="absolute inset-0 rounded-l-full bg-black shadow-[-4px_0_16px_rgba(0,0,0,0.6)] border-l border-t border-b border-white/20 transition-opacity duration-300 pointer-events-none"
+      {/* Compact Notch SVG (same bezel shape, scaled to capsule size) */}
+      <svg
+        className="absolute right-0 top-0 pointer-events-none transition-opacity duration-300"
+        width="56"
+        height="56"
+        viewBox="0 0 56 56"
         style={{
           opacity: isCompact ? 1 : 0,
         }}
-      />
+      >
+        <path
+          d="M 56,0 C 56,7 4,7 4,14 L 4,42 C 4,49 56,49 56,56 Z"
+          fill="#0a0a0c"
+        />
+        <path
+          d="M 56,1 C 55,7 5,7 5,14 L 5,42 C 5,49 55,49 56,55"
+          fill="none"
+          stroke="rgba(255,255,255,0.18)"
+          strokeWidth="1.5"
+        />
+      </svg>
 
       {/* Curved SVG Dock Bezel (recessed into page in expanded mode) */}
       <svg
