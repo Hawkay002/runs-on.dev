@@ -171,10 +171,11 @@ export default function EdgePicker() {
     [checkDetent, itemCount]
   );
 
-  // Text revealed while dragging, wheeling, or hovering (desktop only —
-  // mobile has no hover so the pill stays compact unless actively scrubbed)
+  // Text revealed while dragging, wheeling, or hovering with a mouse.
+  // Touch pointers never activate hover (checked via pointerType), so
+  // mobile stays icon-only unless actively scrubbing the reel.
   const [isHovered, setIsHovered] = useState(false);
-  const isScrollingReel = !isCompact && (isDragging || isWheeling || (typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches && isHovered));
+  const isScrollingReel = !isCompact && (isDragging || isWheeling || isHovered);
   const pillHeight = isScrollingReel ? 96 : 46;
 
   // Compact state maintains the exact S-curve notch shape, shrunk to 116px
@@ -453,8 +454,10 @@ export default function EdgePicker() {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onPointerEnter={(e) => {
+        if (e.pointerType === 'mouse') setIsHovered(true);
+      }}
+      onPointerLeave={() => setIsHovered(false)}
       onClick={(e) => {
         if (isCompact) {
           setIsCompact(false);
