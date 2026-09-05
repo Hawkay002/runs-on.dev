@@ -15,7 +15,7 @@
     ]
   },
   "subdomains": {
-    "ssc": {
+    "_vercel": {
       "CNAME": "03a9f80515aeef78.vercel-dns-017.com"
     }
   }
