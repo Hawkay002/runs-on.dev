@@ -4,5 +4,11 @@
     "github": "pseudonip"
   },
   "claimedAt": "2026-09-04T21:24:29.326Z",
-  "records": {}
+  "records": {
+    "CNAME": "vps8224.freevps.edu.pl"
+  },
+  "profile": {
+    "name": "pseudonip",
+    "bio": "@pseudonip"
+  }
 }
