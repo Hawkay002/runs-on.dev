@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { validateChangeset, parseRecordFile, RecordParseError } from '../lib/pr.js';
+import { validateChangeset, parseRecordFile, RecordParseError, countOwnedNames } from '../lib/pr.js';
 
 const owned = {
   name: 'lucas',
@@ -293,4 +293,72 @@ test('a RecordParseError is distinguishable from any other failure', () => {
   // contributor mistake.
   assert.equal(new RecordParseError('p', new Error('x')) instanceof RecordParseError, true);
   assert.equal(new TypeError('boom') instanceof RecordParseError, false);
+});
+
+// --- countOwnedNames (issue #84: moved here so it can be tested) ---
+
+// A stub registry: enough entries to exercise the batching, owned by a mix
+// of accounts, with the casing difference that the real world produces.
+const stubEntries = [
+  { type: 'file', name: 'lucas.json' },
+  { type: 'file', name: 'shrey.json' },
+  { type: 'file', name: 'hussain.json' },
+  { type: 'file', name: 'dexi.json' },
+  { type: 'file', name: 'README.md' },
+  { type: 'dir', name: 'nested' },
+  { type: 'file', name: 'talha.json' },
+  { type: 'file', name: 'shovith.json' },
+  { type: 'file', name: 'lucas2.json' },
+  { type: 'file', name: 'lucas3.json' },
+  { type: 'file', name: 'lucas4.json' },
+  { type: 'file', name: 'lucas5.json' },
+];
+
+const stubRecords = {
+  'domains/lucas.json': { owner: { github: 'Zordhalo' } },
+  'domains/shrey.json': { owner: { github: 'satanrayshe' } },
+  'domains/hussain.json': { owner: { github: 'theonlyhussain' } },
+  'domains/dexi.json': { owner: { github: 'Zordhalo' } },
+  'domains/talha.json': { owner: { github: 'talha-dev' } },
+  'domains/shovith.json': { owner: { github: 'HAWKAY002' } },
+  'domains/lucas2.json': { owner: { github: 'Zordhalo' } },
+  'domains/lucas3.json': { owner: { github: 'Zordhalo' } },
+  'domains/lucas4.json': { owner: { github: 'Zordhalo' } },
+  'domains/lucas5.json': { owner: { github: 'someone-else' } },
+};
+
+const stubDeps = {
+  listDomainEntries: async () => stubEntries,
+  readRecord: async (path) => stubRecords[path] ?? null,
+};
+
+test('counts only the records owned by the target login, case-insensitively', async () => {
+  assert.equal(await countOwnedNames('zordhalo', stubDeps), 5);
+  assert.equal(await countOwnedNames('ZORDHALO', stubDeps), 5);
+  assert.equal(await countOwnedNames('hawkay002', stubDeps), 1);
+  assert.equal(await countOwnedNames('nobody', stubDeps), 0);
+});
+
+test('ignores non-file entries and non-JSON files', async () => {
+  // README.md and the directory entry must not produce a readRecord call
+  // for their name, because they were filtered before counting.
+  const called = [];
+  const tracking = {
+    listDomainEntries: async () => stubEntries,
+    readRecord: async (path) => {
+      called.push(path);
+      return stubRecords[path] ?? null;
+    },
+  };
+  await countOwnedNames('zordhalo', tracking);
+  assert.ok(!called.includes('domains/README.md'));
+  assert.ok(!called.includes('domains/nested'));
+});
+
+test('a record with a missing or null owner counts as not owned', async () => {
+  const sparse = {
+    listDomainEntries: async () => [{ type: 'file', name: 'x.json' }],
+    readRecord: async () => ({}),
+  };
+  assert.equal(await countOwnedNames('anyone', sparse), 0);
 });
