@@ -5,13 +5,18 @@
   },
   "claimedAt": "2026-09-03T14:43:46.573Z",
   "records": {
-    "CNAME": "00b853052b6eb39b.vercel-dns-017.com"
-  },
-  "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=apby.runs-on.dev,f2375fbe94bc78d5bdbd"
-      ]
-    }
+    "TXT": [
+      "v=spf1 include:spf.improvmx.com ~all"
+    ],
+    "MX": [
+      {
+        "priority": 10,
+        "value": "mx1.improvmx.com"
+      },
+      {
+        "priority": 20,
+        "value": "mx2.improvmx.com"
+      }
+    ]
   }
 }
