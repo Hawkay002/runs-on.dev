@@ -4,8 +4,6 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Home, Settings2, BarChart3, BookOpenText, CircleHelp, Info } from 'lucide-react';
 
-const ICON_SIZE = 18;
-
 const ROUTES = [
   { id: 'home', label: 'Home', path: '/', Icon: Home },
   { id: 'manage', label: 'Manage', path: '/manage', Icon: Settings2 },
@@ -15,8 +13,10 @@ const ROUTES = [
   { id: 'about', label: 'About', path: '/about', Icon: Info },
 ];
 
+const ICON_SIZE = 18;
+
 function openPickerDb() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (typeof window === 'undefined' || !window.indexedDB) {
       resolve(null);
       return;
@@ -26,16 +26,13 @@ function openPickerDb() {
       req.result.createObjectStore('state');
     };
     req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+    req.onerror = () => resolve(null);
   });
 }
 
 function idbGet(db, key) {
   return new Promise((resolve) => {
-    if (!db) {
-      resolve(undefined);
-      return;
-    }
+    if (!db) { resolve(undefined); return; }
     const tx = db.transaction('state', 'readonly');
     const req = tx.objectStore('state').get(key);
     req.onsuccess = () => resolve(req.result);
@@ -45,10 +42,7 @@ function idbGet(db, key) {
 
 function idbPut(db, key, value) {
   return new Promise((resolve) => {
-    if (!db) {
-      resolve();
-      return;
-    }
+    if (!db) { resolve(); return; }
     const tx = db.transaction('state', 'readwrite');
     tx.objectStore('state').put(value, key);
     tx.oncomplete = () => resolve();
@@ -62,7 +56,7 @@ export default function EdgePicker() {
   const items = ROUTES;
   const itemCount = items.length;
 
-  const initialIndex = Math.max(0, ROUTES.findIndex((r) => r.path === pathname));
+  const initialIndex = Math.max(0, items.findIndex((r) => r.path === pathname));
 
   const [scrollPos, setScrollPos] = useState(initialIndex);
   const [isDragging, setIsDragging] = useState(false);
@@ -72,7 +66,7 @@ export default function EdgePicker() {
   const isDraggingRef = useRef(false);
   isDraggingRef.current = isDragging;
   const isPointerDownRef = useRef(false);
-  const expandedAtRef = useRef(0);
+  const expandedAtRef = useRef(Date.now());
 
   const scrollPosRef = useRef(initialIndex);
   scrollPosRef.current = scrollPos;
@@ -88,19 +82,6 @@ export default function EdgePicker() {
   const targetItemOnDown = useRef(null);
   const lastDetentIndex = useRef(initialIndex);
   const audioContextRef = useRef(null);
-
-  useEffect(() => {
-    const i = ROUTES.findIndex((r) => r.path === pathname);
-    if (i < 0) return;
-    const currentNorm = ((Math.round(scrollPosRef.current) % itemCount) + itemCount) % itemCount;
-    if (i === currentNorm) return;
-    const current = scrollPosRef.current;
-    let delta = i - currentNorm;
-    if (delta > itemCount / 2) delta -= itemCount;
-    if (delta < -itemCount / 2) delta += itemCount;
-    animateToTarget(current + delta);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
 
   const playHapticTick = useCallback((direction = 1) => {
     try {
@@ -118,7 +99,7 @@ export default function EdgePicker() {
       osc.frequency.setValueAtTime(direction > 0 ? 1420 : 1200, ctx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + 0.035);
 
-      gain.gain.setValueAtTime(0.28, ctx.currentTime);
+      gain.gain.setValueAtTime(0.25, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.035);
 
       osc.connect(gain);
@@ -131,7 +112,7 @@ export default function EdgePicker() {
         navigator.vibrate(8);
       }
     } catch {
-      // AudioContext awaiting user gesture or unsupported
+      // Audio awaiting user gesture
     }
   }, []);
 
@@ -150,6 +131,7 @@ export default function EdgePicker() {
         }
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [items, itemCount, router, pathname, playHapticTick]
   );
 
@@ -188,9 +170,10 @@ export default function EdgePicker() {
     [checkDetent, itemCount]
   );
 
-  // Reveal text strictly while scrolling the dock reel (dragging or wheeling)
-  const effectiveRevealed = !isCompact && (isDragging || isWheeling);
-  const pillHeight = effectiveRevealed ? 96 : 46;
+  // Text revealed ONLY while actively scrubbing or wheeling the reel.
+  // Tapping or resting ALWAYS preserves the icon.
+  const isScrollingReel = !isCompact && (isDragging || isWheeling);
+  const pillHeight = isScrollingReel ? 96 : 46;
 
   const getSlotY = useCallback((relOffset, currentPillH) => {
     if (relOffset === 0) return 0;
@@ -206,7 +189,6 @@ export default function EdgePicker() {
   }, []);
 
   const handlePointerDown = (e, specificIndex = null) => {
-    // If the dock is compact, expand it back without executing reel drag
     if (isCompact) {
       setIsCompact(false);
       expandedAtRef.current = Date.now();
@@ -244,7 +226,6 @@ export default function EdgePicker() {
     const now = performance.now();
     const timeDelta = Math.max(1, now - lastPointerTime.current);
 
-    // Only switch to dragging and text mode once the user genuinely drags > 5px
     if (!hasDraggedRef.current && Math.abs(deltaFromStart) > 5) {
       hasDraggedRef.current = true;
       setIsDragging(true);
@@ -277,7 +258,7 @@ export default function EdgePicker() {
       e.currentTarget.releasePointerCapture(e.pointerId);
     } catch {}
 
-    // Tap detected (scrolled less than 5px): keeps icon as icon, never turns to text
+    // Tap detected (moved <= 5px): select and center without text reveal
     if (!wasDragging) {
       if (targetItemOnDown.current !== null) {
         const tappedIdx = targetItemOnDown.current;
@@ -289,7 +270,6 @@ export default function EdgePicker() {
         return;
       }
 
-      // Tap on empty bezel notch curve
       if (containerRef.current) {
         const rect = containerRef.current.getBoundingClientRect();
         const tapRelY = e.clientY - (rect.top + rect.height / 2);
@@ -327,6 +307,7 @@ export default function EdgePicker() {
 
   const wheelTimeoutRef = useRef(null);
   const wheelHandlerRef = useRef(null);
+
   wheelHandlerRef.current = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -354,19 +335,19 @@ export default function EdgePicker() {
     return () => el.removeEventListener('wheel', handler);
   }, []);
 
-  // Shrink the dock into selected item's capsule size when website content scrolls
+  // Bouncy auto-shrink when the website content scrolls
   useEffect(() => {
     let timer;
     const onPageScroll = () => {
       if (isDraggingRef.current || isPointerDownRef.current) return;
-      if (Date.now() - expandedAtRef.current < 800) return;
+      if (Date.now() - expandedAtRef.current < 750) return;
 
       clearTimeout(timer);
       timer = setTimeout(() => {
-        if (!isDraggingRef.current && !isPointerDownRef.current && Date.now() - expandedAtRef.current >= 800) {
+        if (!isDraggingRef.current && !isPointerDownRef.current && Date.now() - expandedAtRef.current >= 750) {
           setIsCompact(true);
         }
-      }, 80);
+      }, 70);
     };
 
     window.addEventListener('scroll', onPageScroll, { passive: true });
@@ -376,6 +357,21 @@ export default function EdgePicker() {
     };
   }, []);
 
+  // Pathname sync: browser back/forward and link clicks move the reel
+  useEffect(() => {
+    const i = ROUTES.findIndex((r) => r.path === pathname);
+    if (i < 0) return;
+    const currentNorm = ((Math.round(scrollPosRef.current) % itemCount) + itemCount) % itemCount;
+    if (i === currentNorm) return;
+    const current = scrollPosRef.current;
+    let delta = i - currentNorm;
+    if (delta > itemCount / 2) delta -= itemCount;
+    if (delta < -itemCount / 2) delta += itemCount;
+    animateToTarget(current + delta);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  // Prefetch all routes for instant navigation
   const prefetchedRef = useRef(false);
   useEffect(() => {
     if (prefetchedRef.current) return;
@@ -391,6 +387,7 @@ export default function EdgePicker() {
     return () => clearInterval(interval);
   }, [router]);
 
+  // IndexedDB persistence
   useEffect(() => {
     openPickerDb()
       .then((db) => idbGet(db, 'scrollPos'))
@@ -426,6 +423,9 @@ export default function EdgePicker() {
 
   const visibleItemOffsets = [-4, -3, -2, -1, 0, 1, 2, 3, 4];
 
+  // Paper theme: pill uses the site's CSS tokens
+  const pillShadow = '0 0 0 1px rgba(255,255,255,0.15) inset, 0 4px 12px rgba(0,0,0,0.35)';
+
   return (
     <div
       ref={containerRef}
@@ -447,16 +447,16 @@ export default function EdgePicker() {
         position: 'fixed',
         transform: 'translateY(-50%)',
         width: isCompact ? '44px' : '56px',
-        height: isCompact ? '54px' : '380px',
-        transition: 'width 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), height 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease',
+        height: isCompact ? '56px' : '380px',
+        transition: 'width 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), height 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)',
       }}
       className={`z-50 select-none touch-none cursor-pointer flex items-center justify-end ${
-        isCompact ? 'active:scale-95' : 'cursor-ns-resize'
+        isCompact ? 'active:scale-90 hover:opacity-90' : 'cursor-ns-resize'
       }`}
       aria-label="Page navigation"
       role="navigation"
     >
-      {/* SVG ClipPath strictly matching the balanced bezel notch */}
+      {/* SVG ClipPath strictly matching the balanced notch */}
       <svg
         className="absolute w-0 h-0 pointer-events-none"
         aria-hidden="true"
@@ -469,15 +469,15 @@ export default function EdgePicker() {
         </defs>
       </svg>
 
-      {/* Compact Capsule Backing (hugs selected item size so website text is readable) */}
+      {/* Compact Capsule Backing (hugs active item when site scrolls) */}
       <div
-        className="absolute inset-0 rounded-l-full bg-black shadow-[-4px_0_16px_rgba(0,0,0,0.55)] border-l border-t border-b border-white/15 transition-opacity duration-300 pointer-events-none"
+        className="absolute inset-0 rounded-l-full bg-black shadow-[-4px_0_16px_rgba(0,0,0,0.6)] border-l border-t border-b border-white/20 transition-opacity duration-300 pointer-events-none"
         style={{
           opacity: isCompact ? 1 : 0,
         }}
       />
 
-      {/* Curved SVG Dock Bezel (recessed into page in full mode) */}
+      {/* Curved SVG Dock Bezel (recessed into page in expanded mode) */}
       <svg
         className="absolute right-0 top-0 h-full w-[56px] pointer-events-none transition-opacity duration-300"
         viewBox="0 0 56 380"
@@ -488,14 +488,14 @@ export default function EdgePicker() {
       >
         <defs>
           <linearGradient id="notchInnerShadow" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="rgba(255,255,255,0.08)" />
+            <stop offset="0%" stopColor="rgba(255,255,255,0.18)" />
             <stop offset="35%" stopColor="rgba(255,255,255,0.0)" />
           </linearGradient>
         </defs>
 
         <path
           d="M 56,0 C 56,45 4,50 4,95 L 4,285 C 4,330 56,335 56,380 Z"
-          fill="#000"
+          fill="#0a0a0c"
         />
         <path
           d="M 56,1 C 55,45 5,50 5,95 L 5,285 C 5,330 55,335 56,379"
@@ -526,27 +526,22 @@ export default function EdgePicker() {
             top: '50%',
             transform: 'translateY(-50%)',
             background: 'var(--paper)',
+            boxShadow: pillShadow,
           }}
-          className={`edge-picker-pill absolute right-[5px] sm:right-[9px] w-[34px] rounded-full shadow-[0_0_0_1px_rgba(255,255,255,0.15)_inset] flex items-center justify-center z-20 pointer-events-auto ${
+          className={`absolute right-[9px] w-[34px] rounded-full flex items-center justify-center z-20 pointer-events-auto transition-[height] duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
             isCompact ? 'pointer-events-none' : 'cursor-pointer active:scale-95'
           }`}
         >
           <div
-            key={activeItem.id}
             className="flex items-center justify-center w-full h-full"
-            style={{
-              animation: effectiveRevealed
-                ? 'edgePickerPop 0.35s cubic-bezier(0.34,1.56,0.64,1)'
-                : 'edgePickerShrink 0.3s cubic-bezier(0.34,1.56,0.64,1)',
-            }}
+            style={{ color: 'var(--ink)' }}
           >
-            {effectiveRevealed ? (
+            {isScrollingReel ? (
               <span
                 className="text-[11px] font-bold tracking-widest uppercase whitespace-nowrap"
                 style={{
                   writingMode: 'vertical-rl',
                   transform: 'rotate(180deg)',
-                  color: 'var(--ink)',
                 }}
               >
                 {activeItem.label}
@@ -554,8 +549,8 @@ export default function EdgePicker() {
             ) : (
               <activeItem.Icon
                 size={ICON_SIZE}
-                strokeWidth={2.2}
-                style={{ color: 'var(--ink)' }}
+                strokeWidth={2.3}
+                style={{ color: 'currentColor' }}
               />
             )}
           </div>
@@ -602,10 +597,10 @@ export default function EdgePicker() {
                 pointerEvents: isCompact ? 'none' : 'auto',
                 transition: 'opacity 0.25s ease',
               }}
-              className="absolute right-[5px] sm:right-[9px] w-[34px] h-8 flex items-center justify-center pointer-events-auto cursor-pointer group"
-              title={item.label}
+              className="absolute right-[9px] w-[34px] h-8 flex items-center justify-center pointer-events-auto cursor-pointer group"
+              title={`Jump to ${item.label}`}
             >
-              <span className="w-6 h-6 rounded-full flex items-center justify-center group-hover:bg-white/10 group-hover:scale-125 transition-all text-neutral-400">
+              <span className="w-6 h-6 rounded-full flex items-center justify-center group-hover:bg-white/10 group-hover:scale-125 transition-all text-neutral-400 hover:text-white">
                 <item.Icon size={ICON_SIZE} strokeWidth={2} />
               </span>
             </div>
