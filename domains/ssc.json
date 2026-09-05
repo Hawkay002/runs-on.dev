@@ -15,10 +15,8 @@
     ]
   },
   "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=ssc.runs-on.dev,84288b8617e4b7a6ece5"
-      ]
+    "ssc": {
+      "CNAME": "03a9f80515aeef78.vercel-dns-017.com"
     }
   }
 }
