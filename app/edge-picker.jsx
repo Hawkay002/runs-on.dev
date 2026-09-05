@@ -178,7 +178,16 @@ export default function EdgePicker() {
   const isScrollingReel = !isCompact && (isDragging || isWheeling || isHovered);
   const pillHeight = isScrollingReel ? 96 : 46;
 
-  // Compact state maintains the exact S-curve notch shape, shrunk to 116px
+  // Compact state: only on mobile (coarse pointer). Desktop never shrinks
+  // — the full dock is always visible and interactive.
+  const [isCoarsePointer, setIsCoarsePointer] = useState(false);
+  const isCoarsePointerRef = useRef(false);
+  useEffect(() => {
+    const coarse = window.matchMedia('(pointer: coarse)').matches;
+    setIsCoarsePointer(coarse);
+    isCoarsePointerRef.current = coarse;
+  }, []);
+
   const dockLength = isCompact ? 116 : 380;
 
   const getSlotY = useCallback((relOffset, currentPillH) => {
@@ -349,6 +358,7 @@ export default function EdgePicker() {
     let timer;
 
     const compact = () => {
+      if (!isCoarsePointerRef.current) return; // desktop never compacts
       if (isDraggingRef.current || isPointerDownRef.current) return;
       if (Date.now() - expandedAtRef.current < 750) return;
 
