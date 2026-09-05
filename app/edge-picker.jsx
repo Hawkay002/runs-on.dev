@@ -226,7 +226,10 @@ export default function EdgePicker() {
     const now = performance.now();
     const timeDelta = Math.max(1, now - lastPointerTime.current);
 
-    if (!hasDraggedRef.current && Math.abs(deltaFromStart) > 5) {
+    // Only switch to drag state and text reveal if the pointer moved
+    // significantly. 12px filters out mobile tap jitter (a finger press
+    // easily jitters 5-8px) so tapping an icon never flashes text.
+    if (!hasDraggedRef.current && Math.abs(deltaFromStart) > 12) {
       hasDraggedRef.current = true;
       setIsDragging(true);
       isDraggingRef.current = true;
@@ -335,7 +338,10 @@ export default function EdgePicker() {
     return () => el.removeEventListener('wheel', handler);
   }, []);
 
-  // Bouncy auto-shrink when the website content scrolls
+  // Bouncy auto-shrink when the website content scrolls.
+  // Uses document + capture so it catches scroll from the window, the
+  // body, or any nested scrollable container regardless of which element
+  // actually owns the scrollbar.
   useEffect(() => {
     let timer;
     const onPageScroll = () => {
@@ -350,9 +356,9 @@ export default function EdgePicker() {
       }, 70);
     };
 
-    window.addEventListener('scroll', onPageScroll, { passive: true });
+    document.addEventListener('scroll', onPageScroll, { passive: true, capture: true });
     return () => {
-      window.removeEventListener('scroll', onPageScroll);
+      document.removeEventListener('scroll', onPageScroll, { capture: true });
       clearTimeout(timer);
     };
   }, []);
