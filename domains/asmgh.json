@@ -5,7 +5,10 @@
   },
   "claimedAt": "2026-09-04T21:24:29.326Z",
   "records": {
-    "CNAME": "vps8224.freevps.edu.pl"
+    "A": [
+      "188.114.96.2",
+      "188.114.97.2"
+    ]
   },
   "profile": {
     "name": "pseudonip",
