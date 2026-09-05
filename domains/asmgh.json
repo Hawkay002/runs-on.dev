@@ -4,13 +4,16 @@
     "github": "pseudonip"
   },
   "claimedAt": "2026-09-04T21:24:29.326Z",
-  "records": {
-    "A": [
-      "82.24.150.194"
-    ]
-  },
+  "records": {},
   "profile": {
     "name": "pseudonip",
     "bio": "@pseudonip"
+  },
+  "subdomains": {
+    "_atproto": {
+      "TXT": [
+        "did:plc:eamfrl25kwcrevzmof2ylstj"
+      ]
+    }
   }
 }
