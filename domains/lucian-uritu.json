@@ -4,7 +4,13 @@
     "github": "LucianUritu"
   },
   "claimedAt": "2026-09-03T13:01:49.059Z",
-  "records": {
-    "URL": "https://portofolio-pi-steel.vercel.app/"
+  "records": {},
+  "profile": {
+    "links": [
+      {
+        "label": "Lucian Uritu",
+        "url": "https://portofolio-pi-steel.vercel.app/"
+      }
+    ]
   }
 }
