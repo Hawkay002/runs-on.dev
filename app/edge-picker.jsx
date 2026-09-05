@@ -171,10 +171,12 @@ export default function EdgePicker() {
     [checkDetent, itemCount]
   );
 
-  // Text revealed ONLY while actively scrubbing or wheeling the reel.
-  // Tapping or resting ALWAYS preserves the icon.
+  // Text revealed ONLY while actively dragging or wheeling
   const isScrollingReel = !isCompact && (isDragging || isWheeling);
   const pillHeight = isScrollingReel ? 96 : 46;
+
+  // Compact state maintains the exact S-curve notch shape, shrunk to 116px
+  const dockLength = isCompact ? 116 : 380;
 
   const getSlotY = useCallback((relOffset, currentPillH) => {
     if (relOffset === 0) return 0;
@@ -193,6 +195,7 @@ export default function EdgePicker() {
     if (isCompact) {
       setIsCompact(false);
       expandedAtRef.current = Date.now();
+      playHapticTick(1);
       e.preventDefault();
       e.stopPropagation();
       return;
@@ -228,10 +231,8 @@ export default function EdgePicker() {
     const now = performance.now();
     const timeDelta = Math.max(1, now - lastPointerTime.current);
 
-    // Only enter drag mode if BOTH: moved > 12px AND held for > 150ms.
-    // A mobile tap jitters 5-15px in under 100ms — the time check is what
-    // actually separates a tap from a deliberate drag on touch.
-    if (!hasDraggedRef.current && Math.abs(deltaFromStart) > 12 && now - pointerDownTimeRef.current > 150) {
+    // Only switch to drag state if dragged > 10px and held > 80ms
+    if (!hasDraggedRef.current && Math.abs(deltaFromStart) > 10 && now - pointerDownTimeRef.current > 80) {
       hasDraggedRef.current = true;
       setIsDragging(true);
       isDraggingRef.current = true;
@@ -263,7 +264,7 @@ export default function EdgePicker() {
       e.currentTarget.releasePointerCapture(e.pointerId);
     } catch {}
 
-    // Tap detected (moved <= 5px): select and center without text reveal
+    // Tap: select and center without text
     if (!wasDragging) {
       if (targetItemOnDown.current !== null) {
         const tappedIdx = targetItemOnDown.current;
@@ -298,7 +299,7 @@ export default function EdgePicker() {
       return;
     }
 
-    // Drag ended: fling with inertia momentum
+    // Drag ended: fling with inertia
     const momentumItems = -velocityY.current * 140;
     const projectedPos = scrollPosRef.current + momentumItems;
     const currentNorm = ((Math.round(scrollPosRef.current) % itemCount) + itemCount) % itemCount;
@@ -340,10 +341,7 @@ export default function EdgePicker() {
     return () => el.removeEventListener('wheel', handler);
   }, []);
 
-  // Bouncy auto-shrink when the website content scrolls.
-  // Desktop: document scroll with capture catches any scrollable element.
-  // Mobile: scroll events often don't fire because the dock's touch-action
-  // can swallow the gesture, so touchmove outside the dock is the trigger.
+  // Shrink on page scroll (desktop + mobile via touchmove outside dock)
   useEffect(() => {
     let timer;
 
@@ -377,7 +375,7 @@ export default function EdgePicker() {
     };
   }, []);
 
-  // Pathname sync: browser back/forward and link clicks move the reel
+  // Pathname sync
   useEffect(() => {
     const i = ROUTES.findIndex((r) => r.path === pathname);
     if (i < 0) return;
@@ -391,7 +389,7 @@ export default function EdgePicker() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
-  // Prefetch all routes for instant navigation
+  // Prefetch all routes
   const prefetchedRef = useRef(false);
   useEffect(() => {
     if (prefetchedRef.current) return;
@@ -443,7 +441,7 @@ export default function EdgePicker() {
 
   const visibleItemOffsets = [-4, -3, -2, -1, 0, 1, 2, 3, 4];
 
-  // Paper theme: pill uses the site's CSS tokens
+  // Paper theme
   const pillShadow = '0 0 0 1px rgba(255,255,255,0.15) inset, 0 4px 12px rgba(0,0,0,0.35)';
 
   return (
@@ -457,6 +455,7 @@ export default function EdgePicker() {
         if (isCompact) {
           setIsCompact(false);
           expandedAtRef.current = Date.now();
+          playHapticTick(1);
           e.preventDefault();
           e.stopPropagation();
         }
@@ -466,49 +465,38 @@ export default function EdgePicker() {
         right: 0,
         position: 'fixed',
         transform: 'translateY(-50%)',
-        width: isCompact ? '44px' : '56px',
-        height: isCompact ? '56px' : '380px',
-        transition: 'width 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), height 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        width: '56px',
+        height: `${dockLength}px`,
+        transition: 'height 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease',
       }}
       className={`z-50 select-none touch-none cursor-pointer flex items-center justify-end ${
-        isCompact ? 'active:scale-90 hover:opacity-90' : 'cursor-ns-resize'
+        isCompact ? 'active:scale-95 hover:brightness-110' : 'cursor-ns-resize'
       }`}
       aria-label="Page navigation"
       role="navigation"
     >
-      {/* SVG ClipPath strictly matching the balanced notch */}
+      {/* Dynamic SVG ClipPath using objectBoundingBox: scales with height */}
       <svg
         className="absolute w-0 h-0 pointer-events-none"
         aria-hidden="true"
         style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}
       >
         <defs>
-          <clipPath id="dockNotchClip" clipPathUnits="userSpaceOnUse">
-            <path d="M 56,0 C 56,45 4,50 4,95 L 4,285 C 4,330 56,335 56,380 Z" />
+          <clipPath id="dockNotchClipObject" clipPathUnits="objectBoundingBox">
+            <path d="M 1,0 C 1,0.1184 0.0714,0.1316 0.0714,0.25 L 0.0714,0.75 C 0.0714,0.8684 1,0.8816 1,1 Z" />
           </clipPath>
         </defs>
       </svg>
 
-      {/* Compact Capsule Backing (hugs active item when site scrolls) */}
-      <div
-        className="absolute inset-0 rounded-l-full bg-black shadow-[-4px_0_16px_rgba(0,0,0,0.6)] border-l border-t border-b border-white/20 transition-opacity duration-300 pointer-events-none"
-        style={{
-          opacity: isCompact ? 1 : 0,
-        }}
-      />
-
-      {/* Curved SVG Dock Bezel (recessed into page in expanded mode) */}
+      {/* Curved SVG Dock Bezel: MAINTAINED in both expanded and compact states */}
       <svg
-        className="absolute right-0 top-0 h-full w-[56px] pointer-events-none transition-opacity duration-300"
+        className="absolute right-0 top-0 h-full w-[56px] pointer-events-none drop-shadow-[-4px_0_14px_rgba(0,0,0,0.65)]"
         viewBox="0 0 56 380"
         preserveAspectRatio="none"
-        style={{
-          opacity: isCompact ? 0 : 1,
-        }}
       >
         <defs>
           <linearGradient id="notchInnerShadow" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="rgba(255,255,255,0.18)" />
+            <stop offset="0%" stopColor="rgba(255,255,255,0.2)" />
             <stop offset="35%" stopColor="rgba(255,255,255,0.0)" />
           </linearGradient>
         </defs>
@@ -525,12 +513,12 @@ export default function EdgePicker() {
         />
       </svg>
 
-      {/* Masked Reel Container */}
+      {/* Masked Reel Container clipped to the S-curve notch shape */}
       <div
         className="absolute right-0 top-0 w-full h-full overflow-hidden pointer-events-none"
         style={{
-          clipPath: isCompact ? 'none' : 'url(#dockNotchClip)',
-          WebkitClipPath: isCompact ? 'none' : 'url(#dockNotchClip)',
+          clipPath: 'url(#dockNotchClipObject)',
+          WebkitClipPath: 'url(#dockNotchClipObject)',
         }}
       >
         {/* Active Pill at Center Notch */}
