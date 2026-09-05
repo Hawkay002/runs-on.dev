@@ -10,7 +10,7 @@
   "subdomains": {
     "_vercel": {
       "TXT": [
-        "vc-domain-verify=shovith.runs-on.dev,fc7ee143d7e71a9f4613"
+        "vc-domain-verify=shovith.runs-on.dev,4d3ea646bfff9f6ec0a6"
       ]
     }
   },
