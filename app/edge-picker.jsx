@@ -171,8 +171,10 @@ export default function EdgePicker() {
     [checkDetent, itemCount]
   );
 
-  // Text revealed ONLY while actively dragging or wheeling
-  const isScrollingReel = !isCompact && (isDragging || isWheeling);
+  // Text revealed while dragging, wheeling, or hovering (desktop only —
+  // mobile has no hover so the pill stays compact unless actively scrubbed)
+  const [isHovered, setIsHovered] = useState(false);
+  const isScrollingReel = !isCompact && (isDragging || isWheeling || (typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches && isHovered));
   const pillHeight = isScrollingReel ? 96 : 46;
 
   // Compact state maintains the exact S-curve notch shape, shrunk to 116px
@@ -451,6 +453,8 @@ export default function EdgePicker() {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       onClick={(e) => {
         if (isCompact) {
           setIsCompact(false);
