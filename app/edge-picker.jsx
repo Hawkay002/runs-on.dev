@@ -67,6 +67,7 @@ export default function EdgePicker() {
   isDraggingRef.current = isDragging;
   const isPointerDownRef = useRef(false);
   const expandedAtRef = useRef(Date.now());
+  const pointerDownTimeRef = useRef(0);
 
   const scrollPosRef = useRef(initialIndex);
   scrollPosRef.current = scrollPos;
@@ -205,6 +206,7 @@ export default function EdgePicker() {
     isPointerDownRef.current = true;
     hasDraggedRef.current = false;
     targetItemOnDown.current = specificIndex;
+    pointerDownTimeRef.current = performance.now();
 
     pointerStartY.current = e.clientY;
     pointerStartPos.current = scrollPosRef.current;
@@ -226,10 +228,10 @@ export default function EdgePicker() {
     const now = performance.now();
     const timeDelta = Math.max(1, now - lastPointerTime.current);
 
-    // Only switch to drag state and text reveal if the pointer moved
-    // significantly. 12px filters out mobile tap jitter (a finger press
-    // easily jitters 5-8px) so tapping an icon never flashes text.
-    if (!hasDraggedRef.current && Math.abs(deltaFromStart) > 12) {
+    // Only enter drag mode if BOTH: moved > 12px AND held for > 150ms.
+    // A mobile tap jitters 5-15px in under 100ms — the time check is what
+    // actually separates a tap from a deliberate drag on touch.
+    if (!hasDraggedRef.current && Math.abs(deltaFromStart) > 12 && now - pointerDownTimeRef.current > 150) {
       hasDraggedRef.current = true;
       setIsDragging(true);
       isDraggingRef.current = true;
@@ -339,12 +341,13 @@ export default function EdgePicker() {
   }, []);
 
   // Bouncy auto-shrink when the website content scrolls.
-  // Uses document + capture so it catches scroll from the window, the
-  // body, or any nested scrollable container regardless of which element
-  // actually owns the scrollbar.
+  // Desktop: document scroll with capture catches any scrollable element.
+  // Mobile: scroll events often don't fire because the dock's touch-action
+  // can swallow the gesture, so touchmove outside the dock is the trigger.
   useEffect(() => {
     let timer;
-    const onPageScroll = () => {
+
+    const compact = () => {
       if (isDraggingRef.current || isPointerDownRef.current) return;
       if (Date.now() - expandedAtRef.current < 750) return;
 
@@ -356,9 +359,20 @@ export default function EdgePicker() {
       }, 70);
     };
 
-    document.addEventListener('scroll', onPageScroll, { passive: true, capture: true });
+    const onDocScroll = () => compact();
+
+    const onTouchMoveOutsideDock = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        compact();
+      }
+    };
+
+    document.addEventListener('scroll', onDocScroll, { passive: true, capture: true });
+    document.addEventListener('touchmove', onTouchMoveOutsideDock, { passive: true });
+
     return () => {
-      document.removeEventListener('scroll', onPageScroll, { capture: true });
+      document.removeEventListener('scroll', onDocScroll, { capture: true });
+      document.removeEventListener('touchmove', onTouchMoveOutsideDock);
       clearTimeout(timer);
     };
   }, []);
