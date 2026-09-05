@@ -4,9 +4,7 @@
     "github": "subhansh-dev"
   },
   "claimedAt": "2026-09-05T04:48:09.525Z",
-  "records": {
-    "URL": "https://ssc.vercel.app"
-  },
+  "records": {},
   "profile": {
     "name": "subhansh-dev",
     "links": [
@@ -15,5 +13,12 @@
         "url": "https://subhansh.dev"
       }
     ]
+  },
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=ssc.runs-on.dev,84288b8617e4b7a6ece5"
+      ]
+    }
   }
 }
