@@ -4,13 +4,11 @@
     "github": "lil-ayushg"
   },
   "claimedAt": "2026-09-03T14:43:46.573Z",
-  "records": {
-    "CNAME": "1788564506ae0a96.vercel-dns-017.com"
-  },
+  "records": {},
   "subdomains": {
     "_vercel": {
       "TXT": [
-        "vc-domain-verify=runs-on.dev,3ee595e937a204106e17"
+        "vc-domain-verify=apby.runs-on.dev,f2375fbe94bc78d5bdbd"
       ]
     }
   }
