@@ -8,8 +8,10 @@
     "CNAME": "59c8406e70d87c96.vercel-dns-017.com"
   },
   "subdomains": {
-    "tha": {
-      "CNAME": "59c8406e70d87c96.vercel-dns-017.com"
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=tha.runs-on.dev,2c03fa8afc99bdc2e0d6"
+      ]
     }
   }
 }
