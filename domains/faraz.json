@@ -9,7 +9,7 @@
       "76.76.21.21"
     ],
     "TXT": [
-      "did=did:plc:abc123"
+      "vc-domain-verify=runs-on.dev,ba5448833f5c46f7a59a"
     ]
   },
   "subdomains": {
