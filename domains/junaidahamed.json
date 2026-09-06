@@ -4,9 +4,7 @@
     "github": "JunaidAhamed-7777"
   },
   "claimedAt": "2026-09-02T18:47:58.838Z",
-  "records": {
-    "CNAME": "f2969c747c6b302e.vercel-dns-017.com"
-  },
+  "records": {},
   "subdomains": {
     "junaidahamed": {
       "CNAME": "f2969c747c6b302e.vercel-dns-017.com"
