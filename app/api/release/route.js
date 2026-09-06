@@ -1,7 +1,7 @@
-import { sessionFromRequest } from '../../lib/session.js';
-import { validateName } from '../../lib/name.js';
-import { getContentsMeta } from '../../lib/registry.js';
-import { createRateLimiter } from '../../lib/throttle.js';
+import { sessionFromRequest } from '../../../lib/session.js';
+import { validateName } from '../../../lib/name.js';
+import { getContentsMeta } from '../../../lib/registry.js';
+import { createRateLimiter } from '../../../lib/throttle.js';
 
 // Releases a claimed name: deletes domains/<name>.json from the repo,
 // making the name available for anyone to claim again. The sync-dns
