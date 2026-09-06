@@ -7,9 +7,13 @@
   "records": {
     "A": [
       "76.76.21.21"
-    ],
-    "TXT": [
-      "_vercel=vc-domain-verify=intolera.runs-on.dev,b473842ba38e4ae870c9"
     ]
+  },
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=intolera.runs-on.dev,b473842ba38e4ae870c9"
+      ]
+    }
   }
 }
