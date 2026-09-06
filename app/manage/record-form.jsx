@@ -310,6 +310,9 @@ export default function RecordForm({ name, record }) {
             .flatMap((r) => r.value.split('\n').map((v) => v.trim()).filter(Boolean))}
         />
       )}
+
+      {/* Danger zone: release the name back to the pool */}
+      <ReleaseZone name={name} />
     </form>
   );
 }
@@ -572,6 +575,93 @@ function VercelConfig({ name, cname, setCname }) {
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+// ── Release zone (give the name back to the pool) ───────────
+function ReleaseZone({ name }) {
+  const [open, setOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const [releasing, setReleasing] = useState(false);
+  const [result, setResult] = useState(null);
+
+  const release = async () => {
+    if (confirmText.trim().toLowerCase() !== name) return;
+    setReleasing(true);
+    setResult(null);
+    try {
+      const res = await fetch('/api/release', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, confirm: confirmText.trim().toLowerCase() }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (res.ok && body.ok) {
+        setResult({ ok: true, text: body.message });
+        // Redirect to homepage after a short delay so the user sees the confirmation
+        setTimeout(() => { window.location.href = '/'; }, 2000);
+      } else {
+        setResult({ ok: false, text: body.detail ?? body.error ?? 'release failed' });
+      }
+    } catch {
+      setResult({ ok: false, text: 'network error' });
+    }
+    setReleasing(false);
+  };
+
+  return (
+    <div className="border-t border-red-200 px-6 py-5 sm:px-8">
+      {!open ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="font-(family-name:--font-mono) text-xs text-red-500 underline hover:text-red-700"
+        >
+          release this name
+        </button>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-red-600">Release {name}.runs-on.dev?</p>
+          <p className="text-xs leading-relaxed text-(--color-muted)">
+            This permanently deletes your claim. The name becomes available for anyone
+            to claim immediately. DNS records and your profile card are removed.
+            This cannot be undone.
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              placeholder={`type "${name}" to confirm`}
+              aria-label="Type the name to confirm release"
+              spellCheck={false}
+              autoCapitalize="off"
+              className="min-w-0 flex-1 border border-red-200 bg-transparent px-3 py-2 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none focus:border-red-500"
+            />
+            <button
+              type="button"
+              onClick={release}
+              disabled={releasing || confirmText.trim().toLowerCase() !== name}
+              className="border px-4 py-2 font-(family-name:--font-mono) text-xs transition-opacity hover:opacity-90 disabled:opacity-50"
+              style={{ borderColor: '#dc2626', background: '#dc2626', color: '#fff' }}
+            >
+              {releasing ? 'Releasing…' : 'Release permanently'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setOpen(false); setConfirmText(''); setResult(null); }}
+              className="border border-(--color-rule) px-4 py-2 font-(family-name:--font-mono) text-xs transition-opacity hover:opacity-80"
+            >
+              Cancel
+            </button>
+          </div>
+          {result && (
+            <p className={`text-xs font-(family-name:--font-mono) ${result.ok ? 'text-green-600' : 'text-red-500'}`}>
+              {result.ok ? '✓ ' : '✗ '}{result.text}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
