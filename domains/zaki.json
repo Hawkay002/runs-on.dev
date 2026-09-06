@@ -4,7 +4,11 @@
     "github": "zakiuhh"
   },
   "claimedAt": "2026-09-06T21:33:47.787Z",
-  "records": {},
+  "records": {
+    "TXT": [
+      "vc-domain-verify=zaki.runs-on.dev,e431bd1f989a797abf85"
+    ]
+  },
   "profile": {
     "name": "Zaki Ul Hassan",
     "links": [
