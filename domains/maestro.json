@@ -5,7 +5,9 @@
   },
   "claimedAt": "2026-09-03T04:55:36.438Z",
   "records": {
-    "CNAME": "597d6e3a86c119ea.vercel-dns-017.com"
+    "TXT": [
+      "vc-domain-verify=maestro.runs-on.dev,2727d9c9712cb71558b7"
+    ]
   },
   "profile": {
     "name": "Sohan"
