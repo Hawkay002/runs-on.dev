@@ -12,6 +12,9 @@
   "subdomains": {
     "upload": {
       "CNAME": "xmpp.runs-on.dev"
+    },
+    "pubsub": {
+      "CNAME": "xmpp.runs-on.dev"
     }
   }
 }
