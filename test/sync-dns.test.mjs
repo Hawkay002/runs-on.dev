@@ -239,14 +239,14 @@ test('reconcile creates a value the zone does not hold yet', () => {
 // --- zone TXT TTL (issues #104, #105: 50-record per-hostname limit) ---
 
 test('zone TXTs older than the TTL are removed even if still wanted', () => {
-  // A domain that verified 10 days ago: its zone TXT is dead weight.
+  // A domain that verified 2 days ago: its zone TXT is dead weight.
   // Removing it frees a slot at the capped hostname. The value is still
   // in `have`, so `create` is empty this pass — it gets re-created fresh
   // (with a new timestamp) on the next sync run.
-  const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
+  const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
   const { create, remove } = reconcileZoneVerification(
     [{ type: 'TXT', name: '_vercel', value: 'vc-domain-verify=old.runs-on.dev,z' }],
-    [{ id: 'rec_old', type: 'TXT', name: '_vercel', value: 'vc-domain-verify=old.runs-on.dev,z', createdAt: tenDaysAgo }],
+    [{ id: 'rec_old', type: 'TXT', name: '_vercel', value: 'vc-domain-verify=old.runs-on.dev,z', createdAt: twoDaysAgo }],
   );
 
   assert.deepEqual(create, []);
@@ -255,7 +255,7 @@ test('zone TXTs older than the TTL are removed even if still wanted', () => {
 
 test('zone TXTs younger than the TTL are kept', () => {
   // A domain actively pending verification: its TXT must stay.
-  const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+  const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
   const { create, remove } = reconcileZoneVerification(
     [{ type: 'TXT', name: '_vercel', value: 'vc-domain-verify=fresh.runs-on.dev,y' }],
     [{ id: 'rec_fresh', type: 'TXT', name: '_vercel', value: 'vc-domain-verify=fresh.runs-on.dev,y', createdAt: twoDaysAgo }],
