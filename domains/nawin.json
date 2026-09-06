@@ -6,9 +6,12 @@
   "claimedAt": "2026-09-06T07:55:11.611Z",
   "records": {},
   "subdomains": {
-    "myneo": {
+    "neo": {
+      "CNAME": "4c7d60b45f4462de.vercel-dns-017.com"
+    },
+    "_vercel": {
       "TXT": [
-        "vc-domain-verify=nawin.runs-on.dev,d9f17176abe2ecb799db"
+        "vc-domain-verify=neo.nawin.runs-on.dev,e25d5f1e024197769fd9"
       ]
     }
   }
