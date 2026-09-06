@@ -42,7 +42,14 @@ export async function GET(request) {
   );
 
   const headersOut = new Headers();
-  headersOut.append('Location', '/?signed-in=1');
+
+  // Read back the claim name from the 404 page (set alongside oauth_state)
+  // so the user lands on the homepage with their name already filled in.
+  const claimName = cookie.match(/(?:^|;\s*)oauth_claim=([^;]+)/)?.[1];
+  const redirectUrl = claimName
+    ? `/?signed-in=1&claim=${claimName}`
+    : '/?signed-in=1';
+  headersOut.append('Location', redirectUrl);
   // Max-Age from the same constant the payload's exp uses, so the browser
   // stops sending the cookie exactly when the server stops honouring it.
   const maxAge = Math.floor(SESSION_TTL_MS / 1000);

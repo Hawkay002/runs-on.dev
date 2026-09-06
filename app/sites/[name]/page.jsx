@@ -232,9 +232,9 @@ export default async function Site({ params }) {
 function ClaimPage({ name }) {
   return (
     <main className="mx-auto flex max-w-2xl flex-col items-center px-6 py-24 text-center">
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 font-(family-name:--font-mono) text-xs text-green-600">
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 font-(family-name:--font-mono) text-xs font-semibold uppercase tracking-wide text-green-600">
         <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" />
-        available
+        Available
       </span>
 
       <h1 className="mt-6 font-(family-name:--font-display) text-3xl font-medium tracking-tight text-(--color-ink) sm:text-4xl">
@@ -246,7 +246,7 @@ function ClaimPage({ name }) {
       </p>
 
       <a
-        href={`https://runs-on.dev/?claim=${encodeURIComponent(name)}`}
+        href={`/api/auth/github?claim=${encodeURIComponent(name)}`}
         className="mt-6 inline-block border px-6 py-3 font-(family-name:--font-mono) text-sm transition-opacity hover:opacity-90"
         style={{
           borderColor: 'var(--color-signal)',
@@ -254,7 +254,7 @@ function ClaimPage({ name }) {
           color: 'var(--color-paper)',
         }}
       >
-        Claim {name} →
+        Sign in with GitHub to claim {name}.runs-on.dev →
       </a>
 
       <p className="mt-10 font-(family-name:--font-mono) text-xs text-(--color-muted)">
