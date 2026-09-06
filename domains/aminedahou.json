@@ -4,7 +4,9 @@
     "github": "amineedahou"
   },
   "claimedAt": "2026-09-03T11:46:44.777Z",
-  "records": {},
+  "records": {
+    "URL": "https://contact-manager-amineedahou.vercel.app/"
+  },
   "subdomains": {
     "_vercel": {
       "TXT": [
