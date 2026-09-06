@@ -4,5 +4,7 @@
     "github": "vanrajsinh650"
   },
   "claimedAt": "2026-09-06T05:33:49.380Z",
-  "records": {}
+  "records": {
+    "CNAME": "cname.vercel-dns.com"
+  }
 }
