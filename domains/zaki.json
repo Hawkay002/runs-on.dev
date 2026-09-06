@@ -4,5 +4,18 @@
     "github": "zakiuhh"
   },
   "claimedAt": "2026-09-06T21:33:47.787Z",
-  "records": {}
+  "records": {},
+  "profile": {
+    "name": "Zaki Ul Hassan",
+    "links": [
+      {
+        "label": "Github",
+        "url": "https://github.com/zakiuhh"
+      },
+      {
+        "label": "LinkedIn",
+        "url": "https://github.com/in/zakiuh"
+      }
+    ]
+  }
 }
