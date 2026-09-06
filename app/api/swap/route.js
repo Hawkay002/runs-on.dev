@@ -1,7 +1,7 @@
 import { sessionFromRequest } from '../../../lib/session.js';
 import { validateName } from '../../../lib/name.js';
 import { isReserved } from '../../../lib/blocklist.js';
-import { getRecord, getContentsMeta, putRecord, putRecordUpdate } from '../../../lib/registry.js';
+import { getRecord, getContentsMeta, putRecord } from '../../../lib/registry.js';
 import { createRateLimiter } from '../../../lib/throttle.js';
 
 // Swaps the user's claimed name for a new one. Copies all records (CNAME,

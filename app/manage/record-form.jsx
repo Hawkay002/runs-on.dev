@@ -609,6 +609,11 @@ function SwapZone({ name }) {
       .catch(() => setVercelStatus(null));
   }, [open, vercelStatus]);
 
+  const validateNewName = (v) => {
+    const trimmed = v.trim().toLowerCase();
+    return /^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9])?$/.test(trimmed) && trimmed.length >= 2 && trimmed !== name;
+  };
+
   const canSwap = validateNewName(newName) && confirmText.trim().toLowerCase() === newName.trim().toLowerCase();
 
   const swap = async () => {
@@ -628,14 +633,31 @@ function SwapZone({ name }) {
       const body = await res.json().catch(() => ({}));
 
       if (res.ok && body.ok) {
-        setResult({ ok: true, text: body.message });
-        // If the old record had a Vercel CNAME, trigger setup for the new name
+        const newDisplayName = `${newName.trim().toLowerCase()}.runs-on.dev`;
+
+        // Auto-trigger Vercel setup if connected and the record has a Vercel CNAME
         if (vercelStatus === 'connected') {
-          setResult({ ok: true, text: `${body.message}. triggering Vercel setup…` });
-          // The setup runs on the new name's manage page after redirect
+          setResult({ ok: true, text: `${body.message}. setting up Vercel for ${newDisplayName}…` });
+          try {
+            const setupRes = await fetch('/api/vercel/setup', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name: newName.trim().toLowerCase(), project: 'auto' }),
+            });
+            const setupBody = await setupRes.json().catch(() => ({}));
+            if (setupRes.ok && setupBody.ok) {
+              setResult({ ok: true, text: `${body.message}. Vercel record saved, verifying… (check back in a minute)` });
+            } else {
+              setResult({ ok: true, text: `${body.message}. Vercel setup pending — click "Set Up" on the manage page after redirect` });
+            }
+          } catch {
+            setResult({ ok: true, text: `${body.message}. Vercel setup failed — set up manually after redirect` });
+          }
+        } else {
+          setResult({ ok: true, text: body.message });
         }
-        // Redirect to the manage page (which now shows the new name)
-        setTimeout(() => { window.location.href = '/manage'; }, 1500);
+
+        setTimeout(() => { window.location.href = '/manage'; }, 2000);
       } else {
         setResult({ ok: false, text: body.detail ?? body.error ?? 'swap failed' });
       }
@@ -643,11 +665,6 @@ function SwapZone({ name }) {
       setResult({ ok: false, text: 'network error' });
     }
     setSwapping(false);
-  };
-
-  const validateNewName = (v) => {
-    const trimmed = v.trim().toLowerCase();
-    return /^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9])?$/.test(trimmed) && trimmed.length >= 2 && trimmed !== name;
   };
 
   const nameAvailable = validateNewName(newName);
@@ -698,7 +715,7 @@ function SwapZone({ name }) {
             />
             {newName && !nameAvailable && (
               <p className="text-xs text-red-500">
-                {newName.trim().toLowerCase() === name ? 'that\rsquo;s your current name' : 'invalid name (2-32 chars, a-z 0-9 hyphens)'}
+                {newName.trim().toLowerCase() === name ? "that's your current name" : 'invalid name (2-32 chars, a-z 0-9 hyphens)'}
               </p>
             )}
             {nameAvailable && (
