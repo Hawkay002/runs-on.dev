@@ -4,5 +4,12 @@
     "github": "Naein19"
   },
   "claimedAt": "2026-09-06T07:55:11.611Z",
-  "records": {}
+  "records": {},
+  "subdomains": {
+    "myneo": {
+      "TXT": [
+        "vc-domain-verify=nawin.runs-on.dev,d9f17176abe2ecb799db"
+      ]
+    }
+  }
 }
