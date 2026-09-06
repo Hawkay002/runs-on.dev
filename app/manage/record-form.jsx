@@ -581,7 +581,7 @@ function VercelConfig({ name, cname, setCname }) {
 }
 
 // ── Release zone (give the name back to the pool) ───────────
-// ── Swap zone (trade this name for a new one) ───────────────
+// ── Swap zone (trade this name for a different one) ─────────
 function SwapZone({ name }) {
   const [open, setOpen] = useState(false);
   const [newName, setNewName] = useState('');
@@ -589,22 +589,28 @@ function SwapZone({ name }) {
   const [swapping, setSwapping] = useState(false);
   const [result, setResult] = useState(null);
   const [vercelStatus, setVercelStatus] = useState(null); // null | 'connected' | 'expired' | 'not_connected'
+  const [projects, setProjects] = useState(null);
+  const [swapProject, setSwapProject] = useState('');
 
-  // Check Vercel connection when the swap zone opens
+  // Check Vercel connection and fetch projects when the swap zone opens
   useEffect(() => {
     if (!open || vercelStatus !== null) return;
     fetch('/api/vercel/projects')
       .then((res) => {
         if (res.status === 401) {
-          // Could be signin_required (no session) or vercel_token_invalid
           setVercelStatus('expired');
+          return null;
         } else if (res.ok) {
           setVercelStatus('connected');
+          return res.json();
         } else if (res.status === 400) {
           setVercelStatus('not_connected');
-        } else {
-          setVercelStatus(null);
+          return null;
         }
+        return null;
+      })
+      .then((data) => {
+        if (data?.projects) setProjects(data.projects);
       })
       .catch(() => setVercelStatus(null));
   }, [open, vercelStatus]);
@@ -636,13 +642,13 @@ function SwapZone({ name }) {
         const newDisplayName = `${newName.trim().toLowerCase()}.runs-on.dev`;
 
         // Auto-trigger Vercel setup if connected and the record has a Vercel CNAME
-        if (vercelStatus === 'connected') {
+        if (vercelStatus === 'connected' && swapProject) {
           setResult({ ok: true, text: `${body.message}. setting up Vercel for ${newDisplayName}…` });
           try {
             const setupRes = await fetch('/api/vercel/setup', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ name: newName.trim().toLowerCase(), project: 'auto' }),
+              body: JSON.stringify({ name: newName.trim().toLowerCase(), project: swapProject }),
             });
             const setupBody = await setupRes.json().catch(() => ({}));
             if (setupRes.ok && setupBody.ok) {
@@ -700,6 +706,29 @@ function SwapZone({ name }) {
               Vercel isn&rsquo;t connected. If your name points at Vercel, you&rsquo;ll need to
               set up the new domain manually after swapping.
             </div>
+          )}
+
+          {/* Project selector for auto-setup (shown when Vercel is connected) */}
+          {vercelStatus === 'connected' && (
+            <label className="block">
+              <span className="text-xs text-(--color-muted)">Vercel project for the new name</span>
+              <select
+                value={swapProject}
+                onChange={(e) => setSwapProject(e.target.value)}
+                aria-label="Vercel project for swap"
+                className="mt-1 w-full border border-(--color-rule) bg-(--color-card) px-3 py-2 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none focus:border-(--color-signal)"
+              >
+                <option value="">{projects === null ? 'loading…' : 'select a project (optional)'}</option>
+                {projects?.map((p) => (
+                  <option key={p.id} value={p.name}>{p.name}</option>
+                ))}
+              </select>
+              {swapProject && (
+                <span className="mt-1 block text-xs text-(--color-muted)">
+                  the new name will be added to this project automatically after swap
+                </span>
+              )}
+            </label>
           )}
 
           <div className="space-y-2">
