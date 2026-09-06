@@ -258,7 +258,7 @@ test('zone TXTs younger than the TTL are kept', () => {
   const threeHoursAgo = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
   const { create, remove } = reconcileZoneVerification(
     [{ type: 'TXT', name: '_vercel', value: 'vc-domain-verify=fresh.runs-on.dev,y' }],
-    [{ id: 'rec_fresh', type: 'TXT', name: '_vercel', value: 'vc-domain-verify=fresh.runs-on.dev,y', createdAt: twoDaysAgo }],
+    [{ id: 'rec_fresh', type: 'TXT', name: '_vercel', value: 'vc-domain-verify=fresh.runs-on.dev,y', createdAt: threeHoursAgo }],
   );
 
   assert.deepEqual(create, []);
