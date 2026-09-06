@@ -312,6 +312,7 @@ export default function RecordForm({ name, record }) {
       )}
 
       {/* Danger zone: release the name back to the pool */}
+      <SwapZone name={name} />
       <ReleaseZone name={name} />
     </form>
   );
@@ -580,6 +581,181 @@ function VercelConfig({ name, cname, setCname }) {
 }
 
 // ── Release zone (give the name back to the pool) ───────────
+// ── Swap zone (trade this name for a new one) ───────────────
+function SwapZone({ name }) {
+  const [open, setOpen] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [confirmText, setConfirmText] = useState('');
+  const [swapping, setSwapping] = useState(false);
+  const [result, setResult] = useState(null);
+  const [vercelStatus, setVercelStatus] = useState(null); // null | 'connected' | 'expired' | 'not_connected'
+
+  // Check Vercel connection when the swap zone opens
+  useEffect(() => {
+    if (!open || vercelStatus !== null) return;
+    fetch('/api/vercel/projects')
+      .then((res) => {
+        if (res.status === 401) {
+          // Could be signin_required (no session) or vercel_token_invalid
+          setVercelStatus('expired');
+        } else if (res.ok) {
+          setVercelStatus('connected');
+        } else if (res.status === 400) {
+          setVercelStatus('not_connected');
+        } else {
+          setVercelStatus(null);
+        }
+      })
+      .catch(() => setVercelStatus(null));
+  }, [open, vercelStatus]);
+
+  const canSwap = validateNewName(newName) && confirmText.trim().toLowerCase() === newName.trim().toLowerCase();
+
+  const swap = async () => {
+    if (!canSwap) return;
+    setSwapping(true);
+    setResult(null);
+    try {
+      const res = await fetch('/api/swap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: name,
+          to: newName.trim().toLowerCase(),
+          confirm: confirmText.trim().toLowerCase(),
+        }),
+      });
+      const body = await res.json().catch(() => ({}));
+
+      if (res.ok && body.ok) {
+        setResult({ ok: true, text: body.message });
+        // If the old record had a Vercel CNAME, trigger setup for the new name
+        if (vercelStatus === 'connected') {
+          setResult({ ok: true, text: `${body.message}. triggering Vercel setup…` });
+          // The setup runs on the new name's manage page after redirect
+        }
+        // Redirect to the manage page (which now shows the new name)
+        setTimeout(() => { window.location.href = '/manage'; }, 1500);
+      } else {
+        setResult({ ok: false, text: body.detail ?? body.error ?? 'swap failed' });
+      }
+    } catch {
+      setResult({ ok: false, text: 'network error' });
+    }
+    setSwapping(false);
+  };
+
+  const validateNewName = (v) => {
+    const trimmed = v.trim().toLowerCase();
+    return /^[a-z0-9]([a-z0-9-]{0,30}[a-z0-9])?$/.test(trimmed) && trimmed.length >= 2 && trimmed !== name;
+  };
+
+  const nameAvailable = validateNewName(newName);
+
+  return (
+    <div className="border-t border-(--color-rule) px-6 py-5 sm:px-8">
+      {!open ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="font-(family-name:--font-mono) text-xs text-(--color-signal) underline hover:opacity-80"
+        >
+          swap this name for a different one
+        </button>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-(--color-ink)">Swap {name}.runs-on.dev</p>
+          <p className="text-xs leading-relaxed text-(--color-muted)">
+            Trade this name for a new one. All your settings (CNAME, profile, subdomains)
+            carry over. The old name is released immediately and becomes available to anyone.
+          </p>
+
+          {/* Vercel connection check */}
+          {vercelStatus === 'expired' && (
+            <div className="border border-amber-300/50 bg-amber-50/50 px-3 py-2 text-xs text-amber-700 dark:border-amber-500/30 dark:bg-amber-900/10 dark:text-amber-400">
+              Your Vercel connection has expired. To automatically set up the new name on Vercel
+              after swapping, <a href="/api/auth/vercel" className="font-semibold underline">reconnect Vercel first</a>.
+              You can still swap without Vercel — you&rsquo;ll just need to set it up manually afterward.
+            </div>
+          )}
+          {vercelStatus === 'not_connected' && (
+            <div className="border border-(--color-rule) bg-(--color-card) px-3 py-2 text-xs text-(--color-muted)">
+              Vercel isn&rsquo;t connected. If your name points at Vercel, you&rsquo;ll need to
+              set up the new domain manually after swapping.
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <input
+              value={newName}
+              onChange={(e) => { setNewName(e.target.value); setResult(null); }}
+              placeholder="new-name"
+              aria-label="New name to swap to"
+              spellCheck={false}
+              autoCapitalize="off"
+              autoCorrect="off"
+              className={`w-full border bg-transparent px-3 py-2 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none ${nameAvailable || !newName ? 'border-(--color-rule) focus:border-(--color-signal)' : 'border-red-300'}`}
+            />
+            {newName && !nameAvailable && (
+              <p className="text-xs text-red-500">
+                {newName.trim().toLowerCase() === name ? 'that\rsquo;s your current name' : 'invalid name (2-32 chars, a-z 0-9 hyphens)'}
+              </p>
+            )}
+            {nameAvailable && (
+              <p className="font-(family-name:--font-mono) text-xs text-(--color-muted)">
+                → {newName.trim().toLowerCase()}.runs-on.dev
+              </p>
+            )}
+          </div>
+
+          {nameAvailable && (
+            <div>
+              <input
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+                placeholder={`type "${newName.trim().toLowerCase()}" to confirm`}
+                aria-label="Type the new name to confirm swap"
+                spellCheck={false}
+                autoCapitalize="off"
+                className="w-full border border-(--color-rule) bg-transparent px-3 py-2 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none focus:border-(--color-signal)"
+              />
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={swap}
+              disabled={swapping || !canSwap}
+              className="border px-4 py-2 font-(family-name:--font-mono) text-xs transition-opacity hover:opacity-90 disabled:opacity-50"
+              style={{
+                borderColor: 'var(--color-signal)',
+                background: 'var(--color-signal)',
+                color: 'var(--color-paper)',
+              }}
+            >
+              {swapping ? 'Swapping…' : `Swap to ${newName.trim().toLowerCase() || '…'}`}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setOpen(false); setNewName(''); setConfirmText(''); setResult(null); }}
+              className="border border-(--color-rule) px-4 py-2 font-(family-name:--font-mono) text-xs transition-opacity hover:opacity-80"
+            >
+              Cancel
+            </button>
+          </div>
+
+          {result && (
+            <p className={`text-xs font-(family-name:--font-mono) ${result.ok ? 'text-green-600' : 'text-red-500'}`}>
+              {result.ok ? '✓ ' : '✗ '}{result.text}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ReleaseZone({ name }) {
   const [open, setOpen] = useState(false);
   const [confirmText, setConfirmText] = useState('');
