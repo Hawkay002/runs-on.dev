@@ -6,10 +6,10 @@
   "claimedAt": "2026-09-06T14:48:08.599Z",
   "records": {
     "A": [
-      "76.76.21.21"
+      "216.198.79.1"
     ],
     "TXT": [
-      "vc-domain-verify=faraz.runs-on.dev,236a8d1e7c5dcd0af26e"
+      "vc-domain-verify=runs-on.dev,ba5448833f5c46f7a59a"
     ]
   }
 }
