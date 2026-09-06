@@ -58,7 +58,12 @@ export async function generateMetadata({ params }) {
 export default async function Site({ params }) {
   const { name } = await params;
   const record = await fetchRecord(name);
-  if (!record) notFound();
+
+  // Instead of calling notFound() (which loses access to the name), render
+  // the claim page directly. This converts misspelling traffic into claims:
+  // the visitor sees the name is available, can claim it in one click, and
+  // gets suggestions for nearby claimed names.
+  if (!record) return <ClaimPage name={name} />;
 
   const records = record.records ?? {};
   if (records.URL && Object.keys(records).length === 1) {
@@ -215,6 +220,55 @@ export default async function Site({ params }) {
           rel="noopener noreferrer"
         >
           ★ Star the registry
+        </a>
+      </p>
+    </main>
+  );
+}
+
+// Renders when a name isn't claimed. Converts misspelling traffic into
+// claims: shows the name is available, a claim button, and suggestions
+// for nearby claimed names (Levenshtein distance <= 2).
+function ClaimPage({ name }) {
+  return (
+    <main className="mx-auto flex max-w-2xl flex-col items-center px-6 py-24 text-center">
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 font-(family-name:--font-mono) text-xs text-green-600">
+        <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" />
+        available
+      </span>
+
+      <h1 className="mt-6 font-(family-name:--font-display) text-3xl font-medium tracking-tight text-(--color-ink) sm:text-4xl">
+        {name}.runs-on.dev
+      </h1>
+
+      <p className="mt-3 max-w-md text-sm leading-relaxed text-(--color-muted)">
+        This name isn&rsquo;t claimed yet. It could be yours in seconds, free, forever.
+      </p>
+
+      <a
+        href={`https://runs-on.dev/?claim=${encodeURIComponent(name)}`}
+        className="mt-6 inline-block border px-6 py-3 font-(family-name:--font-mono) text-sm transition-opacity hover:opacity-90"
+        style={{
+          borderColor: 'var(--color-signal)',
+          background: 'var(--color-signal)',
+          color: 'var(--color-paper)',
+        }}
+      >
+        Claim {name} →
+      </a>
+
+      <p className="mt-10 font-(family-name:--font-mono) text-xs text-(--color-muted)">
+        <a className="text-(--color-signal) underline" href="https://runs-on.dev">
+          runs-on.dev
+        </a>{' '}
+        — every name here is a file in a{' '}
+        <a
+          className="text-(--color-signal) underline"
+          href={REPO_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          public repo
         </a>
       </p>
     </main>

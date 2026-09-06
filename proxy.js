@@ -12,7 +12,9 @@ export function proxy(request) {
 
   // /sites/* is a real, publicly routable path, so refuse it from the outside on
   // every host. An internal rewrite does not re-enter proxy, so cards still render.
-  if (request.nextUrl.pathname.startsWith('/sites/')) {
+  // Exception: localhost in dev, so the claim-404 page can be tested without
+  // a wildcard-host entry in /etc/hosts.
+  if (request.nextUrl.pathname.startsWith('/sites/') && host !== 'localhost') {
     return new NextResponse('not found', { status: 404 });
   }
 
