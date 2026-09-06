@@ -236,6 +236,48 @@ test('reconcile creates a value the zone does not hold yet', () => {
   assert.deepEqual(remove, []);
 });
 
+// --- zone TXT TTL (issues #104, #105: 50-record per-hostname limit) ---
+
+test('zone TXTs older than the TTL are removed even if still wanted', () => {
+  // A domain that verified 10 days ago: its zone TXT is dead weight.
+  // Removing it frees a slot at the capped hostname. The value is still
+  // in `have`, so `create` is empty this pass — it gets re-created fresh
+  // (with a new timestamp) on the next sync run.
+  const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString();
+  const { create, remove } = reconcileZoneVerification(
+    [{ type: 'TXT', name: '_vercel', value: 'vc-domain-verify=old.runs-on.dev,z' }],
+    [{ id: 'rec_old', type: 'TXT', name: '_vercel', value: 'vc-domain-verify=old.runs-on.dev,z', createdAt: tenDaysAgo }],
+  );
+
+  assert.deepEqual(create, []);
+  assert.deepEqual(remove.map((r) => r.id), ['rec_old']);
+});
+
+test('zone TXTs younger than the TTL are kept', () => {
+  // A domain actively pending verification: its TXT must stay.
+  const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
+  const { create, remove } = reconcileZoneVerification(
+    [{ type: 'TXT', name: '_vercel', value: 'vc-domain-verify=fresh.runs-on.dev,y' }],
+    [{ id: 'rec_fresh', type: 'TXT', name: '_vercel', value: 'vc-domain-verify=fresh.runs-on.dev,y', createdAt: twoDaysAgo }],
+  );
+
+  assert.deepEqual(create, []);
+  assert.deepEqual(remove, []);
+});
+
+test('zone TXTs without a createdAt timestamp are never TTL-removed', () => {
+  // Old records created before Vercel started returning timestamps: the TTL
+  // check fails closed (keeps them) rather than deleting records we can't
+  // date. They still get cleaned up when the claim drops the record.
+  const { remove } = reconcileZoneVerification(
+    [],
+    [{ id: 'rec_no_ts', type: 'TXT', name: '_vercel', value: 'vc-domain-verify=unknown.runs-on.dev,x' }],
+  );
+
+  // Removed because the claim no longer wants it, not because of TTL.
+  assert.deepEqual(remove.map((r) => r.id), ['rec_no_ts']);
+});
+
 // The mirror publishes to the apex, one label above every claim, from a field
 // its owner controls and can edit from /manage with no review. What it accepts
 // is therefore a security boundary, not a formatting detail.
