@@ -4,5 +4,9 @@
     "github": "THARUN-BART"
   },
   "claimedAt": "2026-09-05T15:22:52.327Z",
-  "records": {}
+  "records": {
+    "TXT": [
+      "vc-domain-verify=tha.runs-on.dev,2c03fa8afc99bdc2e0d6"
+    ]
+  }
 }
