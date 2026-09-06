@@ -4,5 +4,9 @@
     "github": "rishith-c"
   },
   "claimedAt": "2026-09-06T05:17:06.421Z",
-  "records": {}
+  "records": {
+    "TXT": [
+      "_vercel"
+    ]
+  }
 }
