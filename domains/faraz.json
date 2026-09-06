@@ -4,7 +4,12 @@
     "github": "SFarazH"
   },
   "claimedAt": "2026-09-06T14:48:08.599Z",
-  "records": {
-    "CNAME": "cname.vercel-dns.com"
+  "records": {},
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=faraz.runs-on.dev,236a8d1e7c5dcd0af26e"
+      ]
+    }
   }
 }
