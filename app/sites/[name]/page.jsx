@@ -229,7 +229,54 @@ export default async function Site({ params }) {
 // Renders when a name isn't claimed. Converts misspelling traffic into
 // claims: shows the name is available, a claim button, and suggestions
 // for nearby claimed names (Levenshtein distance <= 2).
-function ClaimPage({ name }) {
+
+// Simple Levenshtein distance, enough for short subdomain names.
+function editDistance(a, b) {
+  const matrix = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) matrix[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1,
+        matrix[i][j - 1] + 1,
+        matrix[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1),
+      );
+    }
+  }
+  return matrix[a.length][b.length];
+}
+
+async function findSimilarNames(attempted) {
+  try {
+    const res = await fetch('https://api.github.com/repos/zordhalo/runs-on.dev/contents/domains', {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        ...(process.env.CARD_TOKEN ?? process.env.REGISTRY_TOKEN
+          ? { Authorization: `Bearer ${process.env.CARD_TOKEN ?? process.env.REGISTRY_TOKEN}` }
+          : {}),
+      },
+      next: { revalidate: 300 },
+    });
+    if (!res.ok) return [];
+    const entries = await res.json();
+    const claimed = entries
+      .filter((e) => e.type === 'file' && e.name.endsWith('.json'))
+      .map((e) => e.name.replace('.json', ''));
+
+    return claimed
+      .filter((c) => c !== attempted && editDistance(attempted, c) <= 2)
+      .map((c) => ({ name: c, distance: editDistance(attempted, c) }))
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, 3)
+      .map((s) => s.name);
+  } catch {
+    return [];
+  }
+}
+
+async function ClaimPage({ name }) {
+  const suggestions = await findSimilarNames(name);
+
   return (
     <main className="mx-auto flex max-w-2xl flex-col items-center px-6 py-24 text-center">
       <span className="inline-flex items-center gap-1.5 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 font-(family-name:--font-mono) text-xs font-semibold uppercase tracking-wide text-green-600">
@@ -256,6 +303,26 @@ function ClaimPage({ name }) {
       >
         Sign in with GitHub to claim {name}.runs-on.dev →
       </a>
+
+      {suggestions.length > 0 && (
+        <div className="mt-10 border-t border-(--color-rule) pt-6">
+          <p className="font-(family-name:--font-mono) text-xs text-(--color-muted)">
+            did you mean…
+          </p>
+          <ul className="mt-3 space-y-2">
+            {suggestions.map((s) => (
+              <li key={s}>
+                <a
+                  href={`https://${s}.runs-on.dev`}
+                  className="font-(family-name:--font-mono) text-sm text-(--color-signal) underline"
+                >
+                  {s}.runs-on.dev
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <p className="mt-10 font-(family-name:--font-mono) text-xs text-(--color-muted)">
         <a className="text-(--color-signal) underline" href="https://runs-on.dev">
