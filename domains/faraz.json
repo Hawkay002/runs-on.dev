@@ -4,5 +4,7 @@
     "github": "SFarazH"
   },
   "claimedAt": "2026-09-06T14:48:08.599Z",
-  "records": {}
+  "records": {
+    "CNAME": "cname.vercel-dns.com"
+  }
 }
