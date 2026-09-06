@@ -8,7 +8,7 @@
     "CNAME": "junaidahamed.vercel-dns.com"
   },
   "subdomains": {
-    "_vercel": {
+    "junaidahamed": {
       "CNAME": "f2969c747c6b302e.vercel-dns-017.com"
     }
   }
