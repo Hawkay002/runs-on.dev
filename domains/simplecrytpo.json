@@ -5,15 +5,6 @@
   },
   "claimedAt": "2026-09-04T15:26:20.086Z",
   "records": {
-    "A": [
-      "76.76.21.21"
-    ]
-  },
-  "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=simplecrypto.runs-on.dev,23df802e19703982a0ef"
-      ]
-    }
+    "URL": "https://elliptiq.vercel.app/"
   }
 }
