@@ -4,7 +4,9 @@
     "github": "89Aman"
   },
   "claimedAt": "2026-09-07T19:37:45.412Z",
-  "records": {},
+  "records": {
+    "CNAME": "portfolio-chi-ruddy-37.vercel.app"
+  },
   "profile": {
     "name": "89Aman"
   }
