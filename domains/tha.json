@@ -4,7 +4,9 @@
     "github": "THARUN-BART"
   },
   "claimedAt": "2026-09-05T15:22:52.327Z",
-  "records": {},
+  "records": {
+    "CNAME": "59c8406e70d87c96.vercel-dns-017.com"
+  },
   "subdomains": {
     "_vercel": {
       "TXT": [
