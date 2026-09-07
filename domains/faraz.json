@@ -5,9 +5,7 @@
   },
   "claimedAt": "2026-09-06T14:48:08.599Z",
   "records": {
-    "TXT": [
-      "vc-domain-verify=runs-on.dev,ba5448833f5c46f7a59a"
-    ]
+    "CNAME": "7189bafa2feaf940.vercel-dns-017.com"
   },
   "subdomains": {
     "_vercel": {
