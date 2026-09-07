@@ -4,5 +4,10 @@
     "github": "shantanu-p01"
   },
   "claimedAt": "2026-09-04T03:59:38.251Z",
-  "records": {}
+  "records": {
+    "CNAME": "shantanu.pages.dev"
+  },
+  "profile": {
+    "name": "shantanu-p01"
+  }
 }
