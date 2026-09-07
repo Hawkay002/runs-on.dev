@@ -5,6 +5,8 @@
   },
   "claimedAt": "2026-09-04T15:26:20.086Z",
   "records": {
-    "CNAME": "f957d843b0d466ec.vercel-dns-017.com"
+    "TXT": [
+      "vc-domain-verify=simplecrypto.runs-on.dev,c787f1b3d6d72f230eba"
+    ]
   }
 }
