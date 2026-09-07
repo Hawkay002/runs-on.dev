@@ -4,5 +4,7 @@
     "github": "aditya-git0503"
   },
   "claimedAt": "2026-09-07T17:42:42.945Z",
-  "records": {}
+  "records": {
+    "CNAME": "portfolio-app.adityagupta.workers.dev"
+  }
 }
