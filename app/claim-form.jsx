@@ -18,6 +18,14 @@ export default function ClaimForm({ signedIn }) {
   const [ownedName, setOwnedName] = useState(null);
   const [inputWidth, setInputWidth] = useState(null);
   const [animKey, setAnimKey] = useState(0);
+
+  // Prefill from ?claim=<name> when arriving from a 404 page. Set after
+  // mount (not in useState initializer) to avoid a hydration mismatch:
+  // the server always renders empty, the client fills it in afterward.
+  useEffect(() => {
+    const claimParam = new URLSearchParams(window.location.search).get('claim');
+    if (claimParam) setName(claimParam);
+  }, []);
   const nameRef = useRef('');
   const debounceRef = useRef(null);
   const lastCheckedRef = useRef('');
