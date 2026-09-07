@@ -6,12 +6,5 @@
   "claimedAt": "2026-09-03T09:47:48.150Z",
   "records": {
     "URL": "https://wisflux-certificate-verification.vercel.app"
-  },
-  "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=wisflux.runs-on.dev,22ae231031596dcabe39"
-      ]
-    }
   }
 }
