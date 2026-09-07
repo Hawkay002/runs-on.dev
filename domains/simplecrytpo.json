@@ -8,5 +8,12 @@
     "TXT": [
       "vc-domain-verify=simplecrypto.runs-on.dev,c787f1b3d6d72f230eba"
     ]
+  },
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=simplecrypto.runs-on.dev,c787f1b3d6d72f230eba"
+      ]
+    }
   }
 }
