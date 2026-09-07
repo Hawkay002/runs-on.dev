@@ -5,7 +5,9 @@
   },
   "claimedAt": "2026-09-04T15:26:20.086Z",
   "records": {
-    "URL": "https://elliptiq.vercel.app"
+    "A": [
+      "76.76.21.21"
+    ]
   },
   "subdomains": {
     "_vercel": {
