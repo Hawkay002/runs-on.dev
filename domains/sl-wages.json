@@ -4,5 +4,7 @@
     "github": "apostdim"
   },
   "claimedAt": "2026-09-07T14:26:26.066Z",
-  "records": {}
+  "records": {
+    "CNAME": "sl-wages.netlify.app"
+  }
 }
