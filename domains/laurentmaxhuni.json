@@ -8,11 +8,6 @@
     "CNAME": "86b5e1d9825fa59f.vercel-dns-017.com"
   },
   "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=laurentmaxhuni.runs-on.dev,bc36c1d84295d671eb22"
-      ]
-    },
     "ideator": {
       "CNAME": "763f1689be7f24de.vercel-dns-017.com"
     },

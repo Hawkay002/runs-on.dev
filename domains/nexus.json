@@ -8,11 +8,6 @@
     "CNAME": "57e73c72e945c569.vercel-dns-017.com"
   },
   "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=nexus.runs-on.dev,9c44879cbb082a321d49"
-      ]
-    },
     "recruitment": {
       "CNAME": "1f0f89ca65ce0a71.vercel-dns-017.com"
     },

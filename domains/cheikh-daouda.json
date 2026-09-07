@@ -6,12 +6,5 @@
   "claimedAt": "2026-09-02T09:13:41.186Z",
   "records": {
     "CNAME": "b7f7ca7cb12ec234.vercel-dns-017.com"
-  },
-  "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=cheikh-daouda.runs-on.dev,cb3f92646011de253084"
-      ]
-    }
   }
 }

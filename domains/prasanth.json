@@ -8,12 +8,5 @@
     "A": [
       "76.76.21.21"
     ]
-  },
-  "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=prasanth.runs-on.dev,d38728ca8f199d65ab11"
-      ]
-    }
   }
 }

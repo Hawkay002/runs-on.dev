@@ -7,13 +7,6 @@
   "records": {
     "CNAME": "0c2c59c210a7c127.vercel-dns-017.com"
   },
-  "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=shovith.runs-on.dev,4d3ea646bfff9f6ec0a6"
-      ]
-    }
-  },
   "profile": {
     "name": "Shovith Debnath"
   }

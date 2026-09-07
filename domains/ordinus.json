@@ -6,12 +6,5 @@
   "claimedAt": "2026-09-03T01:58:39.444Z",
   "records": {
     "CNAME": "de56651184646f33.vercel-dns-017.com"
-  },
-  "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=ordinus.runs-on.dev,c1d035a9ed97adc847b7"
-      ]
-    }
   }
 }

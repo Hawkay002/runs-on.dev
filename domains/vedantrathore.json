@@ -6,12 +6,5 @@
   "claimedAt": "2026-09-02T16:54:53.297Z",
   "records": {
     "CNAME": "7b54f5e0d9996ca8.vercel-dns-017.com"
-  },
-  "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=vedantrathore.runs-on.dev,87350b2afc80e7703dd9"
-      ]
-    }
   }
 }

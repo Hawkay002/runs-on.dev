@@ -6,12 +6,5 @@
   "claimedAt": "2026-09-03T04:51:19.549Z",
   "records": {
     "CNAME": "cname.vercel-dns.com"
-  },
-  "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=berry-astra.runs-on.dev,44d82c4c9f2552d96d56"
-      ]
-    }
   }
 }
