@@ -6,12 +6,5 @@
   "claimedAt": "2026-09-01T06:42:02.575Z",
   "records": {
     "URL": "https://advancelabs.dev/lucas"
-  },
-  "subdomains": {
-    "_repairtest": {
-      "TXT": [
-        "repair-job-test-1788823215"
-      ]
-    }
   }
 }
