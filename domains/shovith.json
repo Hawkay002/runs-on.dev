@@ -4,7 +4,9 @@
     "github": "Hawkay002"
   },
   "claimedAt": "2026-09-02T06:50:41.000Z",
-  "records": {},
+  "records": {
+    "CNAME": "0c2c59c210a7c127.vercel-dns-017.com"
+  },
   "profile": {
     "name": "Shovith Debnath",
     "bio": "Hello world"
