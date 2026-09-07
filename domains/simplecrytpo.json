@@ -10,7 +10,7 @@
   "subdomains": {
     "_vercel": {
       "TXT": [
-        "vc-domain-verify=simplecrypto.runs-on.dev,c787f1b3d6d72f230eba"
+        "vc-domain-verify=simplecrypto.runs-on.dev,23df802e19703982a0ef"
       ]
     }
   }
