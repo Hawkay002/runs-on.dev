@@ -4,5 +4,14 @@
     "github": "melwarebytes"
   },
   "claimedAt": "2026-09-08T05:11:09.561Z",
-  "records": {}
+  "records": {
+    "CNAME": "4ab10c27dcca6f51.vercel-dns-017.com"
+  },
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=melwarebytes.runs-on.dev,e0d64ff7cdba67c011cf"
+      ]
+    }
+  }
 }
