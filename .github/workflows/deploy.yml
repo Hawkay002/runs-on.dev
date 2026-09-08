@@ -22,7 +22,10 @@ on:
     # through the runtime API, so it depends on a deploy to stay fresh. The
     # daily schedule covers it: the numbers are never more than a day stale,
     # which costs one deploy instead of one per claim.
-    paths-ignore: ['domains/**', 'owners/**', 'data/**', 'docs/**', '*.md']
+    # `.moderation/**` joins them for the same reason: the spam log is
+    # evidence, not application code, and a burst of spam should not spend
+    # the deploy budget.
+    paths-ignore: ['domains/**', 'owners/**', 'data/**', 'docs/**', '.moderation/**', '*.md']
   schedule:
     # Daily at 04:00 UTC, off the top of the hour so it doesn't co-fire with
     # the health check. Rebuilds /stats from the current state of domains/.
