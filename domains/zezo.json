@@ -5,6 +5,8 @@
   },
   "claimedAt": "2026-09-08T21:21:57.655Z",
   "records": {
-    "URL": "https://zez0dev.vercel.app/"
+    "TXT": [
+      "vc-domain-verify=zezo.runs-on.dev,5cdd6b2caf979eeb5575"
+    ]
   }
 }
