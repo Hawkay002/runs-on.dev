@@ -5,7 +5,9 @@
   },
   "claimedAt": "2026-09-08T21:21:57.655Z",
   "records": {
-    "CNAME": "386e3904ef50d7a6.vercel-dns-017.com"
+    "TXT": [
+      "vc-domain-verify=zezo.runs-on.dev,c735fbfd5e51a2800fd3"
+    ]
   },
   "profile": {
     "name": "Unknown3663",
