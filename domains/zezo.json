@@ -18,5 +18,12 @@
         "url": "https://zez0dev.vercel.app/"
       }
     ]
+  },
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=zezo.runs-on.dev,c735fbfd5e51a2800fd3"
+      ]
+    }
   }
 }
