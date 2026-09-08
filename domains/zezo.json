@@ -4,5 +4,12 @@
     "github": "Unknown3663"
   },
   "claimedAt": "2026-09-08T21:21:57.655Z",
-  "records": {}
+  "records": {
+    "A": [
+      "216.198.79.1"
+    ],
+    "TXT": [
+      "vc-domain-verify=zezo.runs-on.dev,5cdd6b2caf979eeb5575"
+    ]
+  }
 }
