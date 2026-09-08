@@ -5,11 +5,8 @@
   },
   "claimedAt": "2026-09-08T21:21:57.655Z",
   "records": {
-    "A": [
-      "216.198.79.1"
-    ],
     "TXT": [
-      "vc-domain-verify=zezo.runs-on.dev,5cdd6b2caf979eeb5575"
+      "vc-domain-verify=zezo.runs-on.dev,c82d4662070b7563c5f3"
     ]
   }
 }
