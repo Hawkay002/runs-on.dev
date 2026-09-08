@@ -8,5 +8,15 @@
     "TXT": [
       "vc-domain-verify=zezo.runs-on.dev,c82d4662070b7563c5f3"
     ]
+  },
+  "profile": {
+    "name": "Unknown3663",
+    "bio": "I am a 20 yo in Faculty of Tourism and Hotels who is passionate about coding and studying programming as a hobby to become a full stack developer.",
+    "links": [
+      {
+        "label": "My Portfolio",
+        "url": "https://zez0dev.vercel.app/"
+      }
+    ]
   }
 }
