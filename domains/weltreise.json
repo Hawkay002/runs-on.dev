@@ -4,5 +4,10 @@
     "github": "flexinson"
   },
   "claimedAt": "2026-09-09T11:44:40.453Z",
-  "records": {}
+  "records": {
+    "CNAME": "flexinson.github.io"
+  },
+  "profile": {
+    "name": "flexinson"
+  }
 }
