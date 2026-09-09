@@ -4,5 +4,15 @@
     "github": "Le-e-lab"
   },
   "claimedAt": "2026-09-09T19:52:42.954Z",
-  "records": {}
+  "records": {},
+  "profile": {
+    "name": "Lesley Mutsambiwa",
+    "bio": "👋 Hey there! I'm Lesley Mutsambiwa, a passionate full-stack developer in the making. I love building clean, functional, and user-friendly applications.",
+    "links": [
+      {
+        "label": "My Portfolio",
+        "url": "https://le-e-lab.github.io/portfolio/"
+      }
+    ]
+  }
 }
