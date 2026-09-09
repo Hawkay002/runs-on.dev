@@ -5,8 +5,13 @@
   },
   "claimedAt": "2026-09-03T14:09:47.519Z",
   "records": {
-    "TXT": [
-      "vc-domain-verify=runs-on.dev,6d35cb5960a3a257c750"
-    ]
+    "CNAME": "7f67a3649f0e6864.vercel-dns-017.com"
+  },
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=somi.runs-on.dev,6fe8d8c8c31192da6e97"
+      ]
+    }
   }
 }
