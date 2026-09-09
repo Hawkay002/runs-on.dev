@@ -4,7 +4,9 @@
     "github": "vathsavv56"
   },
   "claimedAt": "2026-09-09T03:36:19.436Z",
-  "records": {},
+  "records": {
+    "CNAME": "ebf3b14bb9cc7f17.vercel-dns-017.com"
+  },
   "profile": {
     "links": [
       {
@@ -12,5 +14,12 @@
         "url": "https://vathsavv56.vercel.app/"
       }
     ]
+  },
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=vathsavv56.runs-on.dev,692aa27bdac21c424f14"
+      ]
+    }
   }
 }
