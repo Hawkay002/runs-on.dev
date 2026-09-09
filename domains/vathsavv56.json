@@ -4,5 +4,13 @@
     "github": "vathsavv56"
   },
   "claimedAt": "2026-09-09T03:36:19.436Z",
-  "records": {}
+  "records": {},
+  "profile": {
+    "links": [
+      {
+        "label": "My portfolio",
+        "url": "https://vathsavv56.vercel.app/"
+      }
+    ]
+  }
 }
