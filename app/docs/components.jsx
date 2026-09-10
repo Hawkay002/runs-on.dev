@@ -34,7 +34,7 @@ export function C({ children }) {
 
 export function Code({ children }) {
   return (
-    <pre className="slit-frame overflow-x-auto rounded-lg bg-(--color-card) p-4 font-(family-name:--font-mono) text-xs leading-relaxed text-(--color-ash)">
+    <pre className="slit-frame rounded-lg bg-(--color-card) p-4 font-(family-name:--font-mono) text-xs leading-relaxed whitespace-pre-wrap [overflow-wrap:break-word] text-(--color-ash)">
       <code>{children}</code>
     </pre>
   );
