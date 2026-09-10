@@ -23,7 +23,7 @@ export default function OwnedName({ name, record }) {
       {pointing ? (
         <dl className="mt-6 space-y-1.5 text-left font-(family-name:--font-mono) text-xs sm:text-[13px]">
           {types.map((type) => (
-            <div key={type} className="flex gap-4 border-t border-(--color-rule) pt-1.5">
+            <div key={type} className="slit-top slit-dim flex gap-4 pt-1.5">
               <dt className="w-20 shrink-0 text-(--color-muted)">{type}</dt>
               <dd className="break-all text-(--color-ink)">{describe(records[type])}</dd>
             </div>

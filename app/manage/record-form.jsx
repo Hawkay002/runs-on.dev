@@ -11,11 +11,11 @@ import {
 const MAX_SUBDOMAINS = 10;
 const MAX_LINKS = 8;
 
-// The one input look for the whole form: transparent field inside a graphite
-// hairline, chalk text, the hairline going white on focus. Contrast carries
-// the state, no fills.
+// The one input look for the whole form: transparent field inside a slit
+// outline, chalk text, the line brightening on focus. Contrast carries the
+// state, no fills.
 const INPUT =
-  'w-full border border-(--color-rule) bg-transparent px-3 py-2 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none transition-colors placeholder:text-(--color-muted)/70 focus:border-(--color-ink)';
+  'slit-input w-full bg-transparent px-3 py-2 font-(family-name:--font-mono) text-sm text-(--color-ink) placeholder:text-(--color-muted)/70';
 
 // The "did it work?" panel: polls /api/dns-check after a save and compares
 // live DNS against what was committed.
@@ -38,7 +38,7 @@ function VerifyPanel({ name, cname, url, hasDns, vercelTxt }) {
 
   if (!check) {
     return (
-      <div className="border-t border-(--color-rule) px-6 py-4 font-(family-name:--font-mono) text-xs text-(--color-muted) sm:px-8">
+      <div className="slit-top px-6 py-4 font-(family-name:--font-mono) text-xs text-(--color-muted) sm:px-8">
         {'// checking DNS…'}
       </div>
     );
@@ -64,7 +64,7 @@ function VerifyPanel({ name, cname, url, hasDns, vercelTxt }) {
   rows.push({ ok: page.ok, text: page.text });
 
   return (
-    <div className="border-t border-(--color-rule) px-6 py-4 sm:px-8">
+    <div className="slit-top px-6 py-4 sm:px-8">
       <p className="font-(family-name:--font-mono) text-xs text-(--color-muted)">{'// did it work?'}</p>
       <ul className="mt-2 space-y-1.5 font-(family-name:--font-mono) text-xs">
         {rows.map((row, i) => (
@@ -182,14 +182,14 @@ export default function RecordForm({ name, record }) {
     : { label: 'Card', tone: 'neutral' };
 
   return (
-    <form onSubmit={save} className="overflow-hidden rounded-lg border border-(--color-rule)">
+    <form onSubmit={save} className="slit-frame rounded-lg">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-(--color-rule) px-6 py-5 sm:px-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 slit-bottom px-6 py-5 sm:px-8">
         <div>
           <p className="font-(family-name:--font-mono) text-xs text-(--color-muted)">domains/{name}.json</p>
           <h2 className="mt-1.5 text-[23px] leading-[1.07] font-normal tracking-[-0.004em] text-(--color-ink)">{name}.runs-on.dev</h2>
         </div>
-        <span className="inline-flex items-center gap-2 rounded-[4px] border border-(--color-rule) bg-(--color-badge) px-3.5 py-2 font-(family-name:--font-mono) text-[12px] tracking-[0.05em] text-(--color-muted) uppercase">
+        <span className="inline-flex items-center gap-2 slit-frame rounded-[4px] bg-(--color-badge) px-3.5 py-2 font-(family-name:--font-mono) text-[12px] tracking-[0.05em] text-(--color-muted) uppercase">
           <span
             aria-hidden="true"
             className={`inline-block h-1.5 w-1.5 rounded-full ${statusPill.tone === 'ok' ? 'pulse-dot' : ''}`}
@@ -212,7 +212,7 @@ export default function RecordForm({ name, record }) {
         <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
           {PROVIDERS.map((p) => (
             <button key={p.id} type="button" onClick={() => selectProvider(p.id)}
-              className={`flex flex-col items-center gap-2.5 rounded-lg border p-4 text-center transition-colors sm:p-5 ${mode === p.id ? 'border-(--color-ink)' : 'border-(--color-rule) hover:border-(--color-muted)'}`}
+              className={`slit-frame flex flex-col items-center gap-2.5 rounded-lg p-4 text-center sm:p-5 ${mode === p.id ? 'slit-frame-bright' : ''}`}
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={mode === p.id ? 'text-(--color-ink)' : 'text-(--color-gold)'}>
                 <path d={p.icon} />
@@ -230,13 +230,13 @@ export default function RecordForm({ name, record }) {
           independent keys -- gating the bio behind this mode meant anyone with
           a CNAME who wanted to edit their bio silently lost their records. */}
       {mode === 'card' && (
-        <div className="border-t border-(--color-rule) px-6 py-5 sm:px-8">
+        <div className="slit-top px-6 py-5 sm:px-8">
           <p className="text-[14px] text-(--color-ink)">Profile card</p>
           <p className="mt-1.5 text-xs leading-relaxed text-(--color-muted)">
             Your name serves a card built from your GitHub profile. No DNS records are published.
           </p>
           {hadRecords && (
-            <p className="mt-3 rounded-r-lg border-l-2 border-(--color-signal) bg-(--color-card) px-3 py-2.5 font-(family-name:--font-mono) text-xs leading-relaxed text-(--color-ash)">
+            <p className="mt-3 slit-bar-l rounded-r-lg bg-(--color-card) px-3 py-2.5 pl-5 font-(family-name:--font-mono) text-xs leading-relaxed text-(--color-ash)">
               Saving in this mode removes the DNS records on this name. To edit your card
               without changing where the name points, pick your current mode above and edit
               the profile section below instead.
@@ -248,7 +248,7 @@ export default function RecordForm({ name, record }) {
       {/* Custom Domain mode */}
       {mode === 'cname' && (
         <>
-          <div className="border-t border-(--color-rule) px-6 py-5 sm:px-8">
+          <div className="slit-top px-6 py-5 sm:px-8">
             <label className="block">
               <span className="text-[14px] text-(--color-ink)">CNAME target</span>
               <input value={cname} onChange={(e) => { setCname(e.target.value); setStatus(null); }} placeholder="your-provider.example.com" spellCheck={false} autoCapitalize="off" className={`mt-2 ${INPUT}`} />
@@ -261,7 +261,7 @@ export default function RecordForm({ name, record }) {
 
       {/* Redirect mode */}
       {mode === 'url' && (
-        <div className="border-t border-(--color-rule) px-6 py-5 sm:px-8">
+        <div className="slit-top px-6 py-5 sm:px-8">
           <label className="block">
             <span className="text-[14px] text-(--color-ink)">Redirect URL</span>
             <input value={url} onChange={(e) => { setUrl(e.target.value); setStatus(null); }} placeholder="https://your-site.com" spellCheck={false} className={`mt-2 ${INPUT}`} />
@@ -271,7 +271,7 @@ export default function RecordForm({ name, record }) {
 
       {/* Advanced DNS mode */}
       {mode === 'advanced' && (
-        <div className="border-t border-(--color-rule) px-6 py-5 sm:px-8">
+        <div className="slit-top px-6 py-5 sm:px-8">
           <p className="text-[14px] text-(--color-ink)">DNS records</p>
           <div className="mt-4 space-y-4">
             <TextArea label="A (IPv4)" value={a} onChange={(v) => { setA(v); setStatus(null); }} placeholder="76.76.21.21" hint="One address per line." />
@@ -285,7 +285,7 @@ export default function RecordForm({ name, record }) {
       {/* Profile card fields. Always available, whatever the records mode:
           `profile` is its own key on the record and is served by the card, so
           editing a bio must never require touching where the name points. */}
-      <div className="border-t border-(--color-rule) px-6 py-5 sm:px-8">
+      <div className="slit-top px-6 py-5 sm:px-8">
         <p className="text-[14px] text-(--color-ink)">Profile card details</p>
         <p className="mt-1.5 text-xs leading-relaxed text-(--color-muted)">
           {mode === 'card'
@@ -309,13 +309,13 @@ export default function RecordForm({ name, record }) {
             </div>
           ))}
           {linkRows.length < MAX_LINKS && (
-            <button type="button" onClick={() => { setLinkRows((rows) => [...rows, { label: '', url: '' }]); setStatus(null); }} className="rounded-[4px] border border-(--color-rule) px-3 py-1.5 font-(family-name:--font-mono) text-xs text-(--color-muted) transition-colors hover:border-(--color-muted) hover:text-(--color-ink)">+ add a link</button>
+            <button type="button" onClick={() => { setLinkRows((rows) => [...rows, { label: '', url: '' }]); setStatus(null); }} className="slit-frame rounded-[4px] px-3 py-1.5 font-(family-name:--font-mono) text-xs text-(--color-muted) hover:text-(--color-ink)">+ add a link</button>
           )}
         </div>
       </div>
 
       {/* Save */}
-      <div className="flex flex-wrap items-center gap-4 border-t border-(--color-rule) px-6 py-5 sm:px-8">
+      <div className="flex flex-wrap items-center gap-4 slit-top px-6 py-5 sm:px-8">
         <button type="submit" disabled={status === 'saving'} className="btn-pill">
           {status === 'saving' ? 'Saving…' : 'Save changes'}
         </button>
@@ -395,7 +395,7 @@ function SwapZone({ name }) {
   const nameAvailable = validateNewName(newName);
 
   return (
-    <div className="border-t border-(--color-rule) px-6 py-5 sm:px-8">
+    <div className="slit-top px-6 py-5 sm:px-8">
       {!open ? (
         <button
           type="button"
@@ -421,7 +421,7 @@ function SwapZone({ name }) {
               spellCheck={false}
               autoCapitalize="off"
               autoCorrect="off"
-              className={`${INPUT} ${nameAvailable || !newName ? '' : 'border-(--color-flag) focus:border-(--color-flag)'}`}
+              className={`${INPUT} ${nameAvailable || !newName ? '' : 'slit-input-flag'}`}
             />
             {newName && !nameAvailable && (
               <p className="text-xs text-(--color-flag)">
@@ -510,7 +510,7 @@ function ReleaseZone({ name }) {
   };
 
   return (
-    <div className="border-t border-(--color-rule) px-6 py-5 sm:px-8">
+    <div className="slit-top px-6 py-5 sm:px-8">
       {!open ? (
         <button
           type="button"
@@ -539,14 +539,14 @@ function ReleaseZone({ name }) {
               aria-label="Type the name to confirm release"
               spellCheck={false}
               autoCapitalize="off"
-              className={`${INPUT} border-(--color-flag)/40 focus:border-(--color-flag) sm:w-auto sm:flex-1`}
+              className={`${INPUT} slit-input-flag sm:w-auto sm:flex-1`}
             />
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={release}
                 disabled={releasing || confirmText.trim().toLowerCase() !== name}
-                className="rounded-[4px] border border-(--color-flag) px-4 py-2 font-(family-name:--font-mono) text-xs text-(--color-flag) transition-opacity hover:opacity-90 disabled:opacity-40"
+                className="slit-frame slit-frame-flag rounded-[4px] px-4 py-2 font-(family-name:--font-mono) text-xs text-(--color-flag) disabled:opacity-40"
               >
                 {releasing ? 'Releasing…' : 'Release permanently'}
               </button>
@@ -573,13 +573,13 @@ function ReleaseZone({ name }) {
 // ── Subdomain records ────────────────────────────────────────
 function SubdomainRecords({ name, subRows, setRow, addRow, removeRow }) {
   return (
-    <div className="border-t border-(--color-rule) px-6 py-5 sm:px-8">
+    <div className="slit-top px-6 py-5 sm:px-8">
       <p className="text-[14px] text-(--color-ink)">Subdomain records</p>
       <p className="mt-1.5 text-xs leading-relaxed text-(--color-muted)">
         Records a provider asks for at a different name, like <code className="font-(family-name:--font-mono)">_vercel</code> for verification.
       </p>
       {subRows.map((row, i) => (
-        <div key={i} className="mt-3 rounded-lg border border-(--color-rule) p-3">
+        <div key={i} className="slit-frame mt-3 rounded-lg p-3">
           <div className="flex flex-wrap items-center gap-2">
             <input value={row.label} onChange={(e) => setRow(i, { label: e.target.value })} placeholder="_vercel" aria-label="Subdomain label" spellCheck={false} className={`w-32 ${INPUT}`} />
             <span className="font-(family-name:--font-mono) text-xs text-(--color-muted)">.{name}.runs-on.dev</span>
@@ -592,7 +592,7 @@ function SubdomainRecords({ name, subRows, setRow, addRow, removeRow }) {
         </div>
       ))}
       {subRows.length < MAX_SUBDOMAINS && (
-        <button type="button" onClick={addRow} className="mt-3 rounded-[4px] border border-(--color-rule) px-3 py-1.5 font-(family-name:--font-mono) text-xs text-(--color-muted) transition-colors hover:border-(--color-muted) hover:text-(--color-ink)">+ add a subdomain record</button>
+        <button type="button" onClick={addRow} className="mt-3 slit-frame rounded-[4px] px-3 py-1.5 font-(family-name:--font-mono) text-xs text-(--color-muted) hover:text-(--color-ink)">+ add a subdomain record</button>
       )}
     </div>
   );

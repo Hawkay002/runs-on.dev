@@ -1,9 +1,10 @@
 import { DOTMAP } from './dotmap-data.js';
 
-// The page's structural element: a full-width 1px graphite rule. Sections are
-// separated exclusively by these lines, never by background shifts.
+// The page's structural element: a horizontal slit of light, fading smoothly
+// into the canvas at both ends. Sections are separated exclusively by these
+// lines, never by background shifts.
 export function Divider({ className = '' }) {
-  return <hr aria-hidden="true" className={`border-t border-(--color-rule) ${className}`} />;
+  return <hr aria-hidden="true" className={`slit-h ${className}`} />;
 }
 
 // Dot-matrix world map: white circular dots on the obsidian canvas, continents
@@ -54,7 +55,7 @@ const TONES = {
 export function StatusBadge({ tone = 'neutral', pulse = false, children }) {
   const color = TONES[tone] ?? TONES.neutral;
   return (
-    <span className="inline-flex items-center gap-2 rounded-[4px] border border-(--color-rule) bg-(--color-badge) px-3.5 py-2 font-(family-name:--font-mono) text-[12px] tracking-[0.05em] text-(--color-muted) uppercase">
+    <span className="slit-frame inline-flex items-center gap-2 rounded-[4px] bg-(--color-badge) px-3.5 py-2 font-(family-name:--font-mono) text-[12px] tracking-[0.05em] text-(--color-muted) uppercase">
       <span
         aria-hidden="true"
         className={`inline-block h-1.5 w-1.5 rounded-full ${pulse ? 'pulse-dot' : ''}`}

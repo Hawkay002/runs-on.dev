@@ -1,6 +1,6 @@
 // Transparent top bar over the obsidian canvas: wordmark left, a few section
 // links at 14px uppercase smoke, and the single filled pill action at right.
-// 1px graphite bottom border; no sticky, no fill, no shadow.
+// Its bottom edge is a slit of light fading at both ends; no sticky, no fill.
 const LINKS = [
   { href: '/docs', label: 'Docs' },
   { href: '/stats', label: 'Stats' },
@@ -10,7 +10,7 @@ const LINKS = [
 
 export default function Nav() {
   return (
-    <header className="border-b border-(--color-rule)">
+    <header className="slit-bottom">
       <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-6 px-6">
         <a
           href="/"

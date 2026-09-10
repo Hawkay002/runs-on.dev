@@ -10,7 +10,7 @@ export const metadata = {
 
 function Row({ cells }) {
   return (
-    <tr className="border-t border-(--color-rule)">
+    <tr className="slit-top slit-dim">
       {cells.map((cell, i) => (
         <td key={i} className="py-2 pr-4 align-top text-sm leading-relaxed">
           {cell}

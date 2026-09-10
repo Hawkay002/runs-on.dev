@@ -34,10 +34,10 @@ const USAGE_LABELS = {
 };
 
 // Stat cell: no fill, just the number set large at weight 400 with a mono
-// caption underneath. Hairlines come from the grid's graphite gaps.
+// caption underneath, the cell outlined by its own fading slit.
 function Stat({ label, value }) {
   return (
-    <div className="bg-(--color-paper) p-6 sm:p-8">
+    <div className="slit-frame rounded-lg p-6 sm:p-8">
       <div className="text-[34px] leading-[1.03] font-normal tracking-[-0.005em] text-(--color-ink) sm:text-[44px] sm:tracking-[-0.007em]">
         {value}
       </div>
@@ -50,11 +50,11 @@ function day(iso) {
   return new Date(iso).toISOString().slice(0, 10);
 }
 
-// Shared row-list look: graphite frame, hairline rows, label left in ash,
-// value right in mono smoke.
+// Shared row-list look: a slit frame around the list, rows separated by dim
+// slits instead of hard dividers.
 function RowList({ children }) {
   return (
-    <ul className="divide-y divide-(--color-rule) overflow-hidden rounded-lg border border-(--color-rule)">
+    <ul className="slit-frame slit-rows rounded-lg">
       {children}
     </ul>
   );
@@ -75,7 +75,7 @@ export default function Stats() {
       </p>
 
       <Section title="Where things stand">
-        <div className="grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-(--color-rule) bg-(--color-rule) sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Stat label="Names claimed" value={stats.total} />
           <Stat label="People" value={stats.owners} />
           <Stat label="Claimed this week" value={stats.claimedThisWeek} />
@@ -94,7 +94,7 @@ export default function Stats() {
             {usage
               .sort((a, b) => b[1] - a[1])
               .map(([mode, count]) => (
-                <li key={mode} className="flex items-baseline justify-between bg-(--color-paper) px-5 py-3.5">
+                <li key={mode} className="flex items-baseline justify-between px-5 py-3.5">
                   <span className="text-sm text-(--color-ash)">{USAGE_LABELS[mode]}</span>
                   <span className="font-(family-name:--font-mono) text-sm text-(--color-muted)">
                     {count}
@@ -111,7 +111,7 @@ export default function Stats() {
             {stats.hosts.map((host) => (
               <li
                 key={host.provider}
-                className="flex items-baseline justify-between bg-(--color-paper) px-5 py-3.5"
+                className="flex items-baseline justify-between px-5 py-3.5"
               >
                 <span className="text-sm text-(--color-ash)">{host.provider}</span>
                 <span className="font-(family-name:--font-mono) text-sm text-(--color-muted)">
@@ -133,7 +133,7 @@ export default function Stats() {
             {stats.recent.map((claim) => (
               <li
                 key={claim.name}
-                className="flex flex-wrap items-baseline justify-between gap-x-3 bg-(--color-paper) px-5 py-3.5"
+                className="flex flex-wrap items-baseline justify-between gap-x-3 px-5 py-3.5"
               >
                 <a
                   className="font-(family-name:--font-mono) text-sm text-(--color-ink) underline"

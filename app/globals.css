@@ -75,6 +75,18 @@
   --gold: #6f6759;
   --pulse: #98ff38;
 
+  /* Slit lines: every rule on the page is a line of light whose ends fade
+     smoothly into the canvas. Structural lines sit at --slit, row separators
+     and input edges rest dimmer and brighten on focus/hover. */
+  --slit: rgba(255, 255, 255, 0.35);
+  --slit-dim: rgba(255, 255, 255, 0.2);
+  --slit-frame: rgba(255, 255, 255, 0.22);
+  --slit-frame-hi: rgba(255, 255, 255, 0.55);
+  --slit-bright: rgba(255, 255, 255, 0.85);
+  --slit-bar: rgba(255, 255, 255, 0.6);
+  --edge: rgba(255, 255, 255, 0.2);
+  --edge-focus: rgba(255, 255, 255, 0.8);
+
   /* The claim line and section labels speak in Input's voice (mono, tight
      utilitarian tracking); Satoshi carries everything else. */
   --font-display: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
@@ -193,14 +205,16 @@ a {
     transform: none;
   }
 
-  /* Ghost outline: the secondary action. 1px white stroke, 8px radius. */
+  /* Ghost outline: the secondary action, its 1px white outline rendered as a
+     slit (fading into the corners) rather than a hard box. */
   .btn-ghost {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
     border-radius: 8px;
-    border: 1px solid var(--signal);
+    border: 1px solid transparent;
     color: var(--signal);
     padding: 0.625rem 1.25rem;
     font-size: 14px;
@@ -211,6 +225,24 @@ a {
   }
   .btn-ghost:hover { opacity: 0.8; }
   .btn-ghost:active { transform: translateY(1px); }
+  .btn-ghost::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background:
+      linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75) 22%, rgba(255, 255, 255, 0.75) 78%, transparent) top / 100% 1px,
+      linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75) 22%, rgba(255, 255, 255, 0.75) 78%, transparent) bottom / 100% 1px,
+      linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.75) 22%, rgba(255, 255, 255, 0.75) 78%, transparent) left / 1px 100%,
+      linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.75) 22%, rgba(255, 255, 255, 0.75) 78%, transparent) right / 1px 100%;
+    background-repeat: no-repeat;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
 
   /* Mono uppercase meta label, Input's role: captions, section labels,
      fine print. */
@@ -228,6 +260,166 @@ a {
     font-size: 13px;
     line-height: 1.6;
   }
+}
+
+/* ── Slit lines ──────────────────────────────────────────────────────
+   Every rule on the page is a slit: a slim line of light whose ends fade
+   smoothly into the canvas. Each edge of a frame is its own gradient, so
+   corners stay open (both adjacent edges fade before meeting). No hard
+   rectangles anywhere. */
+
+/* Standalone horizontal / vertical slit lines. */
+.slit-h {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, var(--slit) 18%, var(--slit) 82%, transparent);
+}
+.slit-v {
+  width: 1px;
+  background: linear-gradient(180deg, transparent, var(--slit) 18%, var(--slit) 82%, transparent);
+}
+
+/* Edge slits painted directly on an element, no extra markup. Composable:
+   .slit-top + .slit-bottom use separate longhands and stack fine. */
+.slit-top,
+.slit-bottom {
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+}
+.slit-top {
+  background-image: linear-gradient(90deg, transparent, var(--slit) 18%, var(--slit) 82%, transparent);
+  background-position: 0 0;
+}
+.slit-bottom {
+  background-image: linear-gradient(90deg, transparent, var(--slit) 18%, var(--slit) 82%, transparent);
+  background-position: 0 100%;
+}
+
+/* Dimmer variant for row separators. */
+.slit-dim { --slit: var(--slit-dim); }
+
+/* Both the top and bottom edge in one element (capped lists). */
+.slit-y {
+  background-image:
+    linear-gradient(90deg, transparent, var(--slit) 18%, var(--slit) 82%, transparent),
+    linear-gradient(90deg, transparent, var(--slit) 18%, var(--slit) 82%, transparent);
+  background-repeat: no-repeat;
+  background-size: 100% 1px, 100% 1px;
+  background-position: 0 0, 0 100%;
+}
+
+/* Vertical accent bar (record spines, warnings): 2px slit at the left edge,
+   fading out at top and bottom. --bar recolors it (e.g. the flag). */
+.slit-bar-l {
+  --bar: var(--slit-bar);
+  background-image: linear-gradient(180deg, transparent, var(--bar) 20%, var(--bar) 80%, transparent);
+  background-repeat: no-repeat;
+  background-size: 2px 100%;
+  background-position: 0 0;
+}
+.slit-bar-flag { --bar: rgba(217, 119, 87, 0.8); }
+
+/* Card and box outlines: a ::before frame following the element's own
+   border-radius, each edge a fading slit, corners open. --slit-line is the
+   line color; register it so hover/active brightening can transition. */
+@property --slit-line {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: rgba(255, 255, 255, 0.22);
+}
+
+.slit-frame {
+  --slit-line: var(--slit-frame);
+  position: relative;
+  transition: --slit-line 0.25s ease;
+}
+.slit-frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background:
+    linear-gradient(90deg, transparent, var(--slit-line) 20%, var(--slit-line) 80%, transparent) top / 100% 1px,
+    linear-gradient(90deg, transparent, var(--slit-line) 20%, var(--slit-line) 80%, transparent) bottom / 100% 1px,
+    linear-gradient(180deg, transparent, var(--slit-line) 20%, var(--slit-line) 80%, transparent) left / 1px 100%,
+    linear-gradient(180deg, transparent, var(--slit-line) 20%, var(--slit-line) 80%, transparent) right / 1px 100%;
+  background-repeat: no-repeat;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.slit-frame:hover { --slit-line: var(--slit-frame-hi); }
+/* Selected/active frame, and the flag (danger) variant. */
+.slit-frame-bright { --slit-line: var(--slit-bright); }
+.slit-frame-bright:hover { --slit-line: var(--slit-bright); }
+.slit-frame-flag { --slit-line: rgba(217, 119, 87, 0.5); }
+.slit-frame-flag:hover { --slit-line: rgba(217, 119, 87, 0.85); }
+
+/* List rows separated by dim slits instead of divide-y borders: the list
+   carries .slit-rows, every child after the first paints its own top slit. */
+.slit-rows > * + * {
+  background-image: linear-gradient(90deg, transparent, var(--slit-dim) 15%, var(--slit-dim) 85%, transparent);
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  background-position: 0 0;
+}
+
+/* Inputs: the same open-corner slit on all four edges, painted as
+   backgrounds so it works on <input>/<select>/<textarea> (which cannot
+   carry pseudo-elements). The transparent border keeps sizing identical to
+   the old 1px-bordered fields; focus brightens the line. */
+@property --edge-color {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: rgba(255, 255, 255, 0.2);
+}
+
+.slit-input {
+  --edge-color: var(--edge);
+  border: 1px solid transparent;
+  background:
+    linear-gradient(90deg, transparent, var(--edge-color) 15%, var(--edge-color) 85%, transparent) top / 100% 1px,
+    linear-gradient(90deg, transparent, var(--edge-color) 15%, var(--edge-color) 85%, transparent) bottom / 100% 1px,
+    linear-gradient(180deg, transparent, var(--edge-color) 15%, var(--edge-color) 85%, transparent) left / 1px 100%,
+    linear-gradient(180deg, transparent, var(--edge-color) 15%, var(--edge-color) 85%, transparent) right / 1px 100%;
+  background-repeat: no-repeat;
+  transition: --edge-color 0.2s ease;
+}
+.slit-input:focus,
+.slit-input:focus-visible {
+  --edge-color: var(--edge-focus);
+  outline: none;
+}
+/* Invalid/danger fields keep the slit but recolor it. */
+.slit-input-flag { --edge-color: rgba(217, 119, 87, 0.7); }
+.slit-input-flag:focus,
+.slit-input-flag:focus-visible { --edge-color: rgba(217, 119, 87, 0.95); }
+
+/* Inline code chip: the input treatment on an inline-block token. */
+.slit-inline {
+  display: inline-block;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background:
+    linear-gradient(90deg, transparent, var(--edge) 15%, var(--edge) 85%, transparent) top / 100% 1px,
+    linear-gradient(90deg, transparent, var(--edge) 15%, var(--edge) 85%, transparent) bottom / 100% 1px,
+    linear-gradient(180deg, transparent, var(--edge) 15%, var(--edge) 85%, transparent) left / 1px 100%,
+    linear-gradient(180deg, transparent, var(--edge) 15%, var(--edge) 85%, transparent) right / 1px 100%;
+  background-repeat: no-repeat;
+}
+
+/* The claim-line input's underline: a horizontal slit under the name,
+   thickening on focus. --edge recolors it for the negative state. */
+.claim-underline {
+  border: 0;
+  background: linear-gradient(90deg, transparent, var(--edge, rgba(243, 243, 243, 0.9)) 12%, var(--edge, rgba(243, 243, 243, 0.9)) 88%, transparent) bottom / 100% 2px no-repeat;
+  transition: background-size 0.15s ease;
+}
+.claim-underline:focus-visible {
+  background-size: 100% 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {

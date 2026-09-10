@@ -16,7 +16,7 @@ export default function About() {
       <Section title="What this is">
         <p className="text-sm leading-relaxed">
           runs-on.dev gives away subdomains under one domain that Advance Labs registered. Sign
-          in with GitHub, claim a name like <code className="border border-(--color-rule) bg-(--color-card) px-1 py-0.5 font-(family-name:--font-mono) text-(--color-ink)">you.runs-on.dev</code>, and
+          in with GitHub, claim a name like <code className="slit-inline bg-(--color-card) px-1.5 py-0.5 font-(family-name:--font-mono) text-(--color-ash)">you.runs-on.dev</code>, and
           it's live within seconds. No DNS panel, no yearly renewal on your end.
         </p>
       </Section>
@@ -29,8 +29,8 @@ export default function About() {
           distinctive-looking address for a side project.
         </p>
         <Quote>
-          runs-on.dev gets the same feeling, a name that isn't <code className="border border-(--color-rule) bg-(--color-card) px-1 py-0.5 font-(family-name:--font-mono) text-(--color-ink)">vercel.app</code> or
-          <code className="border border-(--color-rule) bg-(--color-card) px-1 py-0.5 font-(family-name:--font-mono) text-(--color-ink)"> github.io</code>, for the price of one domain: about $10 a year. Every
+          runs-on.dev gets the same feeling, a name that isn't <code className="slit-inline bg-(--color-card) px-1.5 py-0.5 font-(family-name:--font-mono) text-(--color-ash)">vercel.app</code> or
+          <code className="slit-inline bg-(--color-card) px-1.5 py-0.5 font-(family-name:--font-mono) text-(--color-ash)"> github.io</code>, for the price of one domain: about $10 a year. Every
           name you claim lives under runs-on.dev, which Advance Labs registered and answers
           for.
         </Quote>

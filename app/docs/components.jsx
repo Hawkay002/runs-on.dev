@@ -26,7 +26,7 @@ export function Lede({ children }) {
 // Inline code, e.g. a field name or filename mentioned in prose.
 export function C({ children }) {
   return (
-    <code className="rounded-[4px] border border-(--color-rule) bg-(--color-card) px-1.5 py-0.5 font-(family-name:--font-mono) text-[0.9em] text-(--color-ash)">
+    <code className="slit-inline bg-(--color-card) px-1.5 py-0.5 font-(family-name:--font-mono) text-[0.9em] text-(--color-ash)">
       {children}
     </code>
   );
@@ -34,7 +34,7 @@ export function C({ children }) {
 
 export function Code({ children }) {
   return (
-    <pre className="overflow-x-auto rounded-lg border border-(--color-rule) bg-(--color-card) p-4 font-(family-name:--font-mono) text-xs leading-relaxed text-(--color-ash)">
+    <pre className="slit-frame overflow-x-auto rounded-lg bg-(--color-card) p-4 font-(family-name:--font-mono) text-xs leading-relaxed text-(--color-ash)">
       <code>{children}</code>
     </pre>
   );
@@ -44,7 +44,7 @@ export function Code({ children }) {
 // used by the claim form (domains/<name>.json) and the site profile page.
 export function Record({ path, children }) {
   return (
-    <div className="border-l-2 border-(--color-signal) py-1 pl-4">
+    <div className="slit-bar-l py-1 pl-4">
       <p className="font-(family-name:--font-mono) text-[11px] text-(--color-muted) sm:text-xs">{path}</p>
       <div className="mt-2">
         <Code>{children}</Code>
@@ -58,7 +58,7 @@ export function Record({ path, children }) {
 // Quote callout.
 export function Warning({ children }) {
   return (
-    <p className="rounded-r-lg border-l-2 border-(--color-flag) bg-(--color-card) p-4 text-sm leading-relaxed text-(--color-ash)">
+    <p className="slit-bar-l slit-bar-flag rounded-r-lg bg-(--color-card) p-4 pl-5 text-sm leading-relaxed text-(--color-ash)">
       {children}
     </p>
   );
@@ -66,7 +66,7 @@ export function Warning({ children }) {
 
 export function DocList({ items }) {
   return (
-    <ul className="divide-y divide-(--color-rule) border-y border-(--color-rule)">
+    <ul className="slit-rows slit-y">
       {items.map((item) => (
         <li key={item.href}>
           <a
@@ -93,7 +93,7 @@ export function DocList({ items }) {
 // in one component, rather than in thirteen hand-written step lists.
 export function ApplyNote() {
   return (
-    <p className="rounded-r-lg border-l-2 border-(--color-signal) bg-(--color-card) p-4 text-sm leading-relaxed text-(--color-ash)">
+    <p className="slit-bar-l rounded-r-lg bg-(--color-card) p-4 pl-5 text-sm leading-relaxed text-(--color-ash)">
       Two ways to apply this. The quickest is{' '}
       <a className="text-(--color-ink) underline" href="/manage">
         runs-on.dev/manage

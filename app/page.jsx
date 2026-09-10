@@ -100,13 +100,13 @@ export default async function Home() {
               resolve. No hidden database, nothing you can&rsquo;t read yourself.
             </p>
             <dl className="mx-auto mt-8 max-w-[440px] space-y-3 text-left font-(family-name:--font-mono) text-[13px]">
-              <div className="border-t border-(--color-rule) pt-3">
+              <div className="slit-top slit-dim pt-3">
                 <dt className="meta mb-1">live</dt>
                 <dd className="text-(--color-ink)">
                   seconds, with HTTPS, and your own hosting whenever you like via pull request.
                 </dd>
               </div>
-              <div className="border-t border-(--color-rule) pt-3">
+              <div className="slit-top slit-dim pt-3">
                 <dt className="meta mb-1">free</dt>
                 <dd className="text-(--color-ink)">
                   forever. No ads, no tracking, no account beyond the GitHub one you already have.
@@ -117,16 +117,15 @@ export default async function Home() {
         </Section>
 
         <Section title="Where to go next">
-          {/* Link grid inside a single graphite frame, service-cell style:
-              no fills, hairline dividers between cells only. The gap-px
-              graphite background is what draws the inner hairlines. */}
-          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-(--color-rule) bg-(--color-rule) sm:grid-cols-2 lg:grid-cols-3">
+          {/* Link grid, service-cell style: each cell outlined by its own
+              fading slit (open corners), brightening on hover. */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
             {LINKS.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
                 {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                className="group bg-(--color-paper) p-6 transition-colors hover:bg-(--color-card)"
+                className="slit-frame group rounded-lg p-6 transition-colors hover:bg-(--color-card)"
               >
                 <p className="text-[14px] tracking-[0.01em] text-(--color-ink) uppercase transition-colors group-hover:text-(--color-muted)">
                   {link.label}

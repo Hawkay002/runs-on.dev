@@ -96,16 +96,18 @@ export default async function Site({ params }) {
         domains/{name}.json
       </p>
 
-      <div className="mt-5 rounded-lg border border-(--color-rule) bg-(--color-card) p-6 sm:p-8">
+      <div className="slit-frame mt-5 rounded-lg bg-(--color-card) p-6 sm:p-8">
         <div className="flex items-center gap-5">
           {profile?.avatar_url && (
-            <img
-              src={profile.avatar_url}
-              alt=""
-              width={64}
-              height={64}
-              className="rounded-full border border-(--color-rule)"
-            />
+            <span className="slit-frame inline-block shrink-0 rounded-full p-[3px]">
+              <img
+                src={profile.avatar_url}
+                alt=""
+                width={64}
+                height={64}
+                className="rounded-full"
+              />
+            </span>
           )}
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
@@ -119,7 +121,7 @@ export default async function Site({ params }) {
               </a>
               <a
                 href="/manage"
-                className="rounded-full border border-(--color-rule) px-3 py-1 font-(family-name:--font-mono) text-xs text-(--color-muted) transition-colors hover:border-(--color-ink) hover:text-(--color-ink)"
+                className="slit-frame rounded-full px-3 py-1 font-(family-name:--font-mono) text-xs text-(--color-muted) transition-colors hover:text-(--color-ink)"
               >
                 manage
               </a>
@@ -138,7 +140,7 @@ export default async function Site({ params }) {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between rounded-lg border border-(--color-rule) px-4 py-3 font-(family-name:--font-mono) text-sm text-(--color-ink) transition-colors hover:border-(--color-muted)"
+                  className="slit-frame flex items-center justify-between rounded-lg px-4 py-3 font-(family-name:--font-mono) text-sm text-(--color-ink) transition-colors"
                 >
                   <span className="truncate">{link.label}</span>
                   <span aria-hidden className="ml-3 shrink-0 text-(--color-muted)">↗</span>
@@ -148,7 +150,7 @@ export default async function Site({ params }) {
           </ul>
         )}
 
-        <dl className="mt-8 space-y-1.5 border-t border-(--color-rule) pt-5 font-(family-name:--font-mono) text-xs sm:text-[13px]">
+        <dl className="slit-top mt-8 space-y-1.5 pt-5 font-(family-name:--font-mono) text-xs sm:text-[13px]">
           <div className="flex gap-4">
             <dt className="w-24 shrink-0 text-(--color-muted)">owner</dt>
             <dd>
@@ -299,7 +301,7 @@ async function ClaimPage({ name }) {
       </a>
 
       {suggestions.length > 0 && (
-        <div className="mt-12 w-full max-w-sm border-t border-(--color-rule) pt-7">
+        <div className="slit-top mt-12 w-full max-w-sm pt-7">
           <p className="font-(family-name:--font-mono) text-xs text-(--color-muted)">
             did you mean…
           </p>

@@ -62,7 +62,7 @@ function slugify(q) {
 
 function FaqEntry({ q, a }) {
   return (
-    <div className="mt-8 border-l-2 border-(--color-rule) py-1 pl-5 first:mt-10">
+    <div className="slit-bar-l mt-8 py-1 pl-5 first:mt-10">
       <p className="font-(family-name:--font-mono) text-[11px] text-(--color-muted) sm:text-xs">
         faq/{slugify(q)}.json
       </p>

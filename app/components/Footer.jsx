@@ -14,7 +14,7 @@ export default async function Footer() {
   const stars = await getStarCount();
 
   return (
-    <footer className="mt-32 border-t border-(--color-rule)">
+    <footer className="slit-top mt-32">
       <div className="mx-auto max-w-[1200px] px-6 py-10">
         <div className="flex flex-col gap-10 sm:flex-row sm:items-start sm:justify-between">
           <div>

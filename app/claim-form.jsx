@@ -156,8 +156,11 @@ export default function ClaimForm({ signedIn }) {
             autoCapitalize="off"
             spellCheck={false}
             size={1}
-            style={{ width: inputWidth ? `${inputWidth}px` : undefined }}
-            className={`bg-transparent text-[0.94em] caret-(--color-ink) outline-none placeholder:text-(--color-muted)/70 focus-visible:border-b-4 border-b-2 ${negative ? 'border-(--color-flag)' : 'border-(--color-ink)'}`}
+            style={{
+              width: inputWidth ? `${inputWidth}px` : undefined,
+              '--edge': negative ? 'var(--flag)' : 'rgba(243, 243, 243, 0.9)',
+            }}
+            className="claim-underline bg-transparent text-[0.94em] caret-(--color-ink) outline-none placeholder:text-(--color-muted)/70"
           />
           {/* Measures the input's width. Its font MUST match the input exactly,
               including text-[0.94em], or the brackets stop hugging the text. */}
@@ -175,8 +178,8 @@ export default function ClaimForm({ signedIn }) {
 
       <div
         key={animKey}
-        className="record-block mx-auto mt-8 max-w-full overflow-x-auto border-l-2 py-3 pr-6 pl-5 text-left font-(family-name:--font-mono) text-[12px] whitespace-pre sm:max-w-md sm:text-[13px]"
-        style={{ borderColor: negative ? 'var(--color-flag)' : 'var(--color-signal)' }}
+        className="record-block slit-bar-l mx-auto mt-8 max-w-full overflow-x-auto py-3 pr-6 pl-5 text-left font-(family-name:--font-mono) text-[12px] whitespace-pre sm:max-w-md sm:text-[13px]"
+        style={{ '--bar': negative ? 'var(--flag)' : 'var(--slit-bar)' }}
       >
         <p className="record-field text-(--color-muted)">domains/{displayName}.json</p>
         <p className="record-field mt-2">{'{'}</p>
