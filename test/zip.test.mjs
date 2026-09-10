@@ -122,6 +122,52 @@ test('rejects a corrupt CRC', () => {
   assert.equal(readZip(zip).reason, 'corrupt');
 });
 
+// Zero is the real CRC of empty content, not an opt-out flag: a nonempty
+// entry claiming zero must fail integrity now that every entry is checked.
+test('rejects a nonempty entry with a zeroed CRC', () => {
+  const zip = makeZip([{ name: 'index.html', data: page }]);
+  const eocdAt = zip.length - 22;
+  const cdAt = eocdAt - zip.readUInt32LE(eocdAt + 12);
+  zip.writeUInt32LE(0, cdAt + 16);
+  assert.equal(readZip(zip).reason, 'corrupt');
+});
+
+test('accepts an empty file, whose CRC is genuinely zero', () => {
+  const zip = makeZip([
+    { name: 'index.html', data: page },
+    { name: 'empty.txt', data: Buffer.alloc(0) },
+  ]);
+  const out = readZip(zip);
+  assert.equal(out.ok, true);
+  assert.equal(out.entries[1].data.length, 0);
+});
+
+// The central directory walk must consume exactly cdOffset + cdSize bytes.
+// A final record whose extraLen overruns the declared directory is truncated
+// metadata wearing a valid-looking header.
+test('rejects a final central-directory record overrunning the directory', () => {
+  const zip = makeZip([
+    { name: 'index.html', data: page },
+    { name: 'a.txt', data: Buffer.from('x') },
+  ]);
+  const eocdAt = zip.length - 22;
+  const cdSize = zip.readUInt32LE(eocdAt + 12);
+  const cdAt = eocdAt - cdSize;
+  // Second record's header sits after the first record's 46 + nameLen bytes.
+  const secondAt = cdAt + 46 + 'index.html'.length;
+  zip.writeUInt16LE(100, secondAt + 30); // extraLen claims bytes that are not there
+  assert.equal(readZip(zip).reason, 'corrupt');
+});
+
+test('rejects a central directory that does not end where it declares', () => {
+  const zip = makeZip([{ name: 'index.html', data: page }]);
+  const eocdAt = zip.length - 22;
+  // Shrink the declared size by one byte: the records still parse, but the
+  // walk ends past the boundary it promised to consume exactly.
+  zip.writeUInt32LE(zip.readUInt32LE(eocdAt + 12) - 1, eocdAt + 12);
+  assert.equal(readZip(zip).reason, 'corrupt');
+});
+
 test('rejects a duplicate entry name', () => {
   const zip = makeZip([
     { name: 'index.html', data: page },

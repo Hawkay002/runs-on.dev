@@ -1,4 +1,4 @@
-import { authorizeSiteAction } from '../../../../lib/site-access.js';
+import { authorizeBearer, resolveSiteName } from '../../../../lib/site-access.js';
 import { createRateLimiter } from '../../../../lib/throttle.js';
 import { readZip, MAX_ZIP_BYTES } from '../../../../lib/zip.js';
 import { getSite, putSite, applyDeployment, newDeployment } from '../../../../lib/sites.js';
@@ -18,9 +18,10 @@ export const runtime = 'nodejs';
 // (the zip, required) and `name` (optional while accounts hold one name).
 //
 // The write order is deliberate: upload the files first, then move the
-// pointer. A failure after the upload leaves an orphaned prefix the next
-// deploy's prune sweeps; the reverse order would leave a pointer at files
-// that do not exist, which serves 404s to visitors and is not sweepable.
+// pointer. If the pointer write fails or loses a race, the freshly uploaded
+// prefix is reclaimed right there — a crash between the two is the only path
+// that can still orphan storage, and only a future cleanup workflow can see
+// that, because to every reader the orphan has never been referenced.
 export async function POST(request) {
   if (!storeConfigured()) {
     return Response.json({ error: 'storage_not_configured' }, { status: 503 });
@@ -32,6 +33,12 @@ export async function POST(request) {
   if (declared > MAX_ZIP_BYTES + 64 * 1024) {
     return Response.json({ error: 'too_big' }, { status: 413 });
   }
+
+  // Credential and budget before the body: an unauthenticated caller must
+  // not be able to make the server parse anything, only spend its own
+  // (now-consumed) allowance.
+  const auth = authorizeBearer(request, takeDeploy);
+  if (auth.response) return auth.response;
 
   const form = await request.formData().catch(() => null);
   if (!form) {
@@ -45,11 +52,8 @@ export async function POST(request) {
     return Response.json({ error: 'too_big' }, { status: 413 });
   }
 
-  const auth = await authorizeSiteAction(request, {
-    explicitName: form.get('name'),
-    takeBudget: takeDeploy,
-  });
-  if (auth.response) return auth.response;
+  const name = await resolveSiteName(auth, form.get('name'));
+  if (name.response) return name.response;
 
   const zip = readZip(Buffer.from(await file.arrayBuffer()));
   if (!zip.ok) {
@@ -61,19 +65,20 @@ export async function POST(request) {
 
   let existing;
   try {
-    existing = await getSite(auth.name, { token: TOKEN() });
+    existing = await getSite(name.name, { token: TOKEN() });
   } catch {
     return Response.json({ error: 'busy' }, { status: 503, headers: { 'Retry-After': '4' } });
   }
 
   const deployment = newDeployment({ files: zip.entries.length, bytes: zip.totalBytes });
-  const stored = await putDeployment(`sites/${auth.name}/${deployment.id}/`, zip.entries);
+  const prefix = `sites/${name.name}/${deployment.id}/`;
+  const stored = await putDeployment(prefix, zip.entries);
   if (!stored.ok) {
     return Response.json({ error: 'storage_error' }, { status: 503 });
   }
 
   const { record, pruned } = applyDeployment(existing?.data, {
-    name: auth.name,
+    name: name.name,
     owner: auth.login,
     deployment,
   });
@@ -83,9 +88,14 @@ export async function POST(request) {
     editor: auth.login,
   });
   if (!result.ok) {
-    if (result.reason === 'stale') {
-      // Another deploy of this name landed mid-flight; the editor re-reads
-      // and decides, exactly as a stale record edit does.
+    // This deployment never entered history, so no future prune can see the
+    // prefix. Reclaim it now, best-effort — a failed delete is leftover
+    // storage, and it must never mask the failure that caused it.
+    await deletePrefixes([prefix]);
+    if (result.reason === 'stale' || result.reason === 'exists') {
+      // Another deploy of this name landed mid-flight (a lost race on the
+      // first deploy reports `exists`); the caller re-reads and decides,
+      // exactly as a stale record edit does.
       return Response.json({ error: 'stale' }, { status: 409 });
     }
     if (result.reason === 'ratelimited') {
@@ -97,11 +107,11 @@ export async function POST(request) {
   // Sweep what fell out of history. Best-effort by design: the pointer has
   // moved, and leftover bytes are a storage cost, not a correctness problem.
   if (pruned.length > 0) {
-    await deletePrefixes(pruned.map((d) => `sites/${auth.name}/${d.id}/`));
+    await deletePrefixes(pruned.map((d) => `sites/${name.name}/${d.id}/`));
   }
 
   return Response.json({
-    url: `https://${auth.name}.runs-on.dev/`,
+    url: `https://${name.name}.runs-on.dev/`,
     deploymentId: deployment.id,
     files: deployment.files,
     bytes: deployment.bytes,

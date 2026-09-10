@@ -1,4 +1,4 @@
-import { authorizeSiteAction } from '../../../../lib/site-access.js';
+import { authorizeBearer, resolveSiteName } from '../../../../lib/site-access.js';
 import { createRateLimiter } from '../../../../lib/throttle.js';
 import { getSite, putSite, rollbackTo } from '../../../../lib/sites.js';
 
@@ -14,21 +14,23 @@ const takeRollback = createRateLimiter({ windowMs: ROLLBACK_WINDOW_MS, max: ROLL
 // still in history. There is nothing to roll back to once history has pruned
 // it: the bytes are gone, and saying so beats serving a stranger's 404.
 export async function POST(request) {
+  // Credential and budget before the body, for the same reason as the deploy
+  // route: an unauthenticated caller gets neither parsing nor a registry read.
+  const auth = authorizeBearer(request, takeRollback);
+  if (auth.response) return auth.response;
+
   const body = await request.json().catch(() => ({}));
   const deploymentId = typeof body.deploymentId === 'string' ? body.deploymentId.trim() : '';
   if (!/^[0-9a-f]{8}$/.test(deploymentId)) {
     return Response.json({ error: 'invalid_deployment_id' }, { status: 400 });
   }
 
-  const auth = await authorizeSiteAction(request, {
-    explicitName: body.name,
-    takeBudget: takeRollback,
-  });
-  if (auth.response) return auth.response;
+  const name = await resolveSiteName(auth, body.name);
+  if (name.response) return name.response;
 
   let site;
   try {
-    site = await getSite(auth.name, { token: TOKEN() });
+    site = await getSite(name.name, { token: TOKEN() });
   } catch {
     return Response.json({ error: 'busy' }, { status: 503, headers: { 'Retry-After': '4' } });
   }
@@ -56,5 +58,5 @@ export async function POST(request) {
     return Response.json({ error: 'server_error' }, { status: 500 });
   }
 
-  return Response.json({ name: auth.name, active: record.active, updatedAt: record.updatedAt });
+  return Response.json({ name: name.name, active: record.active, updatedAt: record.updatedAt });
 }
