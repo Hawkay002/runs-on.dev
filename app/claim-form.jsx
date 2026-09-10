@@ -247,7 +247,7 @@ function Claimed({ name, commit }) {
         {sha ? '. Your name is in the log now.' : '. Your record is in the registry now.'}
       </p>
 
-      <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-3">
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-5">
         <a
           href={REPO_URL}
           target="_blank"

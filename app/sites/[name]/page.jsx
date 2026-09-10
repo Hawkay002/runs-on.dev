@@ -121,7 +121,7 @@ export default async function Site({ params }) {
               </a>
               <a
                 href="/manage"
-                className="slit-frame rounded-full px-3 py-1 font-(family-name:--font-mono) text-xs text-(--color-muted) transition-colors hover:text-(--color-ink)"
+                className="slit-frame [--slit-over:8px] rounded-full px-3 py-1 font-(family-name:--font-mono) text-xs text-(--color-muted) transition-colors hover:text-(--color-ink)"
               >
                 manage
               </a>
@@ -133,7 +133,7 @@ export default async function Site({ params }) {
         {bio && <p className="mt-5 max-w-[540px] text-[16px] leading-[1.5] text-(--color-ash)">{bio}</p>}
 
         {links.length > 0 && (
-          <ul className="mt-6 space-y-8">
+          <ul className="mt-6 space-y-12">
             {links.map((link) => (
               <li key={`${link.label}-${link.url}`}>
                 <a

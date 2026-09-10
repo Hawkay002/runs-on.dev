@@ -237,13 +237,13 @@ a {
   .btn-ghost::before {
     content: '';
     position: absolute;
-    inset: -8px;
+    inset: -16px;
     pointer-events: none;
     background:
-      linear-gradient(90deg, transparent 0, rgba(255, 255, 255, 0.75) 24px, rgba(255, 255, 255, 0.75) calc(100% - 24px), transparent 100%) 0 8px / 100% 1px no-repeat,
-      linear-gradient(90deg, transparent 0, rgba(255, 255, 255, 0.75) 24px, rgba(255, 255, 255, 0.75) calc(100% - 24px), transparent 100%) 0 calc(100% - 8px) / 100% 1px no-repeat,
-      linear-gradient(180deg, transparent 0, rgba(255, 255, 255, 0.75) 24px, rgba(255, 255, 255, 0.75) calc(100% - 24px), transparent 100%) 8px 0 / 1px 100% no-repeat,
-      linear-gradient(180deg, transparent 0, rgba(255, 255, 255, 0.75) 24px, rgba(255, 255, 255, 0.75) calc(100% - 24px), transparent 100%) calc(100% - 8px) 0 / 1px 100% no-repeat;
+      linear-gradient(90deg, transparent 0, rgba(255, 255, 255, 0.75) 40px, rgba(255, 255, 255, 0.75) calc(100% - 40px), transparent 100%) 0 16px / 100% 1px no-repeat,
+      linear-gradient(90deg, transparent 0, rgba(255, 255, 255, 0.75) 40px, rgba(255, 255, 255, 0.75) calc(100% - 40px), transparent 100%) 0 calc(100% - 16px) / 100% 1px no-repeat,
+      linear-gradient(180deg, transparent 0, rgba(255, 255, 255, 0.75) 40px, rgba(255, 255, 255, 0.75) calc(100% - 40px), transparent 100%) 16px 0 / 1px 100% no-repeat,
+      linear-gradient(180deg, transparent 0, rgba(255, 255, 255, 0.75) 40px, rgba(255, 255, 255, 0.75) calc(100% - 40px), transparent 100%) calc(100% - 16px) 0 / 1px 100% no-repeat;
   }
 
   /* Mono uppercase meta label, Input's role: captions, section labels,
@@ -337,8 +337,8 @@ a {
 
 .slit-frame {
   --slit-line: var(--slit-frame);
-  --slit-over: 12px;
-  --slit-edge: 36px;
+  --slit-over: 24px;
+  --slit-edge: 60px;
   position: relative;
   transition: --slit-line 0.25s ease;
 }
