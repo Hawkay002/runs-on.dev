@@ -75,7 +75,7 @@ export default function Stats() {
       </p>
 
       <Section title="Where things stand">
-        <div className="grid grid-cols-1 gap-6 sm:gap-8 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 sm:gap-12 sm:grid-cols-3">
           <Stat label="Names claimed" value={stats.total} />
           <Stat label="People" value={stats.owners} />
           <Stat label="Claimed this week" value={stats.claimedThisWeek} />

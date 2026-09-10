@@ -5,7 +5,7 @@ export function Section({ title, children }) {
   return (
     <section className="slit-top mt-16 pt-8">
       <h2 className="meta">{title}</h2>
-      <div className="mt-6 space-y-4 text-(--color-ink)">{children}</div>
+      <div className="mt-6 space-y-6 text-(--color-ink)">{children}</div>
     </section>
   );
 }

@@ -209,7 +209,7 @@ export default function RecordForm({ name, record }) {
           reserved icon color; the active tile is traced in white instead. */}
       <div className="px-6 py-6 sm:px-8">
         <p className="text-[14px] text-(--color-ink)">Where does your name go?</p>
-        <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="mt-4 grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-8">
           {PROVIDERS.map((p) => (
             <button key={p.id} type="button" onClick={() => selectProvider(p.id)}
               className={`slit-frame flex flex-col items-center gap-2.5 rounded-lg p-4 text-center sm:p-5 ${mode === p.id ? 'slit-frame-bright' : ''}`}
@@ -579,7 +579,7 @@ function SubdomainRecords({ name, subRows, setRow, addRow, removeRow }) {
         Records a provider asks for at a different name, like <code className="font-(family-name:--font-mono)">_vercel</code> for verification.
       </p>
       {subRows.map((row, i) => (
-        <div key={i} className="slit-frame mt-5 rounded-lg p-3">
+        <div key={i} className="slit-frame mt-8 rounded-lg p-3">
           <div className="flex flex-wrap items-center gap-2">
             <input value={row.label} onChange={(e) => setRow(i, { label: e.target.value })} placeholder="_vercel" aria-label="Subdomain label" spellCheck={false} className={`w-32 ${INPUT}`} />
             <span className="font-(family-name:--font-mono) text-xs text-(--color-muted)">.{name}.runs-on.dev</span>

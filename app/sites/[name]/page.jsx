@@ -133,7 +133,7 @@ export default async function Site({ params }) {
         {bio && <p className="mt-5 max-w-[540px] text-[16px] leading-[1.5] text-(--color-ash)">{bio}</p>}
 
         {links.length > 0 && (
-          <ul className="mt-6 space-y-4">
+          <ul className="mt-6 space-y-8">
             {links.map((link) => (
               <li key={`${link.label}-${link.url}`}>
                 <a

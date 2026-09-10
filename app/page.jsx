@@ -119,7 +119,7 @@ export default async function Home() {
         <Section title="Where to go next">
           {/* Link grid, service-cell style: each cell outlined by its own
               fading slit (open corners), brightening on hover. */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-12 lg:grid-cols-3">
             {LINKS.map((link) => (
               <a
                 key={link.href}
