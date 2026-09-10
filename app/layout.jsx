@@ -1,12 +1,12 @@
 import localFont from 'next/font/local';
-import { IBM_Plex_Mono } from 'next/font/google';
+import { Bitcount_Prop_Single, IBM_Plex_Mono } from 'next/font/google';
 import './globals.css';
 import Footer from './components/Footer.jsx';
 import Nav from './components/Nav.jsx';
 import EdgePicker from './edge-picker.jsx';
 
 // Satoshi stands in for Aeonik (per the style reference's own substitute
-// list): geometric, slightly warm, carrying every size at weight 400.
+// list): geometric, slightly warm, carrying body copy at weight 400.
 // Self-hosted from Fontshare (SIL OFL) so nothing loads from a third party.
 const satoshi = localFont({
   src: [
@@ -15,6 +15,16 @@ const satoshi = localFont({
     { path: './fonts/Satoshi-Bold.woff2', weight: '700', style: 'normal' },
   ],
   variable: '--font-satoshi',
+  display: 'swap',
+});
+
+// Bitcount Prop Single (Google Fonts) is the heading voice: a pixel-matrix
+// face that rhymes with the dot-map hero. Every h1/h2/h3 renders in it (see
+// the heading rule in globals.css); body copy stays Satoshi.
+const bitcount = Bitcount_Prop_Single({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-bitcount',
   display: 'swap',
 });
 
@@ -57,7 +67,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${satoshi.variable} ${mono.variable}`}>
+    <html lang="en" className={`${satoshi.variable} ${bitcount.variable} ${mono.variable}`}>
       <body>
         <Nav />
         {children}

@@ -88,8 +88,9 @@
   --edge-focus: rgba(255, 255, 255, 0.8);
 
   /* The claim line and section labels speak in Input's voice (mono, tight
-     utilitarian tracking); Satoshi carries everything else. */
-  --font-display: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+     utilitarian tracking). Headings speak in Bitcount Prop (pixel matrix,
+     set via the h1/h2/h3 rule below); Satoshi carries body copy. */
+  --font-display: var(--font-bitcount), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -134,6 +135,14 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--font-body);
+}
+
+/* Every heading renders in Bitcount Prop. Class-set families (the mono
+   meta labels, mono record blocks) keep winning over this element rule. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
 }
 
 ::selection {
@@ -228,20 +237,13 @@ a {
   .btn-ghost::before {
     content: '';
     position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background:
-      linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75) 22%, rgba(255, 255, 255, 0.75) 78%, transparent) top / 100% 1px,
-      linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75) 22%, rgba(255, 255, 255, 0.75) 78%, transparent) bottom / 100% 1px,
-      linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.75) 22%, rgba(255, 255, 255, 0.75) 78%, transparent) left / 1px 100%,
-      linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.75) 22%, rgba(255, 255, 255, 0.75) 78%, transparent) right / 1px 100%;
-    background-repeat: no-repeat;
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    mask-composite: exclude;
+    inset: -4px;
     pointer-events: none;
+    background:
+      linear-gradient(90deg, transparent 0, rgba(255, 255, 255, 0.75) 16px, rgba(255, 255, 255, 0.75) calc(100% - 16px), transparent 100%) 0 4px / 100% 1px no-repeat,
+      linear-gradient(90deg, transparent 0, rgba(255, 255, 255, 0.75) 16px, rgba(255, 255, 255, 0.75) calc(100% - 16px), transparent 100%) 0 calc(100% - 4px) / 100% 1px no-repeat,
+      linear-gradient(180deg, transparent 0, rgba(255, 255, 255, 0.75) 16px, rgba(255, 255, 255, 0.75) calc(100% - 16px), transparent 100%) 4px 0 / 1px 100% no-repeat,
+      linear-gradient(180deg, transparent 0, rgba(255, 255, 255, 0.75) 16px, rgba(255, 255, 255, 0.75) calc(100% - 16px), transparent 100%) calc(100% - 4px) 0 / 1px 100% no-repeat;
   }
 
   /* Mono uppercase meta label, Input's role: captions, section labels,
@@ -319,9 +321,14 @@ a {
 }
 .slit-bar-flag { --bar: rgba(217, 119, 87, 0.8); }
 
-/* Card and box outlines: a ::before frame following the element's own
-   border-radius, each edge a fading slit, corners open. --slit-line is the
-   line color; register it so hover/active brightening can transition. */
+/* Card and box outlines: four slit lines whose ends overshoot the box and
+   intersect at the corners (each line crosses its neighbor, technical-
+   drawing style; every tip still fades out). The ::before drawing surface
+   extends --slit-over past the box on every side; the perpendicular lines
+   run the full extended length, so each corner is a small crossing. That
+   is why cards need generous gaps: crossings from neighbors must never
+   touch. --slit-line is the line color, registered so hover/active
+   brightening can transition. */
 @property --slit-line {
   syntax: '<color>';
   inherits: true;
@@ -330,26 +337,21 @@ a {
 
 .slit-frame {
   --slit-line: var(--slit-frame);
+  --slit-over: 6px;
+  --slit-edge: 24px;
   position: relative;
   transition: --slit-line 0.25s ease;
 }
 .slit-frame::before {
   content: '';
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background:
-    linear-gradient(90deg, transparent, var(--slit-line) 20%, var(--slit-line) 80%, transparent) top / 100% 1px,
-    linear-gradient(90deg, transparent, var(--slit-line) 20%, var(--slit-line) 80%, transparent) bottom / 100% 1px,
-    linear-gradient(180deg, transparent, var(--slit-line) 20%, var(--slit-line) 80%, transparent) left / 1px 100%,
-    linear-gradient(180deg, transparent, var(--slit-line) 20%, var(--slit-line) 80%, transparent) right / 1px 100%;
-  background-repeat: no-repeat;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  mask-composite: exclude;
+  inset: calc(-1 * var(--slit-over));
   pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 0, var(--slit-line) var(--slit-edge), var(--slit-line) calc(100% - var(--slit-edge)), transparent 100%) 0 var(--slit-over) / 100% 1px no-repeat,
+    linear-gradient(90deg, transparent 0, var(--slit-line) var(--slit-edge), var(--slit-line) calc(100% - var(--slit-edge)), transparent 100%) 0 calc(100% - var(--slit-over)) / 100% 1px no-repeat,
+    linear-gradient(180deg, transparent 0, var(--slit-line) var(--slit-edge), var(--slit-line) calc(100% - var(--slit-edge)), transparent 100%) var(--slit-over) 0 / 1px 100% no-repeat,
+    linear-gradient(180deg, transparent 0, var(--slit-line) var(--slit-edge), var(--slit-line) calc(100% - var(--slit-edge)), transparent 100%) calc(100% - var(--slit-over)) 0 / 1px 100% no-repeat;
 }
 .slit-frame:hover { --slit-line: var(--slit-frame-hi); }
 /* Selected/active frame, and the flag (danger) variant. */
@@ -367,10 +369,13 @@ a {
   background-position: 0 0;
 }
 
-/* Inputs: the same open-corner slit on all four edges, painted as
-   backgrounds so it works on <input>/<select>/<textarea> (which cannot
-   carry pseudo-elements). The transparent border keeps sizing identical to
-   the old 1px-bordered fields; focus brightens the line. */
+/* Inputs: the same slit on all four edges, painted as backgrounds so it
+   works on <input>/<select>/<textarea> (which cannot carry pseudo-elements).
+   Backgrounds cannot overflow the box, so instead of overshooting, each
+   line runs to the corner with only a tiny ramp, and the perpendicular
+   line meets it there: the lines intersect inside the corner. The
+   transparent border keeps sizing identical to the old 1px-bordered
+   fields; focus brightens the line. */
 @property --edge-color {
   syntax: '<color>';
   inherits: true;
@@ -381,11 +386,10 @@ a {
   --edge-color: var(--edge);
   border: 1px solid transparent;
   background:
-    linear-gradient(90deg, transparent, var(--edge-color) 15%, var(--edge-color) 85%, transparent) top / 100% 1px,
-    linear-gradient(90deg, transparent, var(--edge-color) 15%, var(--edge-color) 85%, transparent) bottom / 100% 1px,
-    linear-gradient(180deg, transparent, var(--edge-color) 15%, var(--edge-color) 85%, transparent) left / 1px 100%,
-    linear-gradient(180deg, transparent, var(--edge-color) 15%, var(--edge-color) 85%, transparent) right / 1px 100%;
-  background-repeat: no-repeat;
+    linear-gradient(90deg, transparent 0, var(--edge-color) 6px, var(--edge-color) calc(100% - 6px), transparent 100%) top / 100% 1px no-repeat,
+    linear-gradient(90deg, transparent 0, var(--edge-color) 6px, var(--edge-color) calc(100% - 6px), transparent 100%) bottom / 100% 1px no-repeat,
+    linear-gradient(180deg, transparent 0, var(--edge-color) 6px, var(--edge-color) calc(100% - 6px), transparent 100%) left / 1px 100% no-repeat,
+    linear-gradient(180deg, transparent 0, var(--edge-color) 6px, var(--edge-color) calc(100% - 6px), transparent 100%) right / 1px 100% no-repeat;
   transition: --edge-color 0.2s ease;
 }
 .slit-input:focus,
@@ -404,11 +408,10 @@ a {
   border: 1px solid transparent;
   border-radius: 4px;
   background:
-    linear-gradient(90deg, transparent, var(--edge) 15%, var(--edge) 85%, transparent) top / 100% 1px,
-    linear-gradient(90deg, transparent, var(--edge) 15%, var(--edge) 85%, transparent) bottom / 100% 1px,
-    linear-gradient(180deg, transparent, var(--edge) 15%, var(--edge) 85%, transparent) left / 1px 100%,
-    linear-gradient(180deg, transparent, var(--edge) 15%, var(--edge) 85%, transparent) right / 1px 100%;
-  background-repeat: no-repeat;
+    linear-gradient(90deg, transparent 0, var(--edge) 5px, var(--edge) calc(100% - 5px), transparent 100%) top / 100% 1px no-repeat,
+    linear-gradient(90deg, transparent 0, var(--edge) 5px, var(--edge) calc(100% - 5px), transparent 100%) bottom / 100% 1px no-repeat,
+    linear-gradient(180deg, transparent 0, var(--edge) 5px, var(--edge) calc(100% - 5px), transparent 100%) left / 1px 100% no-repeat,
+    linear-gradient(180deg, transparent 0, var(--edge) 5px, var(--edge) calc(100% - 5px), transparent 100%) right / 1px 100% no-repeat;
 }
 
 /* The claim-line input's underline: a horizontal slit under the name,
