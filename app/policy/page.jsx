@@ -6,7 +6,7 @@ export const metadata = {
   description:
     'The terms for runs-on.dev in plain language: names are free and may be reclaimed, what forfeits a name immediately, and how to report abuse.',
   alternates: { canonical: 'https://runs-on.dev/policy' },
-  openGraph: { title: 'Policy — runs-on.dev' },
+  openGraph: { title: 'Policy · runs-on.dev' },
 };
 
 const REPO_BLOB = 'https://github.com/zordhalo/runs-on.dev/blob/main/';
@@ -32,8 +32,8 @@ export default function Policy() {
   const sections = loadPolicy();
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="font-(family-name:--font-display) text-3xl font-medium tracking-tight text-(--color-ink) sm:text-4xl">Policy</h1>
+    <main className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
+      <h1 className="text-[34px] leading-[1.03] font-normal tracking-[-0.005em] text-(--color-ink) sm:text-[44px] sm:tracking-[-0.007em]">Policy</h1>
       <p className="mt-4 text-sm leading-relaxed">
         This page is rendered from{' '}
         <a

@@ -5,7 +5,7 @@ export const metadata = {
   title: 'Email forwarding',
   description: 'Forward you@you.runs-on.dev to your real inbox with MX records, using ImprovMX as the worked example.',
   alternates: { canonical: 'https://runs-on.dev/docs/guides/email-forwarding' },
-  openGraph: { title: 'Email forwarding — runs-on.dev' },
+  openGraph: { title: 'Email forwarding · runs-on.dev' },
 };
 
 export default function EmailForwardingGuide() {

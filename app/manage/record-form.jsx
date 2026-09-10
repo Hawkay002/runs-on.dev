@@ -11,6 +11,12 @@ import {
 const MAX_SUBDOMAINS = 10;
 const MAX_LINKS = 8;
 
+// The one input look for the whole form: transparent field inside a graphite
+// hairline, chalk text, the hairline going white on focus. Contrast carries
+// the state, no fills.
+const INPUT =
+  'w-full border border-(--color-rule) bg-transparent px-3 py-2 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none transition-colors placeholder:text-(--color-muted)/70 focus:border-(--color-ink)';
+
 // The "did it work?" panel: polls /api/dns-check after a save and compares
 // live DNS against what was committed.
 function VerifyPanel({ name, cname, url, hasDns, vercelTxt }) {
@@ -60,14 +66,14 @@ function VerifyPanel({ name, cname, url, hasDns, vercelTxt }) {
   return (
     <div className="border-t border-(--color-rule) px-6 py-4 sm:px-8">
       <p className="font-(family-name:--font-mono) text-xs text-(--color-muted)">{'// did it work?'}</p>
-      <ul className="mt-2 space-y-1 font-(family-name:--font-mono) text-xs">
+      <ul className="mt-2 space-y-1.5 font-(family-name:--font-mono) text-xs">
         {rows.map((row, i) => (
           <li key={i} className={row.ok ? 'text-(--color-ink)' : 'text-(--color-muted)'}>
-            {row.ok ? '✓' : '…'} {row.text}
+            <span className={row.ok ? 'text-(--color-pulse)' : ''}>{row.ok ? '✓' : '…'}</span> {row.text}
           </li>
         ))}
       </ul>
-      {page.hint && <p className="mt-2 text-xs leading-relaxed text-(--color-muted)">{page.hint}</p>}
+      {page.hint && <p className="mt-2.5 max-w-[600px] text-xs leading-relaxed text-(--color-muted)">{page.hint}</p>}
     </div>
   );
 }
@@ -83,7 +89,7 @@ function pageOk(check, expected) {
 
 function pageState(check, { cname, url, hasDns }) {
   const status = check.serving?.status;
-  if (status === 'ok') return { ok: true, text: `serving your site — ${check.serving.title ?? ''}` };
+  if (status === 'ok') return { ok: true, text: `serving your site: ${check.serving.title ?? ''}` };
   if (status === 'redirect' && url) return { ok: true, text: `redirecting to ${check.serving.finalUrl ?? url}` };
   if (status === 'card' && !hasDns && !cname) return { ok: true, text: 'serving the profile card (as picked)' };
   if (status === 'card' || status === 'stuck') {
@@ -95,7 +101,7 @@ function pageState(check, { cname, url, hasDns }) {
         : 'DNS may still be propagating.',
     };
   }
-  return { ok: false, text: 'no answer yet — DNS may still be propagating' };
+  return { ok: false, text: 'no answer yet. DNS may still be propagating' };
 }
 
 const PROVIDERS = [
@@ -170,41 +176,52 @@ export default function RecordForm({ name, record }) {
   }
 
   const sha = shortSha(commit);
-  const statusPill = dnsStatus === 'ok' ? { label: 'Verified', color: '#22c55e' }
-    : dnsStatus === 'stuck' ? { label: 'Pending', color: '#eab308' }
-    : dnsStatus === 'redirect' ? { label: 'Redirect', color: '#3b82f6' }
-    : { label: 'Card', color: '#9ca3af' };
+  const statusPill = dnsStatus === 'ok' ? { label: 'Verified', tone: 'ok' }
+    : dnsStatus === 'stuck' ? { label: 'Pending', tone: 'pending' }
+    : dnsStatus === 'redirect' ? { label: 'Redirect', tone: 'redirect' }
+    : { label: 'Card', tone: 'neutral' };
 
   return (
-    <form onSubmit={save} className="border border-(--color-rule) bg-(--color-card)">
+    <form onSubmit={save} className="overflow-hidden rounded-lg border border-(--color-rule)">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4 border-b border-(--color-rule) px-6 py-5 sm:px-8">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-(--color-rule) px-6 py-5 sm:px-8">
         <div>
           <p className="font-(family-name:--font-mono) text-xs text-(--color-muted)">domains/{name}.json</p>
-          <h2 className="mt-1 font-(family-name:--font-display) text-xl font-medium tracking-tight text-(--color-ink) sm:text-2xl">{name}.runs-on.dev</h2>
+          <h2 className="mt-1.5 text-[23px] leading-[1.07] font-normal tracking-[-0.004em] text-(--color-ink)">{name}.runs-on.dev</h2>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-(family-name:--font-mono) text-xs" style={{ borderColor: statusPill.color, color: statusPill.color }}>
-          <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: statusPill.color }} />
+        <span className="inline-flex items-center gap-2 rounded-[4px] border border-(--color-rule) bg-(--color-badge) px-3.5 py-2 font-(family-name:--font-mono) text-[12px] tracking-[0.05em] text-(--color-muted) uppercase">
+          <span
+            aria-hidden="true"
+            className={`inline-block h-1.5 w-1.5 rounded-full ${statusPill.tone === 'ok' ? 'pulse-dot' : ''}`}
+            style={{
+              background:
+                statusPill.tone === 'ok' ? '#98ff38'
+                : statusPill.tone === 'pending' ? '#eab308'
+                : statusPill.tone === 'redirect' ? '#8ea1ff'
+                : '#9c9c9c',
+            }}
+          />
           {statusPill.label}
         </span>
       </div>
 
-      {/* Provider tiles */}
-      <div className="px-4 py-5 sm:px-8">
-        <p className="text-sm font-medium text-(--color-ink)">Where does your name go?</p>
-        <div className="mt-3 flex gap-1.5 sm:gap-3">
+      {/* Provider tiles. Icon strokes sit in Compass Gold, the reference's
+          reserved icon color; the active tile is traced in white instead. */}
+      <div className="px-6 py-6 sm:px-8">
+        <p className="text-[14px] text-(--color-ink)">Where does your name go?</p>
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
           {PROVIDERS.map((p) => (
             <button key={p.id} type="button" onClick={() => selectProvider(p.id)}
-              className={`flex flex-1 flex-col items-center gap-1.5 border p-2 text-center transition-all sm:gap-2 sm:p-4 ${mode === p.id ? 'border-(--color-signal) bg-(--color-signal)/5' : 'border-(--color-rule) hover:border-(--color-muted)'}`}
+              className={`flex flex-col items-center gap-2.5 rounded-lg border p-4 text-center transition-colors sm:p-5 ${mode === p.id ? 'border-(--color-ink)' : 'border-(--color-rule) hover:border-(--color-muted)'}`}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={`sm:h-6 sm:w-6 ${mode === p.id ? 'text-(--color-signal)' : 'text-(--color-muted)'}`}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={mode === p.id ? 'text-(--color-ink)' : 'text-(--color-gold)'}>
                 <path d={p.icon} />
               </svg>
-              <span className={`text-[10px] font-medium sm:text-xs ${mode === p.id ? 'text-(--color-signal)' : 'text-(--color-ink)'}`}>{p.label}</span>
+              <span className={`text-[11px] tracking-[0.02em] uppercase ${mode === p.id ? 'text-(--color-ink)' : 'text-(--color-muted)'}`}>{p.label}</span>
             </button>
           ))}
         </div>
-        <p className="mt-2 text-xs leading-relaxed text-(--color-muted)">{PROVIDERS.find((p) => p.id === mode)?.hint}</p>
+        <p className="mt-3 text-xs leading-relaxed text-(--color-muted)">{PROVIDERS.find((p) => p.id === mode)?.hint}</p>
       </div>
 
       {/* Profile Card mode: this mode means "no DNS records", so entering it
@@ -214,12 +231,12 @@ export default function RecordForm({ name, record }) {
           a CNAME who wanted to edit their bio silently lost their records. */}
       {mode === 'card' && (
         <div className="border-t border-(--color-rule) px-6 py-5 sm:px-8">
-          <p className="text-sm font-medium text-(--color-ink)">Profile card</p>
-          <p className="mt-1 text-xs text-(--color-muted)">
+          <p className="text-[14px] text-(--color-ink)">Profile card</p>
+          <p className="mt-1.5 text-xs leading-relaxed text-(--color-muted)">
             Your name serves a card built from your GitHub profile. No DNS records are published.
           </p>
           {hadRecords && (
-            <p className="mt-3 border border-(--color-signal) px-3 py-2 font-(family-name:--font-mono) text-xs text-(--color-signal)">
+            <p className="mt-3 rounded-r-lg border-l-2 border-(--color-signal) bg-(--color-card) px-3 py-2.5 font-(family-name:--font-mono) text-xs leading-relaxed text-(--color-ash)">
               Saving in this mode removes the DNS records on this name. To edit your card
               without changing where the name points, pick your current mode above and edit
               the profile section below instead.
@@ -233,8 +250,8 @@ export default function RecordForm({ name, record }) {
         <>
           <div className="border-t border-(--color-rule) px-6 py-5 sm:px-8">
             <label className="block">
-              <span className="text-sm font-medium text-(--color-ink)">CNAME target</span>
-              <input value={cname} onChange={(e) => { setCname(e.target.value); setStatus(null); }} placeholder="your-provider.example.com" spellCheck={false} autoCapitalize="off" className="mt-1 w-full border border-(--color-rule) bg-transparent px-3 py-2 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none focus:border-(--color-signal)" />
+              <span className="text-[14px] text-(--color-ink)">CNAME target</span>
+              <input value={cname} onChange={(e) => { setCname(e.target.value); setStatus(null); }} placeholder="your-provider.example.com" spellCheck={false} autoCapitalize="off" className={`mt-2 ${INPUT}`} />
             </label>
             <p className="mt-2 text-xs text-(--color-muted)">Copy the exact value from your provider.</p>
           </div>
@@ -246,8 +263,8 @@ export default function RecordForm({ name, record }) {
       {mode === 'url' && (
         <div className="border-t border-(--color-rule) px-6 py-5 sm:px-8">
           <label className="block">
-            <span className="text-sm font-medium text-(--color-ink)">Redirect URL</span>
-            <input value={url} onChange={(e) => { setUrl(e.target.value); setStatus(null); }} placeholder="https://your-site.com" spellCheck={false} className="mt-1 w-full border border-(--color-rule) bg-transparent px-3 py-2 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none focus:border-(--color-signal)" />
+            <span className="text-[14px] text-(--color-ink)">Redirect URL</span>
+            <input value={url} onChange={(e) => { setUrl(e.target.value); setStatus(null); }} placeholder="https://your-site.com" spellCheck={false} className={`mt-2 ${INPUT}`} />
           </label>
         </div>
       )}
@@ -255,7 +272,7 @@ export default function RecordForm({ name, record }) {
       {/* Advanced DNS mode */}
       {mode === 'advanced' && (
         <div className="border-t border-(--color-rule) px-6 py-5 sm:px-8">
-          <p className="text-sm font-medium text-(--color-ink)">DNS records</p>
+          <p className="text-[14px] text-(--color-ink)">DNS records</p>
           <div className="mt-4 space-y-4">
             <TextArea label="A (IPv4)" value={a} onChange={(v) => { setA(v); setStatus(null); }} placeholder="76.76.21.21" hint="One address per line." />
             <TextArea label="TXT" value={txt} onChange={(v) => { setTxt(v); setStatus(null); }} placeholder="v=spf1 -all" hint="One string per line." />
@@ -269,46 +286,46 @@ export default function RecordForm({ name, record }) {
           `profile` is its own key on the record and is served by the card, so
           editing a bio must never require touching where the name points. */}
       <div className="border-t border-(--color-rule) px-6 py-5 sm:px-8">
-        <p className="text-sm font-medium text-(--color-ink)">Profile card details</p>
-        <p className="mt-1 text-xs text-(--color-muted)">
+        <p className="text-[14px] text-(--color-ink)">Profile card details</p>
+        <p className="mt-1.5 text-xs leading-relaxed text-(--color-muted)">
           {mode === 'card'
             ? 'Override any field below. Blank falls back to your GitHub profile.'
             : 'Saved with your name and shown if you ever switch to the profile card. Editing these does not change your DNS.'}
         </p>
-        <div className="mt-4 space-y-4">
+        <div className="mt-5 space-y-4">
           <label className="block">
-            <span className="text-xs text-(--color-muted)">display name</span>
-            <input value={displayName} onChange={(e) => { setDisplayName(e.target.value); setStatus(null); }} placeholder="GitHub profile name" className="mt-1 w-full border border-(--color-rule) bg-transparent px-3 py-2 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none focus:border-(--color-signal)" />
+            <span className="meta normal-case">display name</span>
+            <input value={displayName} onChange={(e) => { setDisplayName(e.target.value); setStatus(null); }} placeholder="GitHub profile name" className={`mt-2 ${INPUT}`} />
           </label>
           <label className="block">
-            <span className="text-xs text-(--color-muted)">bio</span>
-            <textarea value={bio} onChange={(e) => { setBio(e.target.value); setStatus(null); }} placeholder="GitHub profile bio" rows={2} className="mt-1 w-full resize-y border border-(--color-rule) bg-transparent px-3 py-2 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none focus:border-(--color-signal)" />
+            <span className="meta normal-case">bio</span>
+            <textarea value={bio} onChange={(e) => { setBio(e.target.value); setStatus(null); }} placeholder="GitHub profile bio" rows={2} className={`mt-2 ${INPUT} resize-y`} />
           </label>
           {linkRows.map((row, i) => (
             <div key={i} className="flex flex-wrap items-center gap-2">
-              <input value={row.label} onChange={(e) => setLinkRow(i, { label: e.target.value })} placeholder="My portfolio" aria-label="Link label" className="w-36 border border-(--color-rule) bg-transparent px-2 py-1.5 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none focus:border-(--color-signal)" />
-              <input value={row.url} onChange={(e) => setLinkRow(i, { url: e.target.value })} placeholder="https://…" aria-label="Link URL" spellCheck={false} className="min-w-0 flex-1 border border-(--color-rule) bg-transparent px-2 py-1.5 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none focus:border-(--color-signal)" />
-              <button type="button" onClick={() => removeLink(i)} className="font-(family-name:--font-mono) text-xs text-(--color-muted) underline hover:text-(--color-ink)">remove</button>
+              <input value={row.label} onChange={(e) => setLinkRow(i, { label: e.target.value })} placeholder="My portfolio" aria-label="Link label" className={`w-36 ${INPUT}`} />
+              <input value={row.url} onChange={(e) => setLinkRow(i, { url: e.target.value })} placeholder="https://…" aria-label="Link URL" spellCheck={false} className={`min-w-0 flex-1 ${INPUT}`} />
+              <button type="button" onClick={() => removeLink(i)} className="font-(family-name:--font-mono) text-xs text-(--color-muted) underline transition-colors hover:text-(--color-ink)">remove</button>
             </div>
           ))}
           {linkRows.length < MAX_LINKS && (
-            <button type="button" onClick={() => { setLinkRows((rows) => [...rows, { label: '', url: '' }]); setStatus(null); }} className="border border-(--color-rule) px-3 py-1.5 font-(family-name:--font-mono) text-xs transition-opacity hover:opacity-80">+ add a link</button>
+            <button type="button" onClick={() => { setLinkRows((rows) => [...rows, { label: '', url: '' }]); setStatus(null); }} className="rounded-[4px] border border-(--color-rule) px-3 py-1.5 font-(family-name:--font-mono) text-xs text-(--color-muted) transition-colors hover:border-(--color-muted) hover:text-(--color-ink)">+ add a link</button>
           )}
         </div>
       </div>
 
       {/* Save */}
       <div className="flex flex-wrap items-center gap-4 border-t border-(--color-rule) px-6 py-5 sm:px-8">
-        <button type="submit" disabled={status === 'saving'} className="border px-5 py-2.5 font-(family-name:--font-mono) text-sm transition-opacity hover:opacity-90 disabled:opacity-50" style={{ borderColor: 'var(--color-signal)', background: 'var(--color-signal)', color: 'var(--color-paper)' }}>
+        <button type="submit" disabled={status === 'saving'} className="btn-pill">
           {status === 'saving' ? 'Saving…' : 'Save changes'}
         </button>
         {status === 'unchanged' && <span className="font-(family-name:--font-mono) text-xs text-(--color-muted)">no changes to save</span>}
         {status === 'saved' && (
           <span className="font-(family-name:--font-mono) text-xs text-(--color-muted)">
-            {sha ? <a className="text-(--color-signal) underline" href={commitUrl(commit)} target="_blank" rel="noopener noreferrer">commit {sha}</a> : 'saved'}
+            {sha ? <a className="text-(--color-ink) underline" href={commitUrl(commit)} target="_blank" rel="noopener noreferrer">commit {sha}</a> : 'saved'}
           </span>
         )}
-        {errors.length > 0 && <ul className="mt-2 space-y-1 font-(family-name:--font-mono) text-xs text-(--color-signal)">{errors.map((e) => <li key={e}>{e}</li>)}</ul>}
+        {errors.length > 0 && <ul className="mt-2 space-y-1 font-(family-name:--font-mono) text-xs text-(--color-flag)">{errors.map((e) => <li key={e}>{e}</li>)}</ul>}
       </div>
 
       {/* Verify panel: the "did it work?" feedback after a save, part of
@@ -383,14 +400,14 @@ function SwapZone({ name }) {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="font-(family-name:--font-mono) text-xs text-(--color-signal) underline hover:opacity-80"
+          className="font-(family-name:--font-mono) text-xs text-(--color-muted) underline transition-colors hover:text-(--color-ink)"
         >
           swap this name for a different one
         </button>
       ) : (
         <div className="space-y-3">
-          <p className="text-sm font-medium text-(--color-ink)">Swap {name}.runs-on.dev</p>
-          <p className="text-xs leading-relaxed text-(--color-muted)">
+          <p className="text-[14px] text-(--color-ink)">Swap {name}.runs-on.dev</p>
+          <p className="max-w-[600px] text-xs leading-relaxed text-(--color-muted)">
             Trade this name for a new one. All your settings (CNAME, profile, subdomains)
             carry over. The old name is released immediately and becomes available to anyone.
           </p>
@@ -404,10 +421,10 @@ function SwapZone({ name }) {
               spellCheck={false}
               autoCapitalize="off"
               autoCorrect="off"
-              className={`w-full border bg-transparent px-3 py-2 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none ${nameAvailable || !newName ? 'border-(--color-rule) focus:border-(--color-signal)' : 'border-red-300'}`}
+              className={`${INPUT} ${nameAvailable || !newName ? '' : 'border-(--color-flag) focus:border-(--color-flag)'}`}
             />
             {newName && !nameAvailable && (
-              <p className="text-xs text-red-500">
+              <p className="text-xs text-(--color-flag)">
                 {newName.trim().toLowerCase() === name ? "that's your current name" : 'invalid name (2-32 chars, a-z 0-9 hyphens)'}
               </p>
             )}
@@ -427,36 +444,31 @@ function SwapZone({ name }) {
                 aria-label="Type the new name to confirm swap"
                 spellCheck={false}
                 autoCapitalize="off"
-                className="w-full border border-(--color-rule) bg-transparent px-3 py-2 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none focus:border-(--color-signal)"
+                className={INPUT}
               />
             </div>
           )}
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 pt-1">
             <button
               type="button"
               onClick={swap}
               disabled={swapping || !canSwap}
-              className="border px-4 py-2 font-(family-name:--font-mono) text-xs transition-opacity hover:opacity-90 disabled:opacity-50"
-              style={{
-                borderColor: 'var(--color-signal)',
-                background: 'var(--color-signal)',
-                color: 'var(--color-paper)',
-              }}
+              className="btn-pill px-4 py-2 text-xs"
             >
               {swapping ? 'Swapping…' : `Swap to ${newName.trim().toLowerCase() || '…'}`}
             </button>
             <button
               type="button"
               onClick={() => { setOpen(false); setNewName(''); setConfirmText(''); setResult(null); }}
-              className="border border-(--color-rule) px-4 py-2 font-(family-name:--font-mono) text-xs transition-opacity hover:opacity-80"
+              className="btn-ghost px-4 py-2 text-xs"
             >
               Cancel
             </button>
           </div>
 
           {result && (
-            <p className={`text-xs font-(family-name:--font-mono) ${result.ok ? 'text-green-600' : 'text-red-500'}`}>
+            <p className={`font-(family-name:--font-mono) text-xs ${result.ok ? 'text-(--color-pulse)' : 'text-(--color-flag)'}`}>
               {result.ok ? '✓ ' : '✗ '}{result.text}
             </p>
           )}
@@ -498,19 +510,19 @@ function ReleaseZone({ name }) {
   };
 
   return (
-    <div className="border-t border-red-200 px-6 py-5 sm:px-8">
+    <div className="border-t border-(--color-rule) px-6 py-5 sm:px-8">
       {!open ? (
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="font-(family-name:--font-mono) text-xs text-red-500 underline hover:text-red-700"
+          className="font-(family-name:--font-mono) text-xs text-(--color-flag) underline hover:opacity-80"
         >
           release this name
         </button>
       ) : (
         <div className="space-y-3">
-          <p className="text-sm font-medium text-red-600">Release {name}.runs-on.dev?</p>
-          <p className="text-xs leading-relaxed text-(--color-muted)">
+          <p className="text-[14px] text-(--color-flag)">Release {name}.runs-on.dev?</p>
+          <p className="max-w-[600px] text-xs leading-relaxed text-(--color-muted)">
             This permanently deletes your claim. The name becomes available for anyone
             to claim immediately. DNS records and your profile card are removed.
             This cannot be undone.
@@ -527,29 +539,28 @@ function ReleaseZone({ name }) {
               aria-label="Type the name to confirm release"
               spellCheck={false}
               autoCapitalize="off"
-              className="w-full min-w-0 border border-red-200 bg-transparent px-3 py-2 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none focus:border-red-500 sm:w-auto sm:flex-1"
+              className={`${INPUT} border-(--color-flag)/40 focus:border-(--color-flag) sm:w-auto sm:flex-1`}
             />
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={release}
                 disabled={releasing || confirmText.trim().toLowerCase() !== name}
-                className="border px-4 py-2 font-(family-name:--font-mono) text-xs transition-opacity hover:opacity-90 disabled:opacity-50"
-                style={{ borderColor: '#dc2626', background: '#dc2626', color: '#fff' }}
+                className="rounded-[4px] border border-(--color-flag) px-4 py-2 font-(family-name:--font-mono) text-xs text-(--color-flag) transition-opacity hover:opacity-90 disabled:opacity-40"
               >
                 {releasing ? 'Releasing…' : 'Release permanently'}
               </button>
               <button
                 type="button"
                 onClick={() => { setOpen(false); setConfirmText(''); setResult(null); }}
-                className="border border-(--color-rule) px-4 py-2 font-(family-name:--font-mono) text-xs transition-opacity hover:opacity-80"
+                className="btn-ghost px-4 py-2 text-xs"
               >
                 Cancel
               </button>
             </div>
           </div>
           {result && (
-            <p className={`text-xs font-(family-name:--font-mono) ${result.ok ? 'text-green-600' : 'text-red-500'}`}>
+            <p className={`font-(family-name:--font-mono) text-xs ${result.ok ? 'text-(--color-pulse)' : 'text-(--color-flag)'}`}>
               {result.ok ? '✓ ' : '✗ '}{result.text}
             </p>
           )}
@@ -563,25 +574,25 @@ function ReleaseZone({ name }) {
 function SubdomainRecords({ name, subRows, setRow, addRow, removeRow }) {
   return (
     <div className="border-t border-(--color-rule) px-6 py-5 sm:px-8">
-      <p className="text-sm font-medium text-(--color-ink)">Subdomain records</p>
-      <p className="mt-1 text-xs leading-relaxed text-(--color-muted)">
+      <p className="text-[14px] text-(--color-ink)">Subdomain records</p>
+      <p className="mt-1.5 text-xs leading-relaxed text-(--color-muted)">
         Records a provider asks for at a different name, like <code className="font-(family-name:--font-mono)">_vercel</code> for verification.
       </p>
       {subRows.map((row, i) => (
-        <div key={i} className="mt-3 border border-(--color-rule) p-3">
+        <div key={i} className="mt-3 rounded-lg border border-(--color-rule) p-3">
           <div className="flex flex-wrap items-center gap-2">
-            <input value={row.label} onChange={(e) => setRow(i, { label: e.target.value })} placeholder="_vercel" aria-label="Subdomain label" spellCheck={false} className="w-32 border border-(--color-rule) bg-transparent px-2 py-1.5 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none focus:border-(--color-signal)" />
+            <input value={row.label} onChange={(e) => setRow(i, { label: e.target.value })} placeholder="_vercel" aria-label="Subdomain label" spellCheck={false} className={`w-32 ${INPUT}`} />
             <span className="font-(family-name:--font-mono) text-xs text-(--color-muted)">.{name}.runs-on.dev</span>
-            <select value={row.type} onChange={(e) => setRow(i, { type: e.target.value })} aria-label="Record type" className="border border-(--color-rule) bg-transparent px-2 py-1.5 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none focus:border-(--color-signal)">
+            <select value={row.type} onChange={(e) => setRow(i, { type: e.target.value })} aria-label="Record type" className={`w-auto ${INPUT}`}>
               {SUBDOMAIN_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
             </select>
-            <button type="button" onClick={() => removeRow(i)} className="ml-auto font-(family-name:--font-mono) text-xs text-(--color-muted) underline hover:text-(--color-ink)">remove</button>
+            <button type="button" onClick={() => removeRow(i)} className="ml-auto font-(family-name:--font-mono) text-xs text-(--color-muted) underline transition-colors hover:text-(--color-ink)">remove</button>
           </div>
-          <textarea value={row.value} onChange={(e) => setRow(i, { value: e.target.value })} rows={2} aria-label="Record value" spellCheck={false} className="mt-2 w-full resize-y border border-(--color-rule) bg-transparent px-3 py-2 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none focus:border-(--color-signal)" />
+          <textarea value={row.value} onChange={(e) => setRow(i, { value: e.target.value })} rows={2} aria-label="Record value" spellCheck={false} className={`mt-2 ${INPUT} resize-y`} />
         </div>
       ))}
       {subRows.length < MAX_SUBDOMAINS && (
-        <button type="button" onClick={addRow} className="mt-3 border border-(--color-rule) px-3 py-1.5 font-(family-name:--font-mono) text-xs transition-opacity hover:opacity-80">+ add a subdomain record</button>
+        <button type="button" onClick={addRow} className="mt-3 rounded-[4px] border border-(--color-rule) px-3 py-1.5 font-(family-name:--font-mono) text-xs text-(--color-muted) transition-colors hover:border-(--color-muted) hover:text-(--color-ink)">+ add a subdomain record</button>
       )}
     </div>
   );
@@ -591,9 +602,9 @@ function SubdomainRecords({ name, subRows, setRow, addRow, removeRow }) {
 function TextArea({ label, value, onChange, placeholder, hint }) {
   return (
     <label className="block">
-      <span className="text-xs text-(--color-muted)">{label}</span>
-      <textarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={2} spellCheck={false} className="mt-1 w-full resize-y border border-(--color-rule) bg-transparent px-3 py-2 font-(family-name:--font-mono) text-sm text-(--color-ink) outline-none focus:border-(--color-signal)" />
-      {hint && <span className="mt-1 block text-xs text-(--color-muted)">{hint}</span>}
+      <span className="meta normal-case">{label}</span>
+      <textarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={2} spellCheck={false} className={`mt-2 ${INPUT} resize-y`} />
+      {hint && <span className="mt-1.5 block text-xs text-(--color-muted)">{hint}</span>}
     </label>
   );
 }

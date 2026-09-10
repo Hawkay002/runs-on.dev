@@ -5,7 +5,7 @@ export const metadata = {
   title: 'Discord verification',
   description: 'Verify ownership of you.runs-on.dev with Discord using a _discord TXT subdomain.',
   alternates: { canonical: 'https://runs-on.dev/docs/guides/discord-verification' },
-  openGraph: { title: 'Discord verification — runs-on.dev' },
+  openGraph: { title: 'Discord verification · runs-on.dev' },
 };
 
 export default function DiscordVerificationGuide() {

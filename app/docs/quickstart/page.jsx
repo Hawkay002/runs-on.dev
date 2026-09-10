@@ -5,7 +5,7 @@ export const metadata = {
   title: 'Quickstart',
   description: 'Claim a name.runs-on.dev and get it live end to end: sign in, claim, and the fastest way to point it somewhere.',
   alternates: { canonical: 'https://runs-on.dev/docs/quickstart' },
-  openGraph: { title: 'Quickstart — runs-on.dev' },
+  openGraph: { title: 'Quickstart · runs-on.dev' },
 };
 
 export default function Quickstart() {

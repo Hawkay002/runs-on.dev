@@ -5,7 +5,7 @@ export const metadata = {
   title: 'Resources',
   description: 'Where to find the runs-on.dev registry, the record schema, how to report abuse, and where the policy lives.',
   alternates: { canonical: 'https://runs-on.dev/docs/resources' },
-  openGraph: { title: 'Resources — runs-on.dev' },
+  openGraph: { title: 'Resources · runs-on.dev' },
 };
 
 export default function Resources() {

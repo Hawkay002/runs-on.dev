@@ -5,7 +5,7 @@ export const metadata = {
   title: 'Docs',
   description: 'Documentation for runs-on.dev: quickstart, the full record reference, provider guides, and where to find the source.',
   alternates: { canonical: 'https://runs-on.dev/docs' },
-  openGraph: { title: 'Docs — runs-on.dev' },
+  openGraph: { title: 'Docs · runs-on.dev' },
 };
 
 export default function Docs() {

@@ -5,7 +5,7 @@ export const metadata = {
   title: 'GitHub Pages',
   description: 'Point name.runs-on.dev at a GitHub Pages site with a CNAME record.',
   alternates: { canonical: 'https://runs-on.dev/docs/guides/github-pages' },
-  openGraph: { title: 'GitHub Pages — runs-on.dev' },
+  openGraph: { title: 'GitHub Pages · runs-on.dev' },
 };
 
 export default function GithubPagesGuide() {

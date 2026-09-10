@@ -5,7 +5,7 @@ export const metadata = {
   title: 'URL redirect',
   description: 'Point name.runs-on.dev at any link with a URL record, no hosting required.',
   alternates: { canonical: 'https://runs-on.dev/docs/guides/url-redirect' },
-  openGraph: { title: 'URL redirect — runs-on.dev' },
+  openGraph: { title: 'URL redirect · runs-on.dev' },
 };
 
 export default function UrlRedirectGuide() {

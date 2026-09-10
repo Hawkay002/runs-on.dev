@@ -5,7 +5,7 @@ export const metadata = {
   title: 'Vercel',
   description: 'Point name.runs-on.dev at a Vercel project with a CNAME record.',
   alternates: { canonical: 'https://runs-on.dev/docs/guides/vercel' },
-  openGraph: { title: 'Vercel — runs-on.dev' },
+  openGraph: { title: 'Vercel · runs-on.dev' },
 };
 
 export default function VercelGuide() {
@@ -69,8 +69,8 @@ export default function VercelGuide() {
         </p>
         <p className="text-sm leading-relaxed sm:text-base">
           The registry mirrors that <C>TXT</C> to{' '}
-          <C>_vercel.runs-on.dev</C> — the zone-level host Vercel actually reads the challenge
-          from, since the apex itself sits in a Vercel account — automatically on every DNS sync.
+          <C>_vercel.runs-on.dev</C> · the zone-level host Vercel actually reads the challenge
+          from, since the apex itself sits in a Vercel account · automatically on every DNS sync.
           You only ever manage the <C>subdomains</C> entry above; the zone-level copy is how the
           registry completes the handshake.
         </p>

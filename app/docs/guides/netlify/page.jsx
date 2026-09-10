@@ -5,7 +5,7 @@ export const metadata = {
   title: 'Netlify',
   description: 'Point name.runs-on.dev at a Netlify site with a CNAME record.',
   alternates: { canonical: 'https://runs-on.dev/docs/guides/netlify' },
-  openGraph: { title: 'Netlify — runs-on.dev' },
+  openGraph: { title: 'Netlify · runs-on.dev' },
 };
 
 export default function NetlifyGuide() {

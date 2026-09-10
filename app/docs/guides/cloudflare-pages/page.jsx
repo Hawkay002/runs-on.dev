@@ -5,7 +5,7 @@ export const metadata = {
   title: 'Cloudflare Pages',
   description: 'Point name.runs-on.dev at a Cloudflare Pages project with a CNAME record.',
   alternates: { canonical: 'https://runs-on.dev/docs/guides/cloudflare-pages' },
-  openGraph: { title: 'Cloudflare Pages — runs-on.dev' },
+  openGraph: { title: 'Cloudflare Pages · runs-on.dev' },
 };
 
 export default function CloudflarePagesGuide() {

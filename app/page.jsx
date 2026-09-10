@@ -3,12 +3,13 @@ import ClaimForm from './claim-form.jsx';
 import OwnedName from './owned-name.jsx';
 import JsonLd from './components/JsonLd.jsx';
 import { Section, Quote } from './components/Section.jsx';
+import { DotMap, Divider, StatusBadge } from './components/ui.jsx';
 import { readSession } from '../lib/session.js';
 import { getOwnerIndex } from '../lib/owners.js';
 import { getRecord } from '../lib/registry.js';
 
 export const metadata = {
-  title: 'runs-on.dev — free subdomains',
+  title: 'runs-on.dev · free subdomains',
   description: 'Claim your own name.runs-on.dev in seconds. Free, forever.',
   alternates: { canonical: 'https://runs-on.dev' },
 };
@@ -33,6 +34,15 @@ const websiteJsonLd = {
   ],
 };
 
+const LINKS = [
+  { href: '/docs/quickstart', label: 'Quickstart', note: 'claim a name, end to end' },
+  { href: '/docs/guides', label: 'Guides', note: 'point it at your own hosting' },
+  { href: '/docs/records', label: 'Record reference', note: 'every field, every rule' },
+  { href: '/about', label: 'About', note: 'what this is and is not' },
+  { href: '/faq', label: 'FAQ', note: 'straight answers' },
+  { href: 'https://github.com/zordhalo/runs-on.dev', label: 'GitHub', note: 'the registry itself', external: true },
+];
+
 // Only for a signed-in visitor: this page is the highest-traffic route on the
 // site and these reads come out of REGISTRY_TOKEN's quota, the same one
 // claiming depends on. It already renders dynamically because it reads
@@ -55,62 +65,86 @@ export default async function Home() {
   const owned = await ownedName(session);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-14 sm:py-20">
+    <main>
       <JsonLd data={websiteJsonLd} />
 
-      <h1 className="sr-only">runs-on.dev — a free subdomain registry</h1>
+      <h1 className="sr-only">runs-on.dev · a free subdomain registry</h1>
 
-      <p className="font-(family-name:--font-mono) text-xs tracking-[0.14em] text-(--color-muted) uppercase">
-        A free subdomain registry
-      </p>
+      {/* Hero: the claim line IS the display headline, set at 63px weight 400
+          with negative tracking. Centered stack, then the dot-map world below. */}
+      <section id="claim" className="mx-auto max-w-[1200px] px-6 pt-20 pb-16 text-center sm:pt-28">
+        <StatusBadge tone="live" pulse>Free forever · live in seconds</StatusBadge>
 
-      <div className="mt-3">
-        {owned ? (
-          <OwnedName name={owned.name} record={owned.record} />
-        ) : (
-          <ClaimForm signedIn={Boolean(session)} />
-        )}
+        <div className="mt-8 flex justify-center">
+          {owned ? (
+            <OwnedName name={owned.name} record={owned.record} />
+          ) : (
+            <ClaimForm signedIn={Boolean(session)} />
+          )}
+        </div>
+      </section>
+
+      {/* Full-bleed dot-matrix world map: reach rendered as dot density on the
+          obsidian canvas, the only imagery in the system. */}
+      <DotMap className="h-auto w-full" />
+
+      <div className="mx-auto max-w-[1200px] px-6">
+        <Section title="What this is">
+          <div className="mx-auto max-w-[600px] text-center">
+            <p className="text-(--color-ink) text-[23px] leading-[1.07] tracking-[-0.005em]">
+              A JSON file in a public repo is the whole registry.
+            </p>
+            <p className="mt-5 text-[16px] leading-[1.5] text-(--color-muted)">
+              That file says the name is yours, and it is the only thing that makes{' '}
+              <span className="font-(family-name:--font-mono) text-[15px]">*.runs-on.dev</span>{' '}
+              resolve. No hidden database, nothing you can&rsquo;t read yourself.
+            </p>
+            <dl className="mx-auto mt-8 max-w-[440px] space-y-3 text-left font-(family-name:--font-mono) text-[13px]">
+              <div className="border-t border-(--color-rule) pt-3">
+                <dt className="meta mb-1">live</dt>
+                <dd className="text-(--color-ink)">
+                  seconds, with HTTPS, and your own hosting whenever you like via pull request.
+                </dd>
+              </div>
+              <div className="border-t border-(--color-rule) pt-3">
+                <dt className="meta mb-1">free</dt>
+                <dd className="text-(--color-ink)">
+                  forever. No ads, no tracking, no account beyond the GitHub one you already have.
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </Section>
+
+        <Section title="Where to go next">
+          {/* Link grid inside a single graphite frame, service-cell style:
+              no fills, hairline dividers between cells only. The gap-px
+              graphite background is what draws the inner hairlines. */}
+          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-(--color-rule) bg-(--color-rule) sm:grid-cols-2 lg:grid-cols-3">
+            {LINKS.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                className="group bg-(--color-paper) p-6 transition-colors hover:bg-(--color-card)"
+              >
+                <p className="text-[14px] tracking-[0.01em] text-(--color-ink) uppercase transition-colors group-hover:text-(--color-muted)">
+                  {link.label}
+                  <span aria-hidden="true" className="ml-2 text-(--color-muted)">↗</span>
+                </p>
+                <p className="mt-2 text-[14px] leading-relaxed text-(--color-muted)">{link.note}</p>
+              </a>
+            ))}
+          </div>
+        </Section>
+
+        <Section title="Report abuse">
+          <Quote>
+            If a subdomain is phishing, impersonating someone, or serving malware, email
+            abuse@runs-on.dev and it will be reclaimed.
+          </Quote>
+        </Section>
       </div>
-
-      <Section title="What this is">
-        <p className="text-sm leading-relaxed sm:text-base">
-          Claiming a name writes a JSON file to a public repo. That file is the record: it says
-          the name is yours, and it is the only thing that makes <span className="font-(family-name:--font-mono)">*.runs-on.dev</span> resolve.
-          No hidden database, nothing you can't read yourself.
-        </p>
-        <dl className="space-y-1.5 font-(family-name:--font-mono) text-xs sm:text-[13px]">
-          <div>
-            <dt className="inline text-(--color-muted) uppercase tracking-[0.1em]">live —</dt>{' '}
-            <dd className="inline text-(--color-ink)">
-              seconds, with HTTPS, and your own hosting whenever you like via pull request.
-            </dd>
-          </div>
-          <div>
-            <dt className="inline text-(--color-muted) uppercase tracking-[0.1em]">free —</dt>{' '}
-            <dd className="inline text-(--color-ink)">
-              forever. No ads, no tracking, no account beyond the GitHub one you already have.
-            </dd>
-          </div>
-        </dl>
-      </Section>
-
-      <Section title="Important links">
-        <ul className="space-y-1.5 text-sm sm:text-base">
-          <li><a className="text-(--color-signal) underline" href="/docs/quickstart">Quickstart</a></li>
-          <li><a className="text-(--color-signal) underline" href="/docs/guides">Guides: point your name at your own hosting</a></li>
-          <li><a className="text-(--color-signal) underline" href="/about">About runs-on.dev</a></li>
-          <li><a className="text-(--color-signal) underline" href="/faq">FAQ</a></li>
-          <li><a className="text-(--color-signal) underline" href="/policy">Policy</a></li>
-          <li><a className="text-(--color-signal) underline" href="https://github.com/zordhalo/runs-on.dev">Registry on GitHub</a></li>
-        </ul>
-      </Section>
-
-      <Section title="Report abuse">
-        <Quote>
-          If a subdomain is phishing, impersonating someone, or serving malware, email
-          abuse@runs-on.dev and it will be reclaimed.
-        </Quote>
-      </Section>
     </main>
   );
 }

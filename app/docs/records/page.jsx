@@ -5,7 +5,7 @@ export const metadata = {
   title: 'Record reference',
   description: 'The complete runs-on.dev record format: every field, every supported record type, the coexistence rules, and why they exist.',
   alternates: { canonical: 'https://runs-on.dev/docs/records' },
-  openGraph: { title: 'Record reference — runs-on.dev' },
+  openGraph: { title: 'Record reference · runs-on.dev' },
 };
 
 function Row({ cells }) {
@@ -42,28 +42,28 @@ export default function Records() {
       <Section title="Top-level fields">
         <div>
           <p className="text-sm leading-relaxed sm:text-base">
-            <strong className="text-(--color-ink)">name</strong> — the subdomain, lowercase. 2 to 32
+            <strong className="text-(--color-ink)">name</strong> · the subdomain, lowercase. 2 to 32
             characters, <C>[a-z0-9]</C> with internal hyphens only (never leading or trailing), and no
             punycode (an <C>xn--</C> prefix, or <C>--</C> as the third and fourth character, is
             rejected). Must match the filename: <C>domains/you.json</C> must contain{' '}
             <C>&quot;name&quot;: &quot;you&quot;</C>.
           </p>
           <p className="mt-3 text-sm leading-relaxed sm:text-base">
-            <strong className="text-(--color-ink)">owner</strong> — exactly one key,{' '}
+            <strong className="text-(--color-ink)">owner</strong> · exactly one key,{' '}
             <C>github</C>, the GitHub login that owns the record. Set once at claim time and immutable
             afterward; any change to it is rejected, from the site and by pull request alike.
           </p>
           <p className="mt-3 text-sm leading-relaxed sm:text-base">
-            <strong className="text-(--color-ink)">claimedAt</strong> — an ISO 8601 timestamp, set
+            <strong className="text-(--color-ink)">claimedAt</strong> · an ISO 8601 timestamp, set
             once at claim time. Also immutable.
           </p>
           <p className="mt-3 text-sm leading-relaxed sm:text-base">
-            <strong className="text-(--color-ink)">records</strong> — an object holding zero or more
+            <strong className="text-(--color-ink)">records</strong> · an object holding zero or more
             record types, detailed below. An empty <C>records</C> object is valid: it&apos;s the
             default right after claiming, and it means the name serves the built-in profile card.
           </p>
           <p className="mt-3 text-sm leading-relaxed sm:text-base">
-            <strong className="text-(--color-ink)">subdomains</strong> — optional, detailed in{' '}
+            <strong className="text-(--color-ink)">subdomains</strong> · optional, detailed in{' '}
             <a className="text-(--color-signal) underline" href="#subdomains">its own section</a> below.
           </p>
         </div>

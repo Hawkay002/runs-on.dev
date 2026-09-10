@@ -11,75 +11,60 @@ export default function OwnedName({ name, record }) {
   const pointing = types.length > 0;
 
   return (
-    <div>
+    <div className="w-full max-w-[640px]">
       <p className="font-(family-name:--font-mono) text-xs text-(--color-muted)">
         domains/{name}.json
       </p>
 
-      <h2 className="mt-2 font-(family-name:--font-display) text-2xl font-medium tracking-tight text-(--color-ink) sm:text-3xl">
+      <h2 className="mt-3 text-[34px] leading-[1.03] tracking-[-0.005em] text-(--color-ink) sm:text-[44px] sm:tracking-[-0.007em]">
         {name}.runs-on.dev is yours
       </h2>
 
       {pointing ? (
-        <dl className="mt-4 space-y-1 font-(family-name:--font-mono) text-xs sm:text-[13px]">
+        <dl className="mt-6 space-y-1.5 text-left font-(family-name:--font-mono) text-xs sm:text-[13px]">
           {types.map((type) => (
-            <div key={type} className="flex gap-2">
-              <dt className="w-16 shrink-0 text-(--color-muted)">{type}</dt>
+            <div key={type} className="flex gap-4 border-t border-(--color-rule) pt-1.5">
+              <dt className="w-20 shrink-0 text-(--color-muted)">{type}</dt>
               <dd className="break-all text-(--color-ink)">{describe(records[type])}</dd>
             </div>
           ))}
         </dl>
       ) : (
-        <p className="mt-3 max-w-xl text-sm leading-relaxed text-(--color-muted)">
-          It isn&apos;t pointing anywhere yet, so it serves a profile card built from your
+        <p className="mt-4 max-w-xl text-[16px] leading-[1.5] text-(--color-muted)">
+          It isn&rsquo;t pointing anywhere yet, so it serves a profile card built from your
           GitHub account. Point it at your own site, a redirect, or an email
           forwarder whenever you like.
         </p>
       )}
 
-      <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-3">
-        <a
-          href="/manage"
-          className="inline-block border px-5 py-2.5 font-(family-name:--font-mono) text-sm transition-opacity hover:opacity-90"
-          style={{
-            borderColor: 'var(--color-signal)',
-            background: 'var(--color-signal)',
-            color: 'var(--color-paper)',
-          }}
-        >
-          {pointing ? 'Edit your record →' : 'Point it somewhere →'}
+      <div className="mt-8 flex flex-wrap items-center justify-center gap-x-4 gap-y-3">
+        <a href="/manage" className="btn-pill">
+          {pointing ? 'Edit your record' : 'Point it somewhere'}
+          <span aria-hidden="true">→</span>
         </a>
         <a
-          className="font-(family-name:--font-mono) text-sm text-(--color-signal) underline"
+          className="font-(family-name:--font-mono) text-sm text-(--color-muted) underline hover:text-(--color-ink)"
           href={`https://${name}.runs-on.dev`}
           target="_blank"
           rel="noopener noreferrer"
         >
-          your page →
+          your page ↗
         </a>
         <a
-          className="font-(family-name:--font-mono) text-sm text-(--color-signal) underline"
+          className="font-(family-name:--font-mono) text-sm text-(--color-muted) underline hover:text-(--color-ink)"
           href={`${REPO_URL}/blob/main/domains/${name}.json`}
           target="_blank"
           rel="noopener noreferrer"
         >
-          the record →
+          the record ↗
         </a>
         <a
-          className="font-(family-name:--font-mono) text-sm text-(--color-signal) underline"
+          className="font-(family-name:--font-mono) text-sm text-(--color-muted) underline hover:text-(--color-ink)"
           href={`/banner/${name}`}
           target="_blank"
           rel="noopener noreferrer"
         >
-          your banner →
-        </a>
-        <a
-          className="font-(family-name:--font-mono) text-sm text-(--color-signal) underline"
-          href={`/banner/${name}?theme=dark`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          dark, for GitHub →
+          your banner ↗
         </a>
       </div>
     </div>

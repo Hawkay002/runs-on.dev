@@ -1,8 +1,22 @@
 @import "tailwindcss";
 
-/* `inline` keeps these as live references to the :root custom properties
-   below, instead of Tailwind baking in the light-mode hex at build time —
-   that's what lets bg-(--color-ink) etc. actually flip in dark mode. */
+/* Hyperstudio language, from the DESIGN.md style reference: a near-black
+   canvas where type and hairline borders carve the whitespace. The site's
+   legacy token names (--paper, --card, --rule, --ink, --muted, --signal,
+   --flag) are kept and re-pointed at Hyperstudio values so every component
+   that already speaks them restyles in one move:
+
+     --paper  -> Obsidian #101010, the page canvas
+     --card   -> Carbon   #080808, the deepest surface (code, quotes)
+     --rule   -> Graphite #212121, the 1px structural hairline
+     --ink    -> Chalk    #f3f3f3, primary type
+     --muted  -> Smoke    #9c9c9c, secondary type
+     --signal -> White    #ffffff, the single action color (filled pills)
+     --flag   -> terracotta, errors on dark
+
+   Dark is the only theme. The reference is a dark system end to end, so the
+   page locks to obsidian rather than carrying a light mode it was never
+   designed for. */
 @theme inline {
   --color-paper: var(--paper);
   --color-card: var(--card);
@@ -11,57 +25,68 @@
   --color-muted: var(--muted);
   --color-signal: var(--signal);
   --color-flag: var(--flag);
+
+  --color-obsidian: #101010;
+  --color-carbon: #080808;
+  --color-graphite: #212121;
+  --color-chalk: #f3f3f3;
+  --color-smoke: #9c9c9c;
+  --color-ash: #c1c1c1;
+  --color-iron: #474747;
+  --color-gold: #6f6759;
+  --color-pulse: #98ff38;
+  --color-badge: #1a1a1a;
+}
+
+@theme {
+  /* Hyperstudio type scale. Aeonik weight 400 at every size; hierarchy comes
+     from scale and negative tracking, never from bold. Satoshi stands in for
+     Aeonik, IBM Plex Mono for Input. */
+  --font-satoshi: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+
+  --text-caption: 13px;
+  --text-caption--line-height: 1.5;
+  --text-body: 16px;
+  --text-body--line-height: 1.25;
+  --text-heading-xs: 18px;
+  --text-heading-xs--line-height: 1.31;
+  --text-subheading: 21px;
+  --text-subheading--line-height: 1.05;
+  --text-heading-sm: 23px;
+  --text-heading-sm--line-height: 1.07;
+  --text-heading: 34px;
+  --text-heading--line-height: 1.03;
+  --text-heading-lg: 44px;
+  --text-heading-lg--line-height: 1.07;
+  --text-heading-lg--letter-spacing: -0.007em;
+  --text-display: 63px;
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.011em;
 }
 
 :root {
-  --paper: #f4f5f3;
-  --card: #ffffff;
-  --rule: #DADDD6;
-  --ink: #14181b;
-  --muted: #5e6668;
-  --signal: #1b4dff;
-  --flag: #b3261e;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    /* Warm dark ground on purpose: a document under low light, not a
-       near-black terminal. Same hue relationships as the light theme
-       (blue signal, red flag), just carried by a warm brown-black instead
-       of the cooler near-black we replaced (#101314) — that cool near-black
-       plus light text plus a blue accent was reading as the dark-terminal
-       look this redesign was hired to move away from. */
-    --paper: #18140f;
-    --card: #211c15;
-    --rule: #3c3428;
-    --ink: #efe7d9;
-    --muted: #a89c89;
-    --signal: #8399ff;
-    --flag: #d97757;
-  }
-}
-
-:root[data-theme="dark"] {
-  --paper: #18140f;
-  --card: #211c15;
-  --rule: #3c3428;
-  --ink: #efe7d9;
-  --muted: #a89c89;
-  --signal: #8399ff;
+  --paper: #101010;
+  --card: #080808;
+  --rule: #212121;
+  --ink: #f3f3f3;
+  --muted: #9c9c9c;
+  --signal: #ffffff;
   --flag: #d97757;
+  --gold: #6f6759;
+  --pulse: #98ff38;
+
+  /* The claim line and section labels speak in Input's voice (mono, tight
+     utilitarian tracking); Satoshi carries everything else. */
+  --font-display: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
 }
 
 html {
-  color-scheme: light dark;
+  color-scheme: dark;
 
-  /* Slim the scrollbar to the hairline weight used elsewhere. `color-scheme` above already
-     makes the bar follow the reader's preference, so this is purely about weight: the
-     default bar is heavy next to this design, and heavier still now that advancelabs.dev
-     frames this page, where a chunky native bar sits inches from the frame border.
-
-     scrollbar-width/color are the standard properties (Firefox, Chromium 121+). The
-     -webkit block covers older Chromium and Safari, which ignore them. currentColor is
-     deliberate: it resolves per scheme, so one rule covers light and dark. */
+  /* Slim the scrollbar to the hairline weight used elsewhere. `color-scheme`
+     above keeps the bar dark; this is purely about weight: the default bar is
+     heavy next to 1px graphite rules. */
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, currentColor 24%, transparent) transparent;
 }
@@ -96,7 +121,7 @@ html {
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-body);
 }
 
 ::selection {
@@ -136,10 +161,73 @@ a {
 
 /* The claim-line input sits flush against the "[" "]" wordmark glyphs, with
    no room for an outset box ring — it would draw across the brackets. Focus
-   is indicated by thickening its own underline instead (see claim-form.jsx),
-   so the box ring is suppressed here specifically, not removed globally. */
+   is indicated by its own underline (see claim-form.jsx), so the box ring is
+   suppressed here specifically, not removed globally. */
 #claim-name:focus-visible {
   outline: none;
+}
+
+@layer components {
+  /* Filled white pill: the single high-contrast action. Contrast alone
+     elevates it; no shadow, no border, radius 9999px. */
+  .btn-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    background: var(--signal);
+    color: var(--paper);
+    padding: 0.75rem 1.5rem;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .btn-pill:hover { opacity: 0.9; }
+  .btn-pill:active { transform: translateY(1px); }
+  .btn-pill[disabled], .btn-pill[aria-disabled='true'] {
+    opacity: 0.3;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Ghost outline: the secondary action. 1px white stroke, 8px radius. */
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--signal);
+    color: var(--signal);
+    padding: 0.625rem 1.25rem;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .btn-ghost:hover { opacity: 0.8; }
+  .btn-ghost:active { transform: translateY(1px); }
+
+  /* Mono uppercase meta label, Input's role: captions, section labels,
+     fine print. */
+  .meta {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* Inline and block code: carbon surface inside a graphite hairline. */
+  .code {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 13px;
+    line-height: 1.6;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -176,3 +264,12 @@ a {
 .record-block .record-field:nth-child(6) { animation-delay: 200ms; }
 .record-block .record-field:nth-child(7) { animation-delay: 240ms; }
 .record-block .record-field:nth-child(8) { animation-delay: 280ms; }
+
+/* Pulse dot for live status indicators only (availability, verification). */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.pulse-dot {
+  animation: pulse-dot 2.4s ease-in-out infinite;
+}

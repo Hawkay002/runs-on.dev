@@ -137,13 +137,13 @@ export default function ClaimForm({ signedIn }) {
   }, [pending, status, displayName]);
 
   return (
-    <div>
+    <div className="w-full">
       <label htmlFor="claim-name" className="sr-only">
         Subdomain name
       </label>
       <div
-        className="flex flex-wrap items-baseline gap-x-2 gap-y-0 font-(family-name:--font-display) leading-none font-medium tracking-tight text-(--color-ink)"
-        style={{ fontSize: `calc(clamp(2.25rem, 7vw, 4.5rem) * ${heroScale})` }}
+        className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-0 font-(family-name:--font-display) leading-[1.05] font-normal tracking-[-0.011em] text-(--color-ink)"
+        style={{ fontSize: `calc(clamp(2.5rem, 7vw, 3.94rem) * ${heroScale})` }}
       >
         <span className="relative inline-flex flex-nowrap items-baseline">
           <span aria-hidden="true" className="text-(--color-muted)">[</span>
@@ -157,7 +157,7 @@ export default function ClaimForm({ signedIn }) {
             spellCheck={false}
             size={1}
             style={{ width: inputWidth ? `${inputWidth}px` : undefined }}
-            className="border-b-2 border-(--color-signal) bg-transparent text-[0.94em] outline-none placeholder:text-(--color-muted)/60 focus-visible:border-b-4"
+            className={`bg-transparent text-[0.94em] caret-(--color-ink) outline-none placeholder:text-(--color-muted)/70 focus-visible:border-b-4 border-b-2 ${negative ? 'border-(--color-flag)' : 'border-(--color-ink)'}`}
           />
           {/* Measures the input's width. Its font MUST match the input exactly,
               including text-[0.94em], or the brackets stop hugging the text. */}
@@ -175,7 +175,7 @@ export default function ClaimForm({ signedIn }) {
 
       <div
         key={animKey}
-        className="record-block mt-4 max-w-full overflow-x-auto border-l-2 py-3 pr-4 pl-4 font-(family-name:--font-mono) text-[11px] whitespace-pre sm:max-w-md sm:text-[13px]"
+        className="record-block mx-auto mt-8 max-w-full overflow-x-auto border-l-2 py-3 pr-6 pl-5 text-left font-(family-name:--font-mono) text-[12px] whitespace-pre sm:max-w-md sm:text-[13px]"
         style={{ borderColor: negative ? 'var(--color-flag)' : 'var(--color-signal)' }}
       >
         <p className="record-field text-(--color-muted)">domains/{displayName}.json</p>
@@ -200,40 +200,24 @@ export default function ClaimForm({ signedIn }) {
         )}
       </div>
 
-      <div className="mt-5">
+      <div className="mt-6 flex justify-center">
         {status === 'claimed' ? (
           <Claimed name={displayName} commit={commit} />
         ) : status === 'limit_reached' ? (
           // Being told "you already have a name" is only useful if it comes
           // with a way to reach that name. This is where a returning owner
           // ends up, so it has to lead somewhere.
-          <a
-            href="/manage"
-            className="inline-block border px-5 py-2.5 font-(family-name:--font-mono) text-sm transition-opacity hover:opacity-90"
-            style={{ borderColor: 'var(--color-signal)', background: 'var(--color-signal)', color: 'var(--color-paper)' }}
-          >
-            {ownedName ? `Point ${ownedName}.runs-on.dev somewhere →` : 'Point your name somewhere →'}
+          <a href="/manage" className="btn-pill">
+            {ownedName ? `Point ${ownedName}.runs-on.dev somewhere` : 'Point your name somewhere'}
+            <span aria-hidden="true">→</span>
           </a>
         ) : signedIn ? (
-          <button
-            onClick={() => claim()}
-            disabled={!claimable}
-            aria-disabled={!claimable}
-            className="border px-5 py-2.5 font-(family-name:--font-mono) text-sm transition-colors disabled:cursor-not-allowed"
-            style={
-              claimable
-                ? { borderColor: 'var(--color-signal)', background: 'var(--color-signal)', color: 'var(--color-paper)' }
-                : { borderColor: 'var(--color-ink)', background: 'var(--color-ink)', color: 'var(--color-paper)', opacity: 0.3 }
-            }
-          >
+          <button onClick={() => claim()} disabled={!claimable} aria-disabled={!claimable} className="btn-pill">
             Claim it
           </button>
         ) : (
-          <a
-            href="/api/auth/github"
-            className="inline-block border border-(--color-ink) bg-(--color-ink) px-5 py-2.5 font-(family-name:--font-mono) text-sm text-(--color-paper)"
-          >
-            Sign in with GitHub to claim
+          <a href="/api/auth/github" className="btn-pill">
+            Sign in with GitHub
           </a>
         )}
       </div>
@@ -254,39 +238,32 @@ function Claimed({ name, commit }) {
     <div>
       <p className="font-(family-name:--font-mono) text-[13px] text-(--color-muted)">
         {'// '}
-        <a className="text-(--color-signal) underline" href={receipt} target="_blank" rel="noopener noreferrer">
+        <a className="text-(--color-ink) underline" href={receipt} target="_blank" rel="noopener noreferrer">
           {sha ? `commit ${sha}` : `domains/${name}.json`}
         </a>
-        {sha ? ' — your name is in the log now' : ' — your record is in the registry now'}
+        {sha ? '. Your name is in the log now.' : '. Your record is in the registry now.'}
       </p>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-3">
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-3">
         <a
           href={REPO_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block border px-5 py-2.5 font-(family-name:--font-mono) text-sm transition-opacity hover:opacity-90"
-          style={{
-            borderColor: 'var(--color-signal)',
-            background: 'var(--color-signal)',
-            color: 'var(--color-paper)',
-          }}
+          className="btn-pill"
         >
           ★ Star the registry
         </a>
-        <a
-          className="font-(family-name:--font-mono) text-sm text-(--color-signal) underline"
-          href="/manage"
-        >
-          point it somewhere →
+        <a href="/manage" className="btn-ghost">
+          Point it somewhere
+          <span aria-hidden="true">→</span>
         </a>
         <a
-          className="font-(family-name:--font-mono) text-sm text-(--color-signal) underline"
+          className="font-(family-name:--font-mono) text-sm text-(--color-muted) underline hover:text-(--color-ink)"
           href={`https://${name}.runs-on.dev`}
           target="_blank"
           rel="noopener noreferrer"
         >
-          your page →
+          your page ↗
         </a>
       </div>
     </div>
@@ -315,10 +292,10 @@ function message(status, name, ownedName) {
     invalid_name: 'That name is not valid.',
     server_error: 'Something broke on our side. Try again.',
     claiming: 'Claiming…',
-    retrying: 'Busy right now — holding your claim and retrying.',
+    retrying: 'Busy right now. Holding your claim and retrying.',
     retry_exhausted: 'Still overloaded. Try again in a few minutes.',
-    busy: 'Too busy to check right now — claiming it still works.',
-    check_failed: 'Could not check that name — try claiming it anyway.',
+    busy: 'Too busy to check right now. Claiming it still works.',
+    check_failed: 'Could not check that name. Try claiming it anyway.',
     claimed: `Done. ${name}.runs-on.dev is yours.`,
     signin_required: 'Sign in with GitHub first.',
     ineligible_age: 'Your GitHub account must be at least 30 days old.',

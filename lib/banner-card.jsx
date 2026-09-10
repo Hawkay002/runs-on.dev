@@ -5,23 +5,25 @@
  * own identity. `app/banner-dark/route.js` serves the dark variant, which the README uses as
  * its default because most people read GitHub on a dark theme and a bright card glares there.
  *
- * Both come from this one function so the two can never drift apart.
+ * Both come from this one function so the two can never drift apart. Theme values follow
+ * the site's Hyperstudio language: obsidian/carbon grounds, chalk type, hairline accents,
+ * weight 400 at display sizes.
  */
 
 export const BANNER_SIZE = { width: 1200, height: 630 };
 
 const THEMES = {
   light: {
-    ground: '#F4F5F3',
-    muted: '#5E6668',
-    ink: '#14181B',
-    signal: '#1B4DFF',
+    ground: '#101010',
+    muted: '#9C9C9C',
+    ink: '#F3F3F3',
+    signal: '#F3F3F3',
   },
   dark: {
-    ground: '#18140F',
-    muted: '#A89C89',
-    ink: '#EFE7D9',
-    signal: '#8399FF',
+    ground: '#080808',
+    muted: '#9C9C9C',
+    ink: '#F3F3F3',
+    signal: '#8A8172',
   },
 };
 
@@ -56,7 +58,8 @@ export function BannerCard({ theme = 'light' }) {
         <span
           style={{
             fontSize: 84,
-            fontWeight: 600,
+            fontWeight: 400,
+            letterSpacing: -0.9,
             color: t.ink,
             borderBottom: `4px solid ${t.signal}`,
             padding: '0 12px',
@@ -64,8 +67,8 @@ export function BannerCard({ theme = 'light' }) {
         >
           yourname
         </span>
-        <span style={{ fontSize: 84, color: t.muted }}>]</span>
-        <span style={{ fontSize: 84, color: t.muted }}>.runs-on.dev</span>
+        <span style={{ fontSize: 84, fontWeight: 400, letterSpacing: -0.9, color: t.muted }}>]</span>
+        <span style={{ fontSize: 84, fontWeight: 400, letterSpacing: -0.9, color: t.muted }}>.runs-on.dev</span>
       </div>
     </div>
   );

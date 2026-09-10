@@ -5,7 +5,7 @@ import { getRecord } from '../../lib/registry.js';
 import RecordForm from './record-form.jsx';
 
 export const metadata = {
-  title: 'Manage your name — runs-on.dev',
+  title: 'Manage your name · runs-on.dev',
   description: 'Point your runs-on.dev name at your own hosting.',
   robots: { index: false },
 };
@@ -23,8 +23,8 @@ export default async function Manage() {
   if (!session?.login) {
     return (
       <Shell>
-        <p className="text-sm">
-          <a className="text-(--color-signal) underline" href="/api/auth/github">
+        <p className="text-sm leading-relaxed text-(--color-ash)">
+          <a className="text-(--color-ink) underline" href="/api/auth/github">
             Sign in with GitHub
           </a>{' '}
           to edit the record for a name you own.
@@ -39,9 +39,9 @@ export default async function Manage() {
   if (names.length === 0) {
     return (
       <Shell>
-        <p className="text-sm">
+        <p className="text-sm leading-relaxed text-(--color-ash)">
           @{session.login} does not own a name yet.{' '}
-          <a className="text-(--color-signal) underline" href="/">
+          <a className="text-(--color-ink) underline" href="/">
             Claim one
           </a>
           .
@@ -71,17 +71,15 @@ export default async function Manage() {
 
 function Shell({ children }) {
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
-      <p className="font-(family-name:--font-mono) text-xs tracking-[0.14em] text-(--color-muted) uppercase">
-        Manage
-      </p>
-      <h1 className="mt-2 font-(family-name:--font-display) text-2xl font-medium tracking-tight text-(--color-ink) sm:text-3xl">
+    <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-20">
+      <p className="meta">Manage</p>
+      <h1 className="mt-3 text-[34px] leading-[1.03] font-normal tracking-[-0.005em] text-(--color-ink) sm:text-[44px] sm:tracking-[-0.007em]">
         Your name
       </h1>
-      <p className="mt-2 text-sm leading-relaxed text-(--color-muted)">
+      <p className="mt-4 text-[16px] leading-[1.5] text-(--color-muted)">
         Changes save straight to the registry. DNS updates within seconds.
       </p>
-      <div className="mt-8 space-y-6">{children}</div>
+      <div className="mt-10 space-y-8">{children}</div>
     </main>
   );
 }

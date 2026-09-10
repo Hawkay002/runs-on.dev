@@ -5,13 +5,13 @@ export const metadata = {
   description:
     'runs-on.dev is a free subdomain registry, not a top-level domain. What that means, why it exists, and who runs it.',
   alternates: { canonical: 'https://runs-on.dev/about' },
-  openGraph: { title: 'About — runs-on.dev' },
+  openGraph: { title: 'About · runs-on.dev' },
 };
 
 export default function About() {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="font-(family-name:--font-display) text-3xl font-medium tracking-tight text-(--color-ink) sm:text-4xl">About</h1>
+    <main className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
+      <h1 className="text-[34px] leading-[1.03] font-normal tracking-[-0.005em] text-(--color-ink) sm:text-[44px] sm:tracking-[-0.007em]">About</h1>
 
       <Section title="What this is">
         <p className="text-sm leading-relaxed">

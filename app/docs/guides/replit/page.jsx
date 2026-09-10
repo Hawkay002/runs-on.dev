@@ -5,7 +5,7 @@ export const metadata = {
   title: 'Replit',
   description: 'Point name.runs-on.dev at a Replit deployment with an A and TXT record.',
   alternates: { canonical: 'https://runs-on.dev/docs/guides/replit' },
-  openGraph: { title: 'Replit — runs-on.dev' },
+  openGraph: { title: 'Replit · runs-on.dev' },
 };
 
 export default function ReplitGuide() {
