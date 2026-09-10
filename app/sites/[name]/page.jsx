@@ -115,7 +115,7 @@ export default async function Site({ params }) {
                 href={`https://${name}.runs-on.dev`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[23px] leading-[1.07] font-normal tracking-[-0.004em] text-(--color-ink) underline decoration-(--color-iron) underline-offset-[6px] transition-colors hover:decoration-(--color-ink) sm:text-[34px] sm:tracking-[-0.005em]"
+                className="text-[23px] leading-[1.07] font-normal tracking-[-0.004em] text-(--color-ink) underline decoration-(--color-blue) decoration-2 underline-offset-[6px] sm:text-[34px] sm:tracking-[-0.005em]"
               >
                 {name}.runs-on.dev
               </a>
