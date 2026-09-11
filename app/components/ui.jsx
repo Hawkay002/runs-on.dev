@@ -86,8 +86,53 @@ export function DotMap({ points, className = '' }) {
       <g fill="#f3f3f3" fillOpacity={points?.length ? 0.3 : 0.8}>
         {dots}
       </g>
-      {heat && <g fill="#ffffff">{heat}</g>}
+      {heat && <g fill="var(--blue)">{heat}</g>}
     </svg>
+  );
+}
+
+// Continent-wise claim counts beneath the map: mono label, a thin bar whose
+// length is the share of resolved claims (fading at its end, like every other
+// line here), and the count. Owners the geocoder could not place get their
+// own honest row: 404 not found.
+export function ContinentChart({ points, total, className = '' }) {
+  const rows = Object.values(points)
+    .reduce((acc, point) => {
+      const name = continentOf(point);
+      if (!name) return acc;
+      const hit = acc.find((c) => c.name === name);
+      if (hit) hit.count += 1;
+      else acc.push({ name, count: 1 });
+      return acc;
+    }, [])
+    .sort((a, b) => b.count - a.count);
+  const unresolved = Math.max(total - points.length, 0);
+  const max = Math.max(rows[0]?.count ?? 1, unresolved);
+
+  const bar = (count, color) => ({
+    width: `${Math.max((count / max) * 100, 1.5)}%`,
+    backgroundImage: `linear-gradient(90deg, ${color}, transparent)`,
+  });
+
+  return (
+    <div className={`font-(family-name:--font-mono) text-xs ${className}`}>
+      <div className="space-y-2">
+        {rows.map((c) => (
+          <div key={c.name} className="flex items-center gap-3">
+            <span className="w-28 shrink-0 text-right text-(--color-muted)">{c.name}</span>
+            <span className="h-0.5 flex-1 self-center" style={bar(c.count, 'var(--blue)')} aria-hidden="true" />
+            <span className="w-8 shrink-0 text-(--color-ink)">{c.count}</span>
+          </div>
+        ))}
+        {unresolved > 0 && (
+          <div className="flex items-center gap-3">
+            <span className="w-28 shrink-0 text-right text-(--color-muted)">404 not found</span>
+            <span className="h-0.5 flex-1 self-center" style={bar(unresolved, 'var(--slit-dim)')} aria-hidden="true" />
+            <span className="w-8 shrink-0 text-(--color-muted)">{unresolved}</span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

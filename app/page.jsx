@@ -3,8 +3,8 @@ import ClaimForm from './claim-form.jsx';
 import OwnedName from './owned-name.jsx';
 import JsonLd from './components/JsonLd.jsx';
 import { Section, Quote } from './components/Section.jsx';
-import { DotMap, Divider, StatusBadge } from './components/ui.jsx';
-import { CLAIM_GEO } from './components/claim-geo.js';
+import { DotMap, Divider, StatusBadge, ContinentChart } from './components/ui.jsx';
+import { CLAIM_GEO, GEO_TOTAL } from './components/claim-geo.js';
 import { readSession } from '../lib/session.js';
 import { getOwnerIndex } from '../lib/owners.js';
 import { getRecord } from '../lib/registry.js';
@@ -93,6 +93,12 @@ export default async function Home() {
           resolved from public GitHub profiles brighten and swell where owners
           cluster, city lights on the obsidian canvas. */}
       <DotMap points={Object.values(CLAIM_GEO)} className="h-auto w-full" />
+
+      {/* Continent-wise claim counts beneath the map, plus the honest 404
+          row for owners with no placeable location. */}
+      <div className="mx-auto max-w-[600px] px-6 pt-8 pb-2">
+        <ContinentChart points={Object.values(CLAIM_GEO)} total={GEO_TOTAL} />
+      </div>
 
       <div className="mx-auto max-w-[1200px] px-6">
         <Section title="What this is">
