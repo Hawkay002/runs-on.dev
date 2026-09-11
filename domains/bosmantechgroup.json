@@ -4,5 +4,15 @@
     "github": "PeterBosmanBE"
   },
   "claimedAt": "2026-09-11T21:05:41.215Z",
-  "records": {}
+  "records": {},
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=bosmantechgroup.runs-on.dev,969e0e12ced583eb24ee"
+      ]
+    },
+    "bosmantechgroup": {
+      "CNAME": "5c2a45e531789144.vercel-dns-017.com"
+    }
+  }
 }
