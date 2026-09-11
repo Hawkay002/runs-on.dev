@@ -96,8 +96,8 @@ export default async function Home() {
 
       {/* Continent-wise claim counts beneath the map, plus the honest 404
           row for owners with no placeable location. */}
-      <div className="mx-auto max-w-[600px] px-6 pt-8 pb-2">
-        <ContinentChart points={Object.values(CLAIM_GEO)} total={GEO_TOTAL} />
+      <div className="mx-auto max-w-[900px] px-6 pt-10 pb-4">
+        <ContinentChart heading points={Object.values(CLAIM_GEO)} total={GEO_TOTAL} />
       </div>
 
       <div className="mx-auto max-w-[1200px] px-6">

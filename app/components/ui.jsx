@@ -91,11 +91,12 @@ export function DotMap({ points, className = '' }) {
   );
 }
 
-// Continent-wise claim counts beneath the map: mono label, a thin bar whose
-// length is the share of resolved claims (fading at its end, like every other
-// line here), and the count. Owners the geocoder could not place get their
-// own honest row: 404 not found.
-export function ContinentChart({ points, total, className = '' }) {
+// Continent-wise claim counts beneath the map: a grid of cells, one per
+// continent (and one honest 404 for everyone the geocoder could not place).
+// Each cell carries the count set large at weight 400, a mono caption, and a
+// thin blue bar scaled against the largest continent. The 404 cell is muted
+// and carries no bar: it is a different kind of number, not a continent.
+export function ContinentChart({ points, total, heading = false, className = '' }) {
   const rows = Object.values(points)
     .reduce((acc, point) => {
       const name = continentOf(point);
@@ -107,28 +108,43 @@ export function ContinentChart({ points, total, className = '' }) {
     }, [])
     .sort((a, b) => b.count - a.count);
   const unresolved = Math.max(total - points.length, 0);
-  const max = Math.max(rows[0]?.count ?? 1, unresolved);
-
-  const bar = (count, color) => ({
-    width: `${Math.max((count / max) * 100, 1.5)}%`,
-    backgroundImage: `linear-gradient(90deg, ${color}, transparent)`,
-  });
+  const max = rows[0]?.count ?? 1;
 
   return (
-    <div className={`font-(family-name:--font-mono) text-xs ${className}`}>
-      <div className="space-y-2">
+    <div className={className}>
+      {heading && (
+        <div className="text-center">
+          <h2 className="text-[23px] leading-[1.07] font-normal tracking-[-0.004em] text-(--color-ink)">
+            Where the names are
+          </h2>
+          <p className="meta mt-2 normal-case">
+            {points.length} of {total} owners resolved from public GitHub profiles · counts approximate
+          </p>
+        </div>
+      )}
+      <div className={heading ? 'mt-8 grid grid-cols-2 gap-8 sm:grid-cols-4 sm:gap-10' : 'grid grid-cols-2 gap-8 sm:grid-cols-4 sm:gap-10'}>
         {rows.map((c) => (
-          <div key={c.name} className="flex items-center gap-3">
-            <span className="w-28 shrink-0 text-right text-(--color-muted)">{c.name}</span>
-            <span className="h-0.5 flex-1 self-center" style={bar(c.count, 'var(--blue)')} aria-hidden="true" />
-            <span className="w-8 shrink-0 text-(--color-ink)">{c.count}</span>
+          <div key={c.name} className="slit-frame rounded-lg p-5">
+            <div className="text-[34px] leading-[1.03] font-normal tracking-[-0.005em] text-(--color-ink)">
+              {c.count}
+            </div>
+            <div className="meta mt-2">{c.name}</div>
+            <div
+              aria-hidden="true"
+              className="mt-4 h-0.5 rounded-full"
+              style={{
+                width: `${Math.max((c.count / max) * 100, 3)}%`,
+                backgroundImage: 'linear-gradient(90deg, var(--blue), transparent)',
+              }}
+            />
           </div>
         ))}
         {unresolved > 0 && (
-          <div className="flex items-center gap-3">
-            <span className="w-28 shrink-0 text-right text-(--color-muted)">404 not found</span>
-            <span className="h-0.5 flex-1 self-center" style={bar(unresolved, 'var(--slit-dim)')} aria-hidden="true" />
-            <span className="w-8 shrink-0 text-(--color-muted)">{unresolved}</span>
+          <div className="slit-frame rounded-lg p-5 opacity-70">
+            <div className="text-[34px] leading-[1.03] font-normal tracking-[-0.005em] text-(--color-muted)">
+              {unresolved}
+            </div>
+            <div className="meta mt-2">404 not found</div>
           </div>
         )}
       </div>
