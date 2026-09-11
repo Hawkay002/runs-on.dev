@@ -33,24 +33,43 @@ export function continentOf([lat, lon]) {
   return null;
 }
 
-export function DotMap({ points, className = '' }) {
+export function DotMap({ points, filter, className = '' }) {
   const { cols, rows } = DOTMAP;
   const w = cols * PITCH;
   const h = rows.length * PITCH;
+
+  // Cell centre back to lat/lon, for continent bucketing when a filter is
+  // active. The same projection the generator used, run in reverse.
+  const cellContinent = (c, r) =>
+    continentOf([
+      84 - ((r + 0.5) / rows.length) * 140,
+      ((c + 0.5) / cols) * 360 - 180,
+    ]);
+
   const dots = [];
   rows.forEach((line, r) => {
     for (let c = 0; c < cols; c++) {
-      if (line[c] === '1') {
-        dots.push(<circle key={`${c}-${r}`} cx={c * PITCH + PITCH / 2} cy={r * PITCH + PITCH / 2} r={DOT_R} />);
-      }
+      if (line[c] !== '1') continue;
+      // With a continent selected, its dots hold at half brightness while
+      // the rest of the world drops to a ghost; unfiltered stays as-is.
+      const op = filter
+        ? cellContinent(c, r) === filter ? 0.55 : 0.06
+        : points?.length ? 0.3 : 0.8;
+      dots.push(
+        <circle
+          key={`${c}-${r}`}
+          cx={c * PITCH + PITCH / 2}
+          cy={r * PITCH + PITCH / 2}
+          r={DOT_R}
+          fillOpacity={op}
+        />,
+      );
     }
   });
 
   // Heat mode: claim locations ([lat, lon]) bucketed into the same grid as
   // the map. A cell with claims renders one dot whose size and brightness
   // scale with how many landed there, city lights on the dot-matrix world.
-  // The same projection the generator used: lon -180..180 across COLS, lat
-  // 84..-56 down ROWS.
   let heat = null;
   if (points?.length) {
     const counts = new Map();
@@ -63,13 +82,14 @@ export function DotMap({ points, className = '' }) {
     heat = [...counts.entries()].map(([key, count]) => {
       const [c, r] = key.split(':').map(Number);
       const intensity = Math.min(count, 6);
+      const dimmed = filter && cellContinent(c, r) !== filter;
       return (
         <circle
           key={`h-${key}`}
           cx={c * PITCH + PITCH / 2}
           cy={r * PITCH + PITCH / 2}
           r={DOT_R + 1 + intensity * 0.8}
-          fillOpacity={Math.min(0.35 + intensity * 0.11, 0.95)}
+          fillOpacity={dimmed ? 0.05 : Math.min(0.35 + intensity * 0.11, 0.95)}
         />
       );
     });
@@ -83,7 +103,7 @@ export function DotMap({ points, className = '' }) {
       focusable="false"
       role="presentation"
     >
-      <g fill="#f3f3f3" fillOpacity={points?.length ? 0.3 : 0.8}>
+      <g fill="#f3f3f3">
         {dots}
       </g>
       {heat && <g fill="var(--blue)">{heat}</g>}
@@ -91,12 +111,13 @@ export function DotMap({ points, className = '' }) {
   );
 }
 
-// Continent-wise claim counts beneath the map: a grid of cells, one per
-// continent (and one honest 404 for everyone the geocoder could not place).
-// Each cell carries the count set large at weight 400, a mono caption, and a
-// thin blue bar scaled against the largest continent. The 404 cell is muted
-// and carries no bar: it is a different kind of number, not a continent.
-export function ContinentChart({ points, total, heading = false, className = '' }) {
+// Continent-wise claim counts beneath the map: cells in a wrapping,
+// centre-justified row (a short last row stacks centred, not left), one per
+// continent plus the honest 404. Each cell carries the count set large at
+// weight 400, a mono caption, and a thin blue bar scaled against the largest
+// continent; the 404 cell is muted with no bar. Clicking a continent card
+// spotlights it on the map above (click again to clear).
+export function ContinentChart({ points, total, heading = false, selected = null, onSelect, className = '' }) {
   const rows = Object.values(points)
     .reduce((acc, point) => {
       const name = continentOf(point);
@@ -109,6 +130,9 @@ export function ContinentChart({ points, total, heading = false, className = '' 
     .sort((a, b) => b.count - a.count);
   const unresolved = Math.max(total - points.length, 0);
   const max = rows[0]?.count ?? 1;
+  const interactive = typeof onSelect === 'function';
+
+  const cell = 'slit-frame w-[calc(50%-16px)] rounded-lg p-5 text-left sm:w-[calc(25%-30px)]';
 
   return (
     <div className={className}>
@@ -122,25 +146,44 @@ export function ContinentChart({ points, total, heading = false, className = '' 
           </p>
         </div>
       )}
-      <div className={heading ? 'mt-8 grid grid-cols-2 gap-8 sm:grid-cols-4 sm:gap-10' : 'grid grid-cols-2 gap-8 sm:grid-cols-4 sm:gap-10'}>
-        {rows.map((c) => (
-          <div key={c.name} className="slit-frame rounded-lg p-5">
-            <div className="text-[34px] leading-[1.03] font-normal tracking-[-0.005em] text-(--color-ink)">
-              {c.count}
+      <div className={heading ? 'mt-8 flex flex-wrap justify-center gap-8 sm:gap-10' : 'flex flex-wrap justify-center gap-8 sm:gap-10'}>
+        {rows.map((c) => {
+          const active = selected === c.name;
+          const body = (
+            <>
+              <div className="text-[34px] leading-[1.03] font-normal tracking-[-0.005em] text-(--color-ink)">
+                {c.count}
+              </div>
+              <div className="meta mt-2">{c.name}</div>
+              <div
+                aria-hidden="true"
+                className="mt-4 h-0.5 rounded-full"
+                style={{
+                  width: `${Math.max((c.count / max) * 100, 3)}%`,
+                  backgroundImage: 'linear-gradient(90deg, var(--blue), transparent)',
+                }}
+              />
+            </>
+          );
+          return interactive ? (
+            <button
+              key={c.name}
+              type="button"
+              onClick={() => onSelect(active ? null : c.name)}
+              aria-pressed={active}
+              aria-label={`Show ${c.name} on the map`}
+              className={`${cell} cursor-pointer ${active ? 'slit-frame-bright' : ''}`}
+            >
+              {body}
+            </button>
+          ) : (
+            <div key={c.name} className={cell}>
+              {body}
             </div>
-            <div className="meta mt-2">{c.name}</div>
-            <div
-              aria-hidden="true"
-              className="mt-4 h-0.5 rounded-full"
-              style={{
-                width: `${Math.max((c.count / max) * 100, 3)}%`,
-                backgroundImage: 'linear-gradient(90deg, var(--blue), transparent)',
-              }}
-            />
-          </div>
-        ))}
+          );
+        })}
         {unresolved > 0 && (
-          <div className="slit-frame rounded-lg p-5 opacity-70">
+          <div className={`${cell} opacity-70`}>
             <div className="text-[34px] leading-[1.03] font-normal tracking-[-0.005em] text-(--color-muted)">
               {unresolved}
             </div>
