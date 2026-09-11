@@ -103,6 +103,12 @@ export async function POST(request) {
     newRecord.profile = meta.data.profile;
   }
 
+  // Carry the claim-time country over: it describes the owner at the moment
+  // of their claim, and a swap changes the name, not the person.
+  if (typeof meta.data.country === 'string' && /^[A-Z]{2}$/.test(meta.data.country)) {
+    newRecord.country = meta.data.country;
+  }
+
   // Step 1: Release the old record first (SHA from our read, so if anything
   // changed underneath us the delete fails safely and nothing is lost). If
   // this fails, the swap has not happened at all and the user still owns

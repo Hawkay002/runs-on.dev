@@ -48,11 +48,16 @@ export async function POST(request) {
   // "taken" via its `exists` reason, at the same status/code, for one less
   // GitHub request. It also degrades safely under rate limiting, unlike a
   // pre-flight getRecord call which throws on 403/429.
+  // Claim-time country capture: Vercel's edge stamps every request with
+  // x-vercel-ip-country (ISO alpha-2 of the client IP). Nothing to call, no
+  // database; absent locally, and a malformed value simply records nothing.
+  const country = request.headers.get('x-vercel-ip-country') ?? '';
   const decision = evaluateClaim({
     name,
     session,
     existing: null,
     ownedCount: ownerIndex?.names?.length ?? 0,
+    country: /^[A-Z]{2}$/.test(country) ? country : undefined,
   });
   if (!decision.ok) {
     // Hand back the names this account already holds. Only limit_reached

@@ -32,6 +32,24 @@ test('rejects unknown profile keys', () => {
   assert.ok(out.errors.includes('unknown key: profile.nickname'));
 });
 
+// --- country ---
+
+test('accepts a claim-time country and treats it as optional', () => {
+  assert.equal(validateRecord({ ...valid, country: 'IN' }).ok, true);
+  assert.equal(validateRecord({ ...valid, country: 'US' }).ok, true);
+  assert.equal(validateRecord(valid).ok, true);
+});
+
+test('rejects anything that is not a clean ISO alpha-2 code', () => {
+  // The field is machine-written from the edge header; malformed values are
+  // dropped at the write sites, never repaired.
+  for (const country of ['in', 'ind', 'INDIA', '1N', 'I N', 42, '', null]) {
+    const out = validateRecord({ ...valid, country });
+    assert.equal(out.ok, false, `expected rejection for ${JSON.stringify(country)}`);
+    assert.ok(out.errors.includes('country must be an ISO 3166-1 alpha-2 code'));
+  }
+});
+
 test('rejects an empty or overlong name/bio', () => {
   // Presence means content: an empty string would render as a deliberate blank.
   assert.equal(validateRecord({ ...valid, profile: { name: '' } }).ok, false);
