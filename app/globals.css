@@ -427,6 +427,88 @@ a {
   background-size: 100% 3px;
 }
 
+/* ── Split-flap tiles (wordmark triple-tap easter egg) ───────────────
+   Each tile of the flap grid is two halves hinged at the tile's centre
+   line, the way a Solari board works: the top half rotates around its
+   bottom edge, the bottom half around its top edge. Each half clips a
+   full-size copy of the artwork offset so the tile shows its own slice;
+   the halves' width/height percentages are relative to the half, which is
+   why the img is 2800% x 1600% (28 x 16 half-dimensions = the whole art).
+   The stagger comes from animationDelay on the tile; .flap-in plays the
+   reveal, .flap-out plays it in reverse for the trip back. */
+
+.flap-grid {
+  display: grid;
+  perspective: 900px;
+}
+.flap-tile {
+  position: relative;
+}
+.flap-half {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+  overflow: hidden;
+  backface-visibility: hidden;
+}
+.flap-half img {
+  position: absolute;
+  width: 2800%;
+  height: 1600%;
+  max-width: none;
+}
+.flap-top {
+  top: 0;
+  transform-origin: bottom center;
+}
+.flap-bottom {
+  bottom: 0;
+  transform-origin: top center;
+}
+
+@keyframes flapTopIn {
+  from { transform: rotateX(-90deg); }
+  to { transform: rotateX(0deg); }
+}
+@keyframes flapBottomIn {
+  from { transform: rotateX(90deg); }
+  to { transform: rotateX(0deg); }
+}
+@keyframes flapTopOut {
+  from { transform: rotateX(0deg); }
+  to { transform: rotateX(-90deg); opacity: 0; }
+}
+@keyframes flapBottomOut {
+  from { transform: rotateX(0deg); }
+  to { transform: rotateX(90deg); opacity: 0; }
+}
+
+/* Flip in: the bottom half swings up first, the top half follows a beat
+   later, so every tile reads as two blades closing on the new image. */
+.flap-in .flap-top {
+  animation: flapTopIn 0.3s ease-out both;
+  animation-delay: calc(var(--d) + 200ms);
+}
+.flap-in .flap-bottom {
+  animation: flapBottomIn 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.08) both;
+  animation-delay: var(--d);
+}
+/* Resting on the artwork: no animation, both halves flat. Without this the
+   settled tiles would replay an animation whenever the class changes. */
+.flap-rest .flap-half {
+  transform: none;
+}
+/* On the way out the halves peel open and vanish, same stagger. */
+.flap-out .flap-top {
+  animation: flapTopOut 0.3s ease-in both;
+  animation-delay: var(--d);
+}
+.flap-out .flap-bottom {
+  animation: flapBottomOut 0.3s ease-in both;
+  animation-delay: var(--d);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

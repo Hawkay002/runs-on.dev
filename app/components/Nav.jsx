@@ -1,6 +1,8 @@
 // Transparent top bar over the obsidian canvas: wordmark left, a few section
 // links at 14px uppercase smoke, and the single filled pill action at right.
 // Its bottom edge is a slit of light fading at both ends; no sticky, no fill.
+import Wordmark from './wordmark.jsx';
+
 const LINKS = [
   { href: '/docs', label: 'Docs' },
   { href: '/stats', label: 'Stats' },
@@ -12,12 +14,7 @@ export default function Nav() {
   return (
     <header className="slit-bottom">
       <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-6 px-6">
-        <a
-          href="/"
-          className="text-[18px] tracking-[-0.01em] text-(--color-ink) no-underline"
-        >
-          runs-on<span className="text-(--color-muted)">.dev</span>
-        </a>
+        <Wordmark />
 
         <nav aria-label="Site" className="hidden items-center gap-6 sm:flex">
           {LINKS.map((link) => (
