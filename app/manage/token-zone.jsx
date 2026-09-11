@@ -66,6 +66,10 @@ NOTES
 - Deploying never touches DNS records or the profile card settings.`;
 }
 
+// Small outlined action in the system's voice: a fading slit frame that
+// brightens on hover. Used for the secondary copy/regenerate controls.
+const MINI = 'slit-frame rounded-[4px] px-2.5 py-1.5 font-(family-name:--font-mono) text-xs text-(--color-muted) hover:text-(--color-ink)';
+
 // The deploy-token card. Account-scoped, unlike the record forms above it,
 // which are per-name: one login mints one kind of credential, and the
 // deployment it unlocks is always that account's own name.
@@ -111,38 +115,35 @@ export default function TokenZone({ login }) {
   }
 
   return (
-    <section className="border border-(--color-rule) bg-(--color-card)">
-      <div className="border-b border-(--color-rule) px-6 py-5 sm:px-8">
+    <section className="slit-frame rounded-lg">
+      <div className="slit-bottom px-6 py-5 sm:px-8">
         <p className="font-(family-name:--font-mono) text-xs text-(--color-muted)">@{login}</p>
-        <h2 className="mt-1 font-(family-name:--font-display) text-xl font-medium tracking-tight text-(--color-ink) sm:text-2xl">
-          Deploy token
-        </h2>
+        <h2 className="mt-1.5 text-[23px] leading-[1.07] font-normal tracking-[-0.004em] text-(--color-ink)">Deploy token</h2>
       </div>
 
-      <div className="px-6 py-5 sm:px-8">
-        <p className="text-sm leading-relaxed text-(--color-muted)">
+      <div className="px-6 py-6 sm:px-8">
+        <p className="max-w-[540px] text-sm leading-relaxed text-(--color-muted)">
           Publish a static site to your name from a terminal or a coding agent, no browser
           needed. Generate a token, then:
         </p>
-        <pre className="mt-3 overflow-x-auto border border-(--color-rule) px-3 py-2 font-(family-name:--font-mono) text-xs leading-relaxed text-(--color-ink)">
+        <pre className="slit-frame mt-4 rounded-lg bg-(--color-card) px-3 py-2.5 font-(family-name:--font-mono) text-xs leading-relaxed whitespace-pre-wrap [overflow-wrap:break-word] text-(--color-ash)">
 {`curl -X POST https://runs-on.dev/api/sites/deploy \\
   -H "Authorization: Bearer <token>" \\
   -F "site=@dist.zip"`}
         </pre>
 
         {state !== 'minted' && (
-          <div className="mt-4 flex flex-wrap items-center gap-3">
+          <div className="mt-5 flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={mint}
               disabled={state === 'minting'}
-              className="border px-4 py-2 font-(family-name:--font-mono) text-xs transition-opacity hover:opacity-90 disabled:opacity-50"
-              style={{ borderColor: 'var(--color-signal)', background: 'var(--color-signal)', color: 'var(--color-paper)' }}
+              className="btn-pill px-4 py-2 text-xs"
             >
               {state === 'minting' ? 'Generating…' : 'Generate token'}
             </button>
             {state === 'error' && (
-              <span className="font-(family-name:--font-mono) text-xs text-(--color-signal)">
+              <span className="font-(family-name:--font-mono) text-xs text-(--color-flag)">
                 could not generate just now, try again
               </span>
             )}
@@ -150,28 +151,28 @@ export default function TokenZone({ login }) {
         )}
 
         {state === 'minted' && (
-          <div className="mt-4 space-y-3">
+          <div className="mt-5 space-y-3">
             {/* Shown exactly once: the server stores nothing, so there is no
                 list to come back to and no way to show it again later. */}
-            <div className="border border-(--color-signal) px-3 py-2">
-              <p className="font-(family-name:--font-mono) text-xs text-(--color-signal)">
-                shown once — copy it now
+            <div className="slit-bar-l rounded-r-lg bg-(--color-card) p-3 pl-4">
+              <p className="font-(family-name:--font-mono) text-xs text-(--color-muted)">
+                shown once · copy it now
               </p>
-              <div className="mt-2 flex items-start gap-2">
+              <div className="mt-2 flex items-start gap-3">
                 <code className="min-w-0 flex-1 break-all font-(family-name:--font-mono) text-xs text-(--color-ink)">
                   {token}
                 </code>
-                <button type="button" onClick={copy} className="shrink-0 border border-(--color-rule) px-2 py-1 font-(family-name:--font-mono) text-xs transition-opacity hover:opacity-80">
+                <button type="button" onClick={copy} className={`shrink-0 ${MINI}`}>
                   {copied ? 'copied' : 'copy'}
                 </button>
               </div>
             </div>
-            <p className="text-xs leading-relaxed text-(--color-muted)">
+            <p className="max-w-[540px] text-xs leading-relaxed text-(--color-muted)">
               Expires {expiresAt ? new Date(expiresAt).toLocaleDateString() : 'in 30 days'}.
               Treat it like a password: it can publish to your name and nothing else.
-              Generating another does not revoke this one — old tokens simply expire.
+              Generating another does not revoke this one; old tokens simply expire.
             </p>
-            <button type="button" onClick={mint} className="border border-(--color-rule) px-3 py-1.5 font-(family-name:--font-mono) text-xs transition-opacity hover:opacity-80">
+            <button type="button" onClick={mint} className={MINI}>
               generate another
             </button>
           </div>
@@ -180,7 +181,8 @@ export default function TokenZone({ login }) {
         {/* The paste-and-go agent prompt. Embeds the real token only while
             this render has one (the mint response is shown once); after a
             reload it falls back to the placeholder, because stateless tokens
-            cannot be listed or shown again. */}
+            cannot be listed or shown again. The runbook panel is a plain
+            carbon fill (no frame) so its vertical scroll never clips a tail. */}
         {(() => {
           const live = state === 'minted';
           const expiresNote = live
@@ -191,22 +193,22 @@ export default function TokenZone({ login }) {
             expiresNote,
           );
           return (
-            <details className="mt-6 border border-(--color-rule)" open={live}>
+            <details className="slit-frame mt-6 rounded-lg" open={live}>
               <summary className="cursor-pointer px-4 py-3 font-(family-name:--font-mono) text-xs text-(--color-ink)">
                 {'// '}hand this to your AI agent
               </summary>
-              <div className="border-t border-(--color-rule) px-4 py-3">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs leading-relaxed text-(--color-muted)">
+              <div className="slit-top px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="max-w-[420px] text-xs leading-relaxed text-(--color-muted)">
                     A complete deploy-runbook prompt. {live
                       ? 'Your token is already embedded.'
                       : 'Generate a token first and it will embed itself.'}
                   </p>
-                  <button type="button" onClick={() => copyPrompt(text)} className="shrink-0 border border-(--color-rule) px-2 py-1 font-(family-name:--font-mono) text-xs transition-opacity hover:opacity-80">
+                  <button type="button" onClick={() => copyPrompt(text)} className={`shrink-0 ${MINI}`}>
                     {copiedPrompt ? 'copied' : 'copy prompt'}
                   </button>
                 </div>
-                <pre className="mt-3 max-h-96 overflow-auto border border-(--color-rule) bg-(--color-paper) px-3 py-2 font-(family-name:--font-mono) text-xs leading-relaxed text-(--color-ink) whitespace-pre-wrap">
+                <pre className="mt-3 max-h-96 overflow-y-auto rounded-lg bg-(--color-card) px-3 py-2.5 font-(family-name:--font-mono) text-xs leading-relaxed whitespace-pre-wrap [overflow-wrap:break-word] text-(--color-ash)">
 {text}
                 </pre>
               </div>

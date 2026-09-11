@@ -87,10 +87,11 @@ function Shell({ children }) {
       <h1 className="mt-3 text-[34px] leading-[1.03] font-normal tracking-[-0.005em] text-(--color-ink) sm:text-[44px] sm:tracking-[-0.007em]">
         Your name
       </h1>
-      <p className="mt-4 text-[16px] leading-[1.5] text-(--color-muted)">
-        Changes save straight to the registry. DNS updates within seconds.
+      <p className="mt-4 max-w-[540px] text-[16px] leading-[1.5] text-(--color-muted)">
+        Record changes save straight to the registry and DNS follows within seconds. A
+        deploy token publishes a static site to your name without a browser.
       </p>
-      <div className="mt-10 space-y-8">{children}</div>
+      <div className="mt-12 space-y-12">{children}</div>
     </main>
   );
 }
