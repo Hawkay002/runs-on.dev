@@ -13,7 +13,27 @@ export function Divider({ className = '' }) {
 const PITCH = 10;
 const DOT_R = 2.2;
 
-export function DotMap({ className = '' }) {
+// Continent bucketing for the claim map: rough lat/lon boxes, checked in an
+// order that settles the overlaps (Europe before Asia and Africa, Oceania
+// before Asia, North before South America). Crude on purpose; the caption on
+// the stats page says the whole thing is approximate.
+const CONTINENT_BOXES = [
+  ['Europe', -25, 36, 60, 72],
+  ['Africa', -20, -37, 52, 37],
+  ['Oceania', 110, -50, 180, 0],
+  ['North America', -170, 12, -52, 72],
+  ['South America', -82, -56, -34, 13],
+  ['Asia', 25, 0, 180, 80],
+];
+
+export function continentOf([lat, lon]) {
+  for (const [name, lonMin, latMin, lonMax, latMax] of CONTINENT_BOXES) {
+    if (lon >= lonMin && lon <= lonMax && lat >= latMin && lat <= latMax) return name;
+  }
+  return null;
+}
+
+export function DotMap({ points, className = '' }) {
   const { cols, rows } = DOTMAP;
   const w = cols * PITCH;
   const h = rows.length * PITCH;
@@ -26,6 +46,35 @@ export function DotMap({ className = '' }) {
     }
   });
 
+  // Heat mode: claim locations ([lat, lon]) bucketed into the same grid as
+  // the map. A cell with claims renders one dot whose size and brightness
+  // scale with how many landed there, city lights on the dot-matrix world.
+  // The same projection the generator used: lon -180..180 across COLS, lat
+  // 84..-56 down ROWS.
+  let heat = null;
+  if (points?.length) {
+    const counts = new Map();
+    for (const [lat, lon] of points) {
+      const c = Math.min(cols - 1, Math.max(0, Math.floor(((lon + 180) / 360) * cols)));
+      const r = Math.min(rows.length - 1, Math.max(0, Math.floor(((84 - lat) / 140) * rows.length)));
+      const key = `${c}:${r}`;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    heat = [...counts.entries()].map(([key, count]) => {
+      const [c, r] = key.split(':').map(Number);
+      const intensity = Math.min(count, 6);
+      return (
+        <circle
+          key={`h-${key}`}
+          cx={c * PITCH + PITCH / 2}
+          cy={r * PITCH + PITCH / 2}
+          r={DOT_R + 1 + intensity * 0.8}
+          fillOpacity={Math.min(0.35 + intensity * 0.11, 0.95)}
+        />
+      );
+    });
+  }
+
   return (
     <svg
       viewBox={`0 0 ${w} ${h}`}
@@ -34,9 +83,10 @@ export function DotMap({ className = '' }) {
       focusable="false"
       role="presentation"
     >
-      <g fill="#f3f3f3" fillOpacity="0.8">
+      <g fill="#f3f3f3" fillOpacity={points?.length ? 0.3 : 0.8}>
         {dots}
       </g>
+      {heat && <g fill="#ffffff">{heat}</g>}
     </svg>
   );
 }

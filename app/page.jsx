@@ -4,6 +4,7 @@ import OwnedName from './owned-name.jsx';
 import JsonLd from './components/JsonLd.jsx';
 import { Section, Quote } from './components/Section.jsx';
 import { DotMap, Divider, StatusBadge } from './components/ui.jsx';
+import { CLAIM_GEO } from './components/claim-geo.js';
 import { readSession } from '../lib/session.js';
 import { getOwnerIndex } from '../lib/owners.js';
 import { getRecord } from '../lib/registry.js';
@@ -88,9 +89,10 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Full-bleed dot-matrix world map: reach rendered as dot density on the
-          obsidian canvas, the only imagery in the system. */}
-      <DotMap className="h-auto w-full" />
+      {/* Full-bleed dot-matrix world map, carrying the heat: claim locations
+          resolved from public GitHub profiles brighten and swell where owners
+          cluster, city lights on the obsidian canvas. */}
+      <DotMap points={Object.values(CLAIM_GEO)} className="h-auto w-full" />
 
       <div className="mx-auto max-w-[1200px] px-6">
         <Section title="What this is">
