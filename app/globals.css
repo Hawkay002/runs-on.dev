@@ -454,9 +454,10 @@ a {
 }
 .flap-half img {
   position: absolute;
-  width: 2800%;
-  height: 1600%;
   max-width: none;
+  /* width/height/left/top are inline per tile: cover-fit geometry computed
+     in claim-map.jsx. Each half clips its own slice, so the wider-than-box
+     artwork crops at the tile edges. */
 }
 .flap-top {
   top: 0;

@@ -3,16 +3,28 @@
 import { useEffect, useState } from 'react';
 import { DotMap, ContinentChart } from './ui.jsx';
 
-// Split-flap grid: 28 x 8 tiles stretched over the map's exact box (the
-// artwork scales to the map's width AND height on every screen). Each tile
-// is two halves hinged at the centre (top half rotates from its bottom edge,
-// bottom half from its top edge), flipping in with a column-then-row stagger
-// so the image sweeps in like an airport departure board.
+// Split-flap grid: 28 x 8 tiles over the map's exact box. The artwork is
+// wider than the map, so it is cover-fitted: scaled until it fills the box
+// in BOTH dimensions (the height is the binding one), the overflow cropping
+// off the sides, centred. Each tile is two halves hinged at the centre (top
+// half rotates from its bottom edge, bottom half from its top edge),
+// flipping in with a column-then-row stagger like an airport board.
 const TILES_X = 28;
 const TILES_Y = 8;
 const SWEEP_IN_MS = 2400;
 const SWEEP_OUT_MS = 2000;
 const ART_HOLD_MS = 5000;
+
+// Cover-fit geometry, in percentages of a tile half. Unzoomed, the art is
+// 28 x 16 half-dimensions (2800% x 1600%). The zoom that makes the art's
+// height cover the map box is the aspect ratio quotient; the extra width is
+// cropped symmetrically, which shifts every tile's slice left by half the
+// excess, in tile units.
+const ART_ASPECT = 2048 / 593;
+const MAP_ASPECT = 1120 / 500;
+const COVER_ZOOM = ART_ASPECT / MAP_ASPECT;
+const IMG_W_PCT = 100 * TILES_X * COVER_ZOOM;
+const LEFT_BASE = (TILES_X / 2) * (1 - COVER_ZOOM); // in tile widths, ~ -7.57
 
 const TILES = [];
 for (let j = 0; j < TILES_Y; j++) {
@@ -32,22 +44,31 @@ export default function ClaimMap({ points, total, heading = false }) {
   // map -> to-art -> art -> to-map -> map
   const [phase, setPhase] = useState('map');
 
+  // Every phase advances on its own timer, here in one place with cleanup.
+  // The wordmark event only ever KICKS the machine (map -> to-art, or an
+  // early art -> to-map); because the timers own all further steps, no path
+  // can strand a phase the way the first auto-revert draft did, where the
+  // final return to map was only scheduled on the manual path.
+  useEffect(() => {
+    if (phase === 'to-art') {
+      const t = setTimeout(() => setPhase('art'), SWEEP_IN_MS);
+      return () => clearTimeout(t);
+    }
+    if (phase === 'art') {
+      const t = setTimeout(() => setPhase('to-map'), ART_HOLD_MS);
+      return () => clearTimeout(t);
+    }
+    if (phase === 'to-map') {
+      const t = setTimeout(() => setPhase('map'), SWEEP_OUT_MS);
+      return () => clearTimeout(t);
+    }
+  }, [phase]);
+
   useEffect(() => {
     const flip = () => {
       setPhase((p) => {
-        if (p === 'map') {
-          // Flip in, settle on the art, hold it for five seconds, then
-          // peel back on its own.
-          setTimeout(() => {
-            setPhase((q) => (q === 'to-art' ? 'art' : q));
-            setTimeout(() => setPhase((r) => (r === 'art' ? 'to-map' : r)), ART_HOLD_MS);
-          }, SWEEP_IN_MS);
-          return 'to-art';
-        }
-        if (p === 'art') {
-          setTimeout(() => setPhase((q) => (q === 'to-map' ? 'map' : q)), SWEEP_OUT_MS);
-          return 'to-map';
-        }
+        if (p === 'map') return 'to-art';
+        if (p === 'art') return 'to-map';
         return p; // a sweep already in flight swallows further taps
       });
     };
@@ -85,14 +106,24 @@ export default function ClaimMap({ points, total, heading = false }) {
                     <img
                       src="/ascii-art.png"
                       alt=""
-                      style={{ left: `${-i * 100}%`, top: `${-j * 200}%` }}
+                      style={{
+                        width: `${IMG_W_PCT}%`,
+                        height: `${TILES_Y * 2 * 100}%`,
+                        left: `${(LEFT_BASE - i) * 100}%`,
+                        top: `${-j * 200}%`,
+                      }}
                     />
                   </div>
                   <div className="flap-half flap-bottom">
                     <img
                       src="/ascii-art.png"
                       alt=""
-                      style={{ left: `${-i * 100}%`, top: `${-j * 200 - 100}%` }}
+                      style={{
+                        width: `${IMG_W_PCT}%`,
+                        height: `${TILES_Y * 2 * 100}%`,
+                        left: `${(LEFT_BASE - i) * 100}%`,
+                        top: `${-j * 200 - 100}%`,
+                      }}
                     />
                   </div>
                 </div>
