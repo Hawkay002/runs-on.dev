@@ -42,8 +42,9 @@ export default function Privacy() {
           When a name is claimed, the request&rsquo;s edge-inferred country (an ISO code like{' '}
           <code className="rounded-[4px] border border-(--color-rule) bg-(--color-card) px-1.5 py-0.5 font-(family-name:--font-mono) text-[0.9em]">IN</code>) is
           written into the record, and nothing more precise. It feeds the aggregate claim map on
-          the stats page. It is never a city, never an IP address, and you can edit or blank the
-          field on the <a className="text-(--color-ink) underline" href="/manage">manage page</a>.
+          the stats page. It is never a city, never an IP address, written exactly once at the
+          moment of the claim, and never refreshed or enriched afterwards. To remove it entirely,
+          release the name (it goes back to the pool) and claim again.
         </p>
       </Section>
 

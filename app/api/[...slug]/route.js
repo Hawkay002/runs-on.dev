@@ -15,7 +15,9 @@ function notFound(slug) {
   );
 }
 
-// Next 15+ hands route params as a promise on the second argument.
+// Next 15+ hands route params as a promise on the second argument. No HEAD
+// export: HEAD is served from GET with the body stripped, which is the
+// protocol-correct shape for a 404.
 const handler = (request, { params }) => params.then((p) => notFound(p.slug));
 
 export const GET = handler;
@@ -23,5 +25,4 @@ export const POST = handler;
 export const PUT = handler;
 export const PATCH = handler;
 export const DELETE = handler;
-export const HEAD = handler;
 export const OPTIONS = handler;
