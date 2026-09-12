@@ -12,7 +12,7 @@ const LINKS = [
 
 export default function Nav() {
   return (
-    <header className="slit-bottom">
+    <header className="sticky top-0 z-40 bg-(--color-paper)/85 backdrop-blur-md slit-bottom">
       <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-6 px-6">
         <Wordmark />
 

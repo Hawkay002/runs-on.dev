@@ -3,14 +3,16 @@
 import { useEffect, useState } from 'react';
 import { DotMap, ContinentChart } from './ui.jsx';
 
-// Split-flap grid: 28 x 8 tiles over the artwork band. Each tile is two
-// halves hinged at the centre (top half rotates from its bottom edge, bottom
-// half from its top edge), flipping in with a column-then-row stagger so the
-// image sweeps in like an airport departure board.
+// Split-flap grid: 28 x 8 tiles stretched over the map's exact box (the
+// artwork scales to the map's width AND height on every screen). Each tile
+// is two halves hinged at the centre (top half rotates from its bottom edge,
+// bottom half from its top edge), flipping in with a column-then-row stagger
+// so the image sweeps in like an airport departure board.
 const TILES_X = 28;
 const TILES_Y = 8;
 const SWEEP_IN_MS = 2400;
 const SWEEP_OUT_MS = 2000;
+const ART_HOLD_MS = 5000;
 
 const TILES = [];
 for (let j = 0; j < TILES_Y; j++) {
@@ -22,8 +24,9 @@ for (let j = 0; j < TILES_Y; j++) {
 // The claim map as one interactive unit: the dot-matrix world carries the
 // heat, and the continent cards beneath it filter it. Three quick taps on
 // the wordmark flip the whole map into the alternate artwork through the
-// split-flap sweep (and back again); the selection state for the continent
-// spotlight lives here too, so the map and the cards can never disagree.
+// split-flap sweep, hold it for five seconds, then peel back to the map;
+// three more taps bring it back sooner. The continent selection lives here
+// too, so the map and the cards can never disagree.
 export default function ClaimMap({ points, total, heading = false }) {
   const [selected, setSelected] = useState(null);
   // map -> to-art -> art -> to-map -> map
@@ -33,11 +36,16 @@ export default function ClaimMap({ points, total, heading = false }) {
     const flip = () => {
       setPhase((p) => {
         if (p === 'map') {
-          setTimeout(() => setPhase('art'), SWEEP_IN_MS);
+          // Flip in, settle on the art, hold it for five seconds, then
+          // peel back on its own.
+          setTimeout(() => {
+            setPhase((q) => (q === 'to-art' ? 'art' : q));
+            setTimeout(() => setPhase((r) => (r === 'art' ? 'to-map' : r)), ART_HOLD_MS);
+          }, SWEEP_IN_MS);
           return 'to-art';
         }
         if (p === 'art') {
-          setTimeout(() => setPhase('map'), SWEEP_OUT_MS);
+          setTimeout(() => setPhase((q) => (q === 'to-map' ? 'map' : q)), SWEEP_OUT_MS);
           return 'to-map';
         }
         return p; // a sweep already in flight swallows further taps
@@ -47,7 +55,10 @@ export default function ClaimMap({ points, total, heading = false }) {
     return () => window.removeEventListener('runs-on:flipmap', flip);
   }, []);
 
-  const showingArt = phase === 'art' || phase === 'to-map';
+  // Only the settled artwork hides the map. During both sweeps the dots stay
+  // visible behind the tiles, so the way back reads as the map being
+  // revealed, not an empty canvas.
+  const showingArt = phase === 'art';
 
   return (
     <div data-claim-map>
@@ -60,14 +71,12 @@ export default function ClaimMap({ points, total, heading = false }) {
         </div>
 
         {phase !== 'map' && (
-          <div aria-hidden="true" data-flap-phase={phase} className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+          <div aria-hidden="true" data-flap-phase={phase} className="pointer-events-none absolute inset-0 z-10">
             <div
-              className={`flap-grid ${phase === 'to-art' ? 'flap-in' : phase === 'to-map' ? 'flap-out' : 'flap-rest'}`}
+              className={`flap-grid h-full w-full ${phase === 'to-art' ? 'flap-in' : phase === 'to-map' ? 'flap-out' : 'flap-rest'}`}
               style={{
                 gridTemplateColumns: `repeat(${TILES_X}, 1fr)`,
                 gridTemplateRows: `repeat(${TILES_Y}, 1fr)`,
-                aspectRatio: '2048 / 592',
-                width: '100%',
               }}
             >
               {TILES.map(({ i, j, delay }) => (
