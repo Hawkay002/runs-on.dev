@@ -5,6 +5,7 @@ import JsonLd from './components/JsonLd.jsx';
 import { Section, Quote } from './components/Section.jsx';
 import { Divider, StatusBadge } from './components/ui.jsx';
 import { ContinentChart } from './components/ui.jsx';
+import FlapFrame from './components/flap-frame.jsx';
 import { CLAIM_GEO, GEO_RESOLVED, GEO_TOTAL } from './components/claim-geo.js';
 import { readSession } from '../lib/session.js';
 import { getOwnerIndex } from '../lib/owners.js';
@@ -109,13 +110,16 @@ export default async function Home() {
       </section>
 
       {/* Full-bleed dot-matrix world map carrying the claim heat, served as a
-          static image so ~1600 map elements stay out of the page HTML (the
-          interactive spotlight version lives on /stats). */}
-      <img
-        src="/claim-map.svg"
-        alt={`Dot-matrix world map where brighter dots mark claimed runs-on.dev names: ${GEO_RESOLVED} of ${GEO_TOTAL} owners resolved from public GitHub profiles`}
-        className="h-auto w-full"
-      />
+          static image so ~1600 map elements stay out of the page HTML, and
+          wrapped in the split-flap frame so the easter egg still lands. The
+          interactive spotlight version lives on /stats. */}
+      <FlapFrame>
+        <img
+          src="/claim-map.svg"
+          alt={`Dot-matrix world map where brighter dots mark claimed runs-on.dev names: ${GEO_RESOLVED} of ${GEO_TOTAL} owners resolved from public GitHub profiles`}
+          className="h-auto w-full"
+        />
+      </FlapFrame>
       <div className="mx-auto max-w-[900px] px-6 pt-10 pb-4">
         <ContinentChart heading points={Object.values(CLAIM_GEO)} total={GEO_TOTAL} />
       </div>

@@ -38,11 +38,17 @@ let heat = '';
 for (const [key, count] of counts) {
   const [c, r] = key.split(':').map(Number);
   const intensity = Math.min(count, 6);
-  heat += `<circle cx="${c * PITCH + PITCH / 2}" cy="${r * PITCH + PITCH / 2}" r="${HEAT_R_BASE + intensity * 0.8}" fill-opacity="${Math.min(0.35 + intensity * 0.11, 0.95).toFixed(2)}"/>`;
+  const x = c * PITCH + PITCH / 2;
+  const y = r * PITCH + PITCH / 2;
+  // Two-layer bloom: a wide faint glow that reads at a glance, then a
+  // bright core the eye locks onto. Single small circles disappeared
+  // against the base dots.
+  heat += `<circle cx="${x}" cy="${y}" r="${7 + intensity * 1.3}" fill-opacity="${(0.10 + intensity * 0.025).toFixed(2)}"/>`;
+  heat += `<circle cx="${x}" cy="${y}" r="${2.8 + intensity * 0.9}" fill-opacity="${Math.min(0.55 + intensity * 0.07, 0.98).toFixed(2)}"/>`;
 }
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" role="img" aria-label="Dot-matrix world map; brighter dots mark where runs-on.dev names are claimed">
-<g fill="#f3f3f3" fill-opacity="0.3">${base}</g>
+<g fill="#f3f3f3" fill-opacity="0.45">${base}</g>
 <g fill="#4d7cff">${heat}</g>
 </svg>
 `;
