@@ -113,9 +113,9 @@ export default async function Home() {
       <div className="mx-auto max-w-[1200px] px-6">
         <Section title="What this is">
           <div className="mx-auto max-w-[600px] text-center">
-            <p className="text-(--color-ink) text-[23px] leading-[1.07] tracking-[-0.005em]">
+            <h2 className="text-[23px] leading-[1.07] font-normal tracking-[-0.005em] text-(--color-ink)">
               A JSON file in a public repo is the whole registry.
-            </p>
+            </h2>
             <p className="mt-5 text-[16px] leading-[1.5] text-(--color-muted)">
               That file says the name is yours, and it is the only thing that makes{' '}
               <span className="font-(family-name:--font-mono) text-[15px]">*.runs-on.dev</span>{' '}
@@ -132,6 +132,12 @@ export default async function Home() {
                 <dt className="meta mb-1">free</dt>
                 <dd className="text-(--color-ink)">
                   forever. No ads, no tracking, no account beyond the GitHub one you already have.
+                </dd>
+              </div>
+              <div className="slit-top slit-dim pt-3">
+                <dt className="meta mb-1">open</dt>
+                <dd className="text-(--color-ink)">
+                  AGPL-3.0, end to end. Every rule, every record, and the whole app are public on GitHub.
                 </dd>
               </div>
             </dl>

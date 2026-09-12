@@ -3,16 +3,38 @@
   "info": {
     "title": "runs-on.dev registry API",
     "summary": "Claim free name.runs-on.dev subdomains, manage their DNS records, and deploy static sites to them.",
-    "description": "The public API of the runs-on.dev subdomain registry. Availability checks and record reads are free and unauthenticated. Claiming, editing, releasing, swapping, and deploy-token minting require a GitHub OAuth session (obtained by signing in at https://runs-on.dev with GitHub; the session is a signed HttpOnly cookie). Static-site deployment uses scoped bearer tokens (scope sites:publish) minted self-serve at https://runs-on.dev/manage. All error responses are JSON objects: { \"error\": \"<code>\", \"detail\"?: string, \"retryInMs\"?: number }. Unknown /api/* paths return a JSON 404 in that same shape.",
+    "description": "The public API of the runs-on.dev subdomain registry. Availability checks and record reads are free and unauthenticated. Claiming, editing, releasing, swapping, and deploy-token minting require a GitHub OAuth session (obtained by signing in at https://runs-on.dev with GitHub; the session is a signed HttpOnly cookie). Static-site deployment uses scoped bearer tokens (scope sites:publish) minted self-serve at https://runs-on.dev/manage. All error responses are JSON objects: { \"error\": \"<code>\", \"detail\"?: string, \"retryInMs\"?: number }. Unknown /api/* paths return a JSON 404 in that same shape. VERSIONING: this surface is v1, signaled by the X-API-Version: 1 response header on every /api/* route and by info.version here. Additive changes (new optional fields, new endpoints) do not bump the version. Breaking changes ship under a new /api/v2/* prefix for at least 6 months while the old surface sends Deprecation: true and Sunset: <date> response headers before removal. There are currently no deprecated endpoints.",
     "version": "1.0.0",
-    "contact": { "name": "runs-on.dev abuse and support", "email": "abuse@runs-on.dev", "url": "https://runs-on.dev/contact" },
-    "license": { "name": "AGPL-3.0-only", "url": "https://github.com/zordhalo/runs-on.dev/blob/main/LICENSE" }
+    "contact": {
+      "name": "runs-on.dev abuse and support",
+      "email": "abuse@runs-on.dev",
+      "url": "https://runs-on.dev/contact"
+    },
+    "license": {
+      "name": "AGPL-3.0-only",
+      "url": "https://github.com/zordhalo/runs-on.dev/blob/main/LICENSE"
+    },
+    "x-api-version": "1",
+    "x-versioning-policy": "URL stays unversioned for v1; breaking changes move to /api/v2/*; deprecated endpoints send Deprecation: true and Sunset headers for a documented grace period before removal."
   },
-  "servers": [{ "url": "https://runs-on.dev" }],
+  "servers": [
+    {
+      "url": "https://runs-on.dev"
+    }
+  ],
   "tags": [
-    { "name": "names", "description": "Availability, claiming, and DNS record management for claimed names." },
-    { "name": "hosting", "description": "Static site deployment on a claimed name (deploy tokens, scope sites:publish)." },
-    { "name": "diagnostics", "description": "Live DNS and serving checks." }
+    {
+      "name": "names",
+      "description": "Availability, claiming, and DNS record management for claimed names."
+    },
+    {
+      "name": "hosting",
+      "description": "Static site deployment on a claimed name (deploy tokens, scope sites:publish)."
+    },
+    {
+      "name": "diagnostics",
+      "description": "Live DNS and serving checks."
+    }
   ],
   "components": {
     "securitySchemes": {
@@ -34,63 +56,183 @@
         "scheme": "bearer",
         "bearerFormat": "rod1",
         "description": "Deploy token minted at /manage or POST /api/tokens. HMAC-signed, shown exactly once, 30-day TTL. Single scope: sites:publish — it can deploy, list, and roll back static deployments for the owning account's name only. No other capability.",
-        "scopes": { "sites:publish": "Deploy, list, and roll back static site deployments for the owner's claimed name" }
+        "scopes": {
+          "sites:publish": "Deploy, list, and roll back static site deployments for the owner's claimed name"
+        }
       }
     },
     "schemas": {
       "Error": {
         "type": "object",
-        "required": ["error"],
+        "required": [
+          "error"
+        ],
         "properties": {
-          "error": { "type": "string", "description": "Stable machine-readable code, e.g. taken, stale, rate_limited, storage_not_configured." },
-          "detail": { "type": "string", "description": "Human-readable resolution hint where one exists." },
-          "reason": { "type": "string", "description": "Extra code-specific payload (e.g. the zip validator's reason)." },
-          "retryInMs": { "type": "integer", "description": "Suggested wait before retrying, in milliseconds." },
-          "owned": { "type": "array", "items": { "type": "string" }, "description": "Names the authenticated account already owns (claim limit responses)." }
+          "error": {
+            "type": "string",
+            "description": "Stable machine-readable code, e.g. taken, stale, rate_limited, storage_not_configured."
+          },
+          "detail": {
+            "type": "string",
+            "description": "Human-readable resolution hint where one exists."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Extra code-specific payload (e.g. the zip validator's reason)."
+          },
+          "retryInMs": {
+            "type": "integer",
+            "description": "Suggested wait before retrying, in milliseconds."
+          },
+          "owned": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Names the authenticated account already owns (claim limit responses)."
+          }
         }
       },
       "CheckResult": {
         "type": "object",
-        "required": ["available"],
+        "required": [
+          "available"
+        ],
         "properties": {
-          "available": { "type": "boolean" },
-          "code": { "type": "string", "description": "Why the name is unavailable: taken, reserved, invalid_length, invalid_charset, invalid_hyphen, invalid_punycode. Present when available is false." }
+          "available": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string",
+            "description": "Why the name is unavailable: taken, reserved, invalid_length, invalid_charset, invalid_hyphen, invalid_punycode. Present when available is false."
+          }
         }
       },
       "ClaimSuccess": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean" },
-          "commit": { "type": "string", "description": "SHA of the registry commit that created domains/<name>.json." },
-          "url": { "type": "string", "description": "The claimed name's origin." }
+          "ok": {
+            "type": "boolean"
+          },
+          "commit": {
+            "type": "string",
+            "description": "SHA of the registry commit that created domains/<name>.json."
+          },
+          "url": {
+            "type": "string",
+            "description": "The claimed name's origin."
+          }
         }
       },
       "Record": {
         "type": "object",
-        "required": ["name", "owner", "claimedAt", "records"],
+        "required": [
+          "name",
+          "owner",
+          "claimedAt",
+          "records"
+        ],
         "properties": {
-          "name": { "type": "string" },
-          "owner": { "type": "object", "required": ["github"], "properties": { "github": { "type": "string" } } },
-          "claimedAt": { "type": "string", "format": "date-time" },
-          "country": { "type": "string", "description": "ISO 3166-1 alpha-2, captured from the request's edge-inferred country at claim time. Aggregate stats only.", "pattern": "^[A-Z]{2}$" },
+          "name": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "object",
+            "required": [
+              "github"
+            ],
+            "properties": {
+              "github": {
+                "type": "string"
+              }
+            }
+          },
+          "claimedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "country": {
+            "type": "string",
+            "description": "ISO 3166-1 alpha-2, captured from the request's edge-inferred country at claim time. Aggregate stats only.",
+            "pattern": "^[A-Z]{2}$"
+          },
           "records": {
             "type": "object",
             "description": "DNS/redirect records. CNAME (string) XOR URL (string); A and TXT are arrays; MX is an array of { priority, value }; CNAME and URL exclude each other and every other type.",
             "properties": {
-              "CNAME": { "type": "string" },
-              "A": { "type": "array", "items": { "type": "string" } },
-              "TXT": { "type": "array", "items": { "type": "string" } },
-              "MX": { "type": "array", "items": { "type": "object", "properties": { "priority": { "type": "integer" }, "value": { "type": "string" } }, "required": ["priority", "value"] } },
-              "URL": { "type": "string" }
+              "CNAME": {
+                "type": "string"
+              },
+              "A": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "TXT": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "MX": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "priority": {
+                      "type": "integer"
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "priority",
+                    "value"
+                  ]
+                }
+              },
+              "URL": {
+                "type": "string"
+              }
             }
           },
-          "subdomains": { "type": "object", "description": "One-level-deep records under the name (e.g. _vercel), same types except URL, max 10." },
+          "subdomains": {
+            "type": "object",
+            "description": "One-level-deep records under the name (e.g. _vercel), same types except URL, max 10."
+          },
           "profile": {
             "type": "object",
             "properties": {
-              "name": { "type": "string", "maxLength": 60 },
-              "bio": { "type": "string", "maxLength": 200 },
-              "links": { "type": "array", "maxItems": 8, "items": { "type": "object", "required": ["label", "url"], "properties": { "label": { "type": "string", "maxLength": 40 }, "url": { "type": "string" } } } }
+              "name": {
+                "type": "string",
+                "maxLength": 60
+              },
+              "bio": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "links": {
+                "type": "array",
+                "maxItems": 8,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "label",
+                    "url"
+                  ],
+                  "properties": {
+                    "label": {
+                      "type": "string",
+                      "maxLength": 40
+                    },
+                    "url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -98,52 +240,146 @@
       "DnsCheckResult": {
         "type": "object",
         "properties": {
-          "name": { "type": "string" },
-          "cname": { "type": "array", "items": { "type": "string" } },
-          "a": { "type": "array", "items": { "type": "string" } },
-          "txt": { "type": "object" },
+          "name": {
+            "type": "string"
+          },
+          "cname": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "a": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "txt": {
+            "type": "object"
+          },
           "serving": {
             "type": "object",
             "properties": {
-              "status": { "type": "string", "enum": ["ok", "redirect", "card", "stuck", "down"] },
-              "title": { "type": "string", "nullable": true },
-              "finalUrl": { "type": "string", "nullable": true }
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "redirect",
+                  "card",
+                  "stuck",
+                  "down"
+                ]
+              },
+              "title": {
+                "type": "string",
+                "nullable": true
+              },
+              "finalUrl": {
+                "type": "string",
+                "nullable": true
+              }
             }
           }
         }
       },
       "TokenResponse": {
         "type": "object",
-        "required": ["token", "scope", "expiresAt"],
+        "required": [
+          "token",
+          "scope",
+          "expiresAt"
+        ],
         "properties": {
-          "token": { "type": "string", "description": "rod1-prefixed bearer token, shown exactly once." },
-          "scope": { "type": "string", "enum": ["sites"], "description": "The token's scope; as a bearer scope this is sites:publish." },
-          "expiresAt": { "type": "string", "format": "date-time" }
+          "token": {
+            "type": "string",
+            "description": "rod1-prefixed bearer token, shown exactly once."
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "sites"
+            ],
+            "description": "The token's scope; as a bearer scope this is sites:publish."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "DeployResult": {
         "type": "object",
-        "required": ["url", "deploymentId", "files", "bytes"],
+        "required": [
+          "url",
+          "deploymentId",
+          "files",
+          "bytes"
+        ],
         "properties": {
-          "url": { "type": "string" },
-          "deploymentId": { "type": "string" },
-          "files": { "type": "integer" },
-          "bytes": { "type": "integer" }
+          "url": {
+            "type": "string"
+          },
+          "deploymentId": {
+            "type": "string"
+          },
+          "files": {
+            "type": "integer"
+          },
+          "bytes": {
+            "type": "integer"
+          }
         }
       },
       "DeploymentList": {
         "type": "object",
-        "required": ["active", "deployments"],
+        "required": [
+          "active",
+          "deployments"
+        ],
         "properties": {
-          "active": { "type": "string", "nullable": true },
-          "deployments": { "type": "array", "items": { "type": "object", "required": ["id", "at", "files", "bytes"], "properties": { "id": { "type": "string" }, "at": { "type": "string", "format": "date-time" }, "files": { "type": "integer" }, "bytes": { "type": "integer" } } } }
+          "active": {
+            "type": "string",
+            "nullable": true
+          },
+          "deployments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "at",
+                "files",
+                "bytes"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "files": {
+                  "type": "integer"
+                },
+                "bytes": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
         }
       },
       "Message": {
         "type": "object",
         "properties": {
-          "ok": { "type": "boolean" },
-          "message": { "type": "string" }
+          "ok": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          }
         }
       }
     }
@@ -154,14 +390,51 @@
         "operationId": "checkNameAvailability",
         "summary": "Check whether a subdomain name is available",
         "description": "Free and unauthenticated. Grammar and blocklist checks run first, then a live registry read. Rate limited per name (10/minute) with Retry-After.",
-        "tags": ["names"],
+        "tags": [
+          "names"
+        ],
         "security": [],
         "parameters": [
-          { "name": "name", "in": "query", "required": true, "description": "The name to check, without the .runs-on.dev suffix.", "schema": { "type": "string", "minLength": 2, "maxLength": 32 } }
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "description": "The name to check, without the .runs-on.dev suffix.",
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 32
+            }
+          }
         ],
         "responses": {
-          "200": { "description": "Availability answer. Unavailable names answer 200 with available: false and a code.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CheckResult" } } } },
-          "429": { "description": "Rate limited for this name.", "headers": { "Retry-After": { "schema": { "type": "string" } } }, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+          "200": {
+            "description": "Availability answer. Unavailable names answer 200 with available: false and a code.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckResult"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited for this name.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -170,20 +443,114 @@
         "operationId": "claimName",
         "summary": "Claim a subdomain for the signed-in GitHub account",
         "description": "Writes domains/<name>.json to the registry and stamps the request's edge-inferred country (aggregate stats only). One name per account; the account must be 30+ days old with at least one public repo. DNS follows within seconds. Rate limited per session with automatic 503-retry semantics on the client side.",
-        "tags": ["names"],
-        "security": [{ "githubSession": ["names:claim"] }],
+        "tags": [
+          "names"
+        ],
+        "security": [
+          {
+            "githubSession": [
+              "names:claim"
+            ]
+          }
+        ],
         "requestBody": {
           "required": true,
-          "content": { "application/json": { "schema": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string", "minLength": 2, "maxLength": 32 } } } } }
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 32
+                  }
+                }
+              }
+            }
+          }
         },
         "responses": {
-          "200": { "description": "Claimed.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ClaimSuccess" } } } },
-          "400": { "description": "invalid_name.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "401": { "description": "signin_required.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "403": { "description": "reserved, limit_reached, ineligible_age, or ineligible_repos.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "409": { "description": "taken.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "429": { "description": "rate_limited.", "headers": { "Retry-After": { "schema": { "type": "string" } } }, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "503": { "description": "busy: GitHub quota exhausted; retry with backoff.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+          "200": {
+            "description": "Claimed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimSuccess"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_name.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "signin_required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "reserved, limit_reached, ineligible_age, or ineligible_repos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "taken.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "busy: GitHub quota exhausted; retry with backoff.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -192,21 +559,143 @@
         "operationId": "updateRecord",
         "summary": "Replace the records, subdomains, and profile of a name you own",
         "description": "Merge semantics: keys present in the body overwrite; absent keys are preserved; null deletes a key. Saving the profile never touches DNS records. Each save is one public registry commit.",
-        "tags": ["names"],
-        "security": [{ "githubSession": ["records:write"] }],
+        "tags": [
+          "names"
+        ],
+        "security": [
+          {
+            "githubSession": [
+              "records:write"
+            ]
+          }
+        ],
         "requestBody": {
           "required": true,
-          "content": { "application/json": { "schema": { "type": "object", "required": ["name"], "properties": { "name": { "type": "string" }, "records": { "nullable": true }, "subdomains": { "nullable": true }, "profile": { "nullable": true } } } } }
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "records": {
+                    "nullable": true
+                  },
+                  "subdomains": {
+                    "nullable": true
+                  },
+                  "profile": {
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
         },
         "responses": {
-          "200": { "description": "Saved (or unchanged: nothing new to commit).", "content": { "application/json": { "schema": { "type": "object", "properties": { "ok": { "type": "boolean" }, "commit": { "type": "string", "nullable": true }, "unchanged": { "type": "boolean" } } } } } },
-          "400": { "description": "invalid_name or schema validation failure (details array lists each problem).", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "401": { "description": "signin_required.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "403": { "description": "not_owner.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "404": { "description": "not_found.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "409": { "description": "stale: the record changed since load; reload and re-apply.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "429": { "description": "rate_limited.", "headers": { "Retry-After": { "schema": { "type": "string" } } }, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "503": { "description": "busy.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+          "200": {
+            "description": "Saved (or unchanged: nothing new to commit).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "commit": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "unchanged": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_name or schema validation failure (details array lists each problem).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "signin_required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "not_owner.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "stale: the record changed since load; reload and re-apply.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "busy.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -215,21 +704,127 @@
         "operationId": "releaseName",
         "summary": "Permanently release a name you own",
         "description": "Deletes the record and its DNS. Requires typing the name exactly as the confirm value. Cannot be undone.",
-        "tags": ["names"],
-        "security": [{ "githubSession": ["names:release"] }],
+        "tags": [
+          "names"
+        ],
+        "security": [
+          {
+            "githubSession": [
+              "names:release"
+            ]
+          }
+        ],
         "requestBody": {
           "required": true,
-          "content": { "application/json": { "schema": { "type": "object", "required": ["name", "confirm"], "properties": { "name": { "type": "string" }, "confirm": { "type": "string", "description": "The name, retyped exactly." } } } } }
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "confirm"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "confirm": {
+                    "type": "string",
+                    "description": "The name, retyped exactly."
+                  }
+                }
+              }
+            }
+          }
         },
         "responses": {
-          "200": { "description": "Released.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Message" } } } },
-          "400": { "description": "invalid_name or confirm_mismatch.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "401": { "description": "signin_required.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "403": { "description": "not_owner.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "404": { "description": "not_found.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "409": { "description": "stale.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "429": { "description": "rate_limited.", "headers": { "Retry-After": { "schema": { "type": "string" } } }, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "502": { "description": "network_error or delete_failed.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+          "200": {
+            "description": "Released.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_name or confirm_mismatch.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "signin_required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "not_owner.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "stale.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "network_error or delete_failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -238,21 +833,131 @@
         "operationId": "swapName",
         "summary": "Trade your name for a different one",
         "description": "Releases the old name and creates the new one with every setting carried over (records, subdomains, profile, claim-time country). The old name becomes claimable immediately.",
-        "tags": ["names"],
-        "security": [{ "githubSession": ["names:swap"] }],
+        "tags": [
+          "names"
+        ],
+        "security": [
+          {
+            "githubSession": [
+              "names:swap"
+            ]
+          }
+        ],
         "requestBody": {
           "required": true,
-          "content": { "application/json": { "schema": { "type": "object", "required": ["from", "to", "confirm"], "properties": { "from": { "type": "string" }, "to": { "type": "string" }, "confirm": { "type": "string", "description": "The new name, retyped exactly." } } } } }
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "from",
+                  "to",
+                  "confirm"
+                ],
+                "properties": {
+                  "from": {
+                    "type": "string"
+                  },
+                  "to": {
+                    "type": "string"
+                  },
+                  "confirm": {
+                    "type": "string",
+                    "description": "The new name, retyped exactly."
+                  }
+                }
+              }
+            }
+          }
         },
         "responses": {
-          "200": { "description": "Swapped.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Message" } } } },
-          "400": { "description": "invalid_name, same_name, or confirm_mismatch.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "401": { "description": "signin_required.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "403": { "description": "not_owner or reserved.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "404": { "description": "not_found.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "409": { "description": "taken or stale.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "429": { "description": "rate_limited.", "headers": { "Retry-After": { "schema": { "type": "string" } } }, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "503": { "description": "busy.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+          "200": {
+            "description": "Swapped.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_name, same_name, or confirm_mismatch.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "signin_required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "not_owner or reserved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "taken or stale.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "busy.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -261,16 +966,68 @@
         "operationId": "checkDns",
         "summary": "Live DNS and serving status for a claimed name",
         "description": "Resolves the name's CNAME/A/TXT records live and probes what the wildcard serves. Unauthenticated; rate limited per name. Powers the manage page's verify panel.",
-        "tags": ["diagnostics"],
+        "tags": [
+          "diagnostics"
+        ],
         "security": [],
         "parameters": [
-          { "name": "name", "in": "query", "required": true, "schema": { "type": "string" } }
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
-          "200": { "description": "Live state.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DnsCheckResult" } } } },
-          "400": { "description": "invalid_name.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "404": { "description": "not_found (no record).", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "429": { "description": "rate_limited.", "headers": { "Retry-After": { "schema": { "type": "string" } } }, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+          "200": {
+            "description": "Live state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DnsCheckResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_name.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "not_found (no record).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -279,13 +1036,64 @@
         "operationId": "mintDeployToken",
         "summary": "Mint a sites:publish deploy token",
         "description": "One per request, shown exactly once, 30-day TTL, scoped to the signed-in account's own name. The server stores nothing, so tokens cannot be listed or re-displayed.",
-        "tags": ["hosting"],
-        "security": [{ "githubSession": ["tokens:mint"] }],
+        "tags": [
+          "hosting"
+        ],
+        "security": [
+          {
+            "githubSession": [
+              "tokens:mint"
+            ]
+          }
+        ],
         "responses": {
-          "200": { "description": "Token minted.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/TokenResponse" } } } },
-          "401": { "description": "signin_required.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "429": { "description": "rate_limited.", "headers": { "Retry-After": { "schema": { "type": "string" } } }, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "503": { "description": "not_configured: the server has no token-signing secret.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+          "200": {
+            "description": "Token minted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "signin_required.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "not_configured: the server has no token-signing secret.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -294,24 +1102,114 @@
         "operationId": "deployStaticSite",
         "summary": "Deploy a static site zip to your claimed name",
         "description": "Multipart upload of the BUILT static output. The zip must contain index.html at its root; limits: 10 MB zipped, 100 MB uncompressed, 500 entries, relative paths only, no encrypted entries or duplicate names. Keeps the last 5 deployments. Serving is rolled out separately from upload.",
-        "tags": ["hosting"],
-        "security": [{ "siteToken": ["sites:publish"] }],
+        "tags": [
+          "hosting"
+        ],
+        "security": [
+          {
+            "siteToken": [
+              "sites:publish"
+            ]
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "multipart/form-data": {
-              "schema": { "type": "object", "required": ["site"], "properties": { "site": { "type": "string", "format": "binary", "description": "The built site as a zip archive." } } }
+              "schema": {
+                "type": "object",
+                "required": [
+                  "site"
+                ],
+                "properties": {
+                  "site": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "The built site as a zip archive."
+                  }
+                }
+              }
             }
           }
         },
         "responses": {
-          "200": { "description": "Deployed.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DeployResult" } } } },
-          "400": { "description": "missing_file, invalid_request, invalid_zip (with reason), or no_index_html.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "401": { "description": "missing, malformed, or expired bearer token.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "403": { "description": "token does not cover this name.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "413": { "description": "too_big.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "429": { "description": "rate_limited.", "headers": { "Retry-After": { "schema": { "type": "string" } } }, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "503": { "description": "storage_not_configured or busy.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+          "200": {
+            "description": "Deployed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeployResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "missing_file, invalid_request, invalid_zip (with reason), or no_index_html.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "missing, malformed, or expired bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "token does not cover this name.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "too_big.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "rate_limited.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "storage_not_configured or busy.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -320,12 +1218,47 @@
         "operationId": "listDeployments",
         "summary": "List your static deployments",
         "description": "Newest last; the active deployment id is flagged. Last 5 kept.",
-        "tags": ["hosting"],
-        "security": [{ "siteToken": ["sites:publish"] }],
+        "tags": [
+          "hosting"
+        ],
+        "security": [
+          {
+            "siteToken": [
+              "sites:publish"
+            ]
+          }
+        ],
         "responses": {
-          "200": { "description": "Deployment history.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/DeploymentList" } } } },
-          "401": { "description": "bad or missing bearer token.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "503": { "description": "busy or storage_not_configured.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+          "200": {
+            "description": "Deployment history.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeploymentList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "bad or missing bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "busy or storage_not_configured.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -334,20 +1267,106 @@
         "operationId": "rollbackDeployment",
         "summary": "Roll your name back to a previous deployment",
         "description": "Instant, no re-upload: repoints the name at an existing deployment from the kept history.",
-        "tags": ["hosting"],
-        "security": [{ "siteToken": ["sites:publish"] }],
+        "tags": [
+          "hosting"
+        ],
+        "security": [
+          {
+            "siteToken": [
+              "sites:publish"
+            ]
+          }
+        ],
         "requestBody": {
           "required": true,
-          "content": { "application/json": { "schema": { "type": "object", "required": ["deploymentId"], "properties": { "deploymentId": { "type": "string", "description": "8-hex id from listDeployments." } } } } }
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "deploymentId"
+                ],
+                "properties": {
+                  "deploymentId": {
+                    "type": "string",
+                    "description": "8-hex id from listDeployments."
+                  }
+                }
+              }
+            }
+          }
         },
         "responses": {
-          "200": { "description": "Rolled back.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Message" } } } },
-          "400": { "description": "invalid_deployment_id.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "401": { "description": "bad or missing bearer token.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "404": { "description": "no_site or unknown_deployment.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "409": { "description": "stale.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "503": { "description": "busy or storage_not_configured.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } },
-          "500": { "description": "server_error.", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } } }
+          "200": {
+            "description": "Rolled back.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_deployment_id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "bad or missing bearer token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "no_site or unknown_deployment.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "stale.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "server_error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "busy or storage_not_configured.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -356,16 +1375,69 @@
         "operationId": "mcpJsonRpc",
         "summary": "MCP endpoint (Streamable HTTP JSON-RPC)",
         "description": "Model Context Protocol server, stateless. Initialize with { \"jsonrpc\": \"2.0\", \"id\": 1, \"method\": \"initialize\", \"params\": {} }, then tools/list and tools/call. Tools: check_name (availability), get_record (public registry record). Notifications answer 202; unknown methods answer -32601. No auth: every tool reads public data only.",
-        "tags": ["diagnostics"],
+        "tags": [
+          "diagnostics"
+        ],
         "security": [],
         "requestBody": {
           "required": true,
-          "content": { "application/json": { "schema": { "type": "object", "required": ["jsonrpc", "method"], "properties": { "jsonrpc": { "type": "string", "enum": ["2.0"] }, "id": {}, "method": { "type": "string", "enum": ["initialize", "notifications/initialized", "tools/list", "tools/call"] }, "params": { "type": "object" } } } } }
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "jsonrpc",
+                  "method"
+                ],
+                "properties": {
+                  "jsonrpc": {
+                    "type": "string",
+                    "enum": [
+                      "2.0"
+                    ]
+                  },
+                  "id": {},
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "initialize",
+                      "notifications/initialized",
+                      "tools/list",
+                      "tools/call"
+                    ]
+                  },
+                  "params": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
         },
         "responses": {
-          "200": { "description": "JSON-RPC response envelope.", "content": { "application/json": { "schema": { "type": "object" } } } },
-          "202": { "description": "Notification accepted (no body)." },
-          "400": { "description": "Parse error or invalid request.", "content": { "application/json": { "schema": { "type": "object" } } } }
+          "200": {
+            "description": "JSON-RPC response envelope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Notification accepted (no body)."
+          },
+          "400": {
+            "description": "Parse error or invalid request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
         }
       }
     }

@@ -120,14 +120,16 @@ export default async function Site({ params }) {
           )}
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <a
-                href={`https://${name}.runs-on.dev`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[23px] leading-[1.07] font-normal tracking-[-0.004em] text-(--color-ink) underline decoration-(--color-blue) decoration-2 underline-offset-[6px] sm:text-[34px] sm:tracking-[-0.005em]"
-              >
-                {name}.runs-on.dev
-              </a>
+              <h1 className="min-w-0">
+                <a
+                  href={`https://${name}.runs-on.dev`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[23px] leading-[1.07] font-normal tracking-[-0.004em] text-(--color-ink) underline decoration-(--color-blue) decoration-2 underline-offset-[6px] sm:text-[34px] sm:tracking-[-0.005em]"
+                >
+                  {name}.runs-on.dev
+                </a>
+              </h1>
               <a
                 href="/manage"
                 className="slit-frame [--slit-over:8px] rounded-full px-3 py-1 font-(family-name:--font-mono) text-xs text-(--color-muted) transition-colors hover:text-(--color-ink)"

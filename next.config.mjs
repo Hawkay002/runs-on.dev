@@ -6,6 +6,10 @@ export default {
   async headers() {
     return [
       {
+        source: '/api/:path*',
+        headers: [{ key: 'X-API-Version', value: '1' }],
+      },
+      {
         source: '/:path*',
         headers: [{ key: 'Vary', value: 'Accept, Accept-Encoding, rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch' }],
       },
