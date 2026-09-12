@@ -12,5 +12,12 @@
       "v=spf1 -all",
       "vc-domain-verify=abhay-maheshwari.runs-on.dev,a13a5a332b29406a872"
     ]
+  },
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=abhay-maheshwari.runs-on.dev,a13a5a332b2940b6a872"
+      ]
+    }
   }
 }
