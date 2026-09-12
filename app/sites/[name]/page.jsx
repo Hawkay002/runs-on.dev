@@ -42,7 +42,16 @@ async function fetchRecord(name) {
 export async function generateMetadata({ params }) {
   const { name } = await params;
   const record = await fetchRecord(name);
-  if (!record) return { title: { absolute: 'Not found' }, robots: { index: false } };
+  // An unclaimed wildcard hit is the claim page, not an error: the title
+  // must say what the page says (available, claim it), or agents and link
+  // previews read "Not found" for a 200 page whose whole job is conversion.
+  if (!record) {
+    return {
+      title: { absolute: `${name}.runs-on.dev is available · runs-on.dev` },
+      description: 'This name is not claimed yet. Claim it with GitHub in seconds, free, forever.',
+      robots: { index: false },
+    };
+  }
 
   const profile = await githubProfile(record.owner.github);
   // Field-by-field merge, same as the page below: record.profile wins where
