@@ -5,7 +5,7 @@
   },
   "claimedAt": "2026-09-12T13:08:13.894Z",
   "records": {
-    "CNAME": "api-9s8z.onrender.com"
+    "URL": "https://api-9s8z.onrender.com"
   },
   "subdomains": {
     "api": {
