@@ -1,6 +1,6 @@
 import { signSiteToken, SITE_TOKEN_SCOPE, SITE_TOKEN_TTL_MS } from '../../../lib/tokens.js';
 import { sessionFromRequest } from '../../../lib/session.js';
-import { createRateLimiter } from '../../../lib/throttle.js';
+import { createRateLimiter, rateLimitHeaders } from '../../../lib/throttle.js';
 
 // Minting is a no-op on the registry (the token is stateless), but it should
 // still not be free: a leaned-on button or a stuck loop minting thousands of
@@ -25,7 +25,7 @@ export async function POST(request) {
     const seconds = Math.ceil(budget.retryAfterMs / 1000);
     return Response.json(
       { error: 'rate_limited', retryInMs: budget.retryAfterMs },
-      { status: 429, headers: { 'Retry-After': String(seconds) } },
+      { status: 429, headers: { 'Retry-After': String(seconds), ...rateLimitHeaders(budget) } },
     );
   }
 

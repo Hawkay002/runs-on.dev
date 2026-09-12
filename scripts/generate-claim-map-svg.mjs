@@ -1,0 +1,52 @@
+// Generates public/claim-map.svg: the dot-matrix world map with the claim
+// heat baked in. Serving it as an <img> keeps ~1600 SVG elements out of the
+// homepage's HTML (agents and the content ratio both care), while /stats
+// keeps the interactive DOM version. Regenerate after regenerating
+// claim-geo: node scripts/generate-claim-map-svg.mjs
+import { readFileSync, writeFileSync } from 'node:fs';
+import { DOTMAP } from '../app/components/dotmap-data.js';
+import { CLAIM_GEO } from '../app/components/claim-geo.js';
+
+const PITCH = 10;
+const DOT_R = 2.2;
+const HEAT_R_BASE = DOT_R + 1;
+const COLS = DOTMAP.cols;
+const ROWS = DOTMAP.rows;
+
+// Same projection the map component uses.
+const counts = new Map();
+for (const [lat, lon] of Object.values(CLAIM_GEO)) {
+  const c = Math.min(COLS - 1, Math.max(0, Math.floor(((lon + 180) / 360) * COLS)));
+  const r = Math.min(ROWS - 1, Math.max(0, Math.floor(((84 - lat) / 140) * ROWS.length)));
+  const key = `${c}:${r}`;
+  counts.set(key, (counts.get(key) ?? 0) + 1);
+}
+
+const w = COLS * PITCH;
+const h = ROWS.length * PITCH;
+
+let base = '';
+DOTMAP.rows.forEach((line, r) => {
+  for (let c = 0; c < COLS; c++) {
+    if (line[c] === '1') {
+      base += `<circle cx="${c * PITCH + PITCH / 2}" cy="${r * PITCH + PITCH / 2}" r="${DOT_R}"/>`;
+    }
+  }
+});
+
+let heat = '';
+for (const [key, count] of counts) {
+  const [c, r] = key.split(':').map(Number);
+  const intensity = Math.min(count, 6);
+  heat += `<circle cx="${c * PITCH + PITCH / 2}" cy="${r * PITCH + PITCH / 2}" r="${HEAT_R_BASE + intensity * 0.8}" fill-opacity="${Math.min(0.35 + intensity * 0.11, 0.95).toFixed(2)}"/>`;
+}
+
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" role="img" aria-label="Dot-matrix world map; brighter dots mark where runs-on.dev names are claimed">
+<g fill="#f3f3f3" fill-opacity="0.3">${base}</g>
+<g fill="#4d7cff">${heat}</g>
+</svg>
+`;
+
+writeFileSync('public/claim-map.svg', svg);
+const dots = counts.size;
+console.log(`wrote public/claim-map.svg (${(svg.length / 1024).toFixed(1)} KB, ${dots} heat cells)`);

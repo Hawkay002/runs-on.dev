@@ -2,7 +2,7 @@
 // pure modulo the injected getRecord.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { handleRpc, PROTOCOL_VERSION } from '../lib/mcp.js';
+import { handleRpc, mcpManifest, PROTOCOL_VERSION } from '../lib/mcp.js';
 
 const fakeRecord = { name: 'shovith', owner: { github: 'Hawkay002' }, records: {} };
 const deps = { getRecord: (name) => (name === 'shovith' ? fakeRecord : null) };
@@ -70,4 +70,12 @@ test('unknown tools and methods answer JSON-RPC errors', async () => {
   assert.equal(badTool.error.code, -32602);
   const badMethod = await handleRpc({ jsonrpc: '2.0', id: 9, method: 'resources/list' });
   assert.equal(badMethod.error.code, -32601);
+});
+
+test('the JSON manifest mirrors the live server facts', () => {
+  const m = mcpManifest();
+  assert.equal(m.name, 'runs-on.dev');
+  assert.equal(m.protocolVersion, PROTOCOL_VERSION);
+  assert.equal(m.transport, 'streamable-http (POST JSON-RPC 2.0)');
+  assert.deepEqual(m.tools.map((x) => x.name).sort(), ['check_name', 'get_record']);
 });

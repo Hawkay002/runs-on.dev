@@ -38,3 +38,30 @@ test('the API version policy is published and signaled', () => {
   assert.ok(spec.info.description.includes('Sunset'));
   assert.ok(spec.info.description.includes('/api/v2/'));
 });
+
+test('rate limiter reports the header triple', async () => {
+  const { createRateLimiter, rateLimitHeaders } = await import('../lib/throttle.js');
+  const take = createRateLimiter({ windowMs: 60000, max: 3 });
+  const first = take('k');
+  assert.deepEqual(
+    { limit: first.limit, remaining: first.remaining },
+    { limit: 3, remaining: 2 },
+  );
+  const headers = rateLimitHeaders(first);
+  assert.equal(headers['RateLimit-Limit'], '3');
+  assert.equal(headers['RateLimit-Remaining'], '2');
+  assert.ok(Number(headers['RateLimit-Reset']) > 0);
+
+  // Fill the window: the third take is accepted at zero remaining, the
+  // fourth is the refusal reporting the true zero.
+  take('k');
+  const atZero = take('k');
+  assert.equal(atZero.ok, true);
+  assert.equal(atZero.remaining, 0);
+  const refusal = take('k');
+  assert.equal(refusal.ok, false);
+  const refusalHeaders = rateLimitHeaders(refusal);
+  assert.equal(refusalHeaders['RateLimit-Limit'], '3');
+  assert.equal(refusalHeaders['RateLimit-Remaining'], '0');
+  assert.ok(Number(refusalHeaders['RateLimit-Reset']) > 0);
+});

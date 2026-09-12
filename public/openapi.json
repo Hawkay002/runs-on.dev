@@ -3,7 +3,7 @@
   "info": {
     "title": "runs-on.dev registry API",
     "summary": "Claim free name.runs-on.dev subdomains, manage their DNS records, and deploy static sites to them.",
-    "description": "The public API of the runs-on.dev subdomain registry. Availability checks and record reads are free and unauthenticated. Claiming, editing, releasing, swapping, and deploy-token minting require a GitHub OAuth session (obtained by signing in at https://runs-on.dev with GitHub; the session is a signed HttpOnly cookie). Static-site deployment uses scoped bearer tokens (scope sites:publish) minted self-serve at https://runs-on.dev/manage. All error responses are JSON objects: { \"error\": \"<code>\", \"detail\"?: string, \"retryInMs\"?: number }. Unknown /api/* paths return a JSON 404 in that same shape. VERSIONING: this surface is v1, signaled by the X-API-Version: 1 response header on every /api/* route and by info.version here. Additive changes (new optional fields, new endpoints) do not bump the version. Breaking changes ship under a new /api/v2/* prefix for at least 6 months while the old surface sends Deprecation: true and Sunset: <date> response headers before removal. There are currently no deprecated endpoints.",
+    "description": "The public API of the runs-on.dev subdomain registry. Availability checks and record reads are free and unauthenticated. Claiming, editing, releasing, swapping, and deploy-token minting require a GitHub OAuth session (obtained by signing in at https://runs-on.dev with GitHub; the session is a signed HttpOnly cookie). Static-site deployment uses scoped bearer tokens (scope sites:publish) minted self-serve at https://runs-on.dev/manage. All error responses are JSON objects: { \"error\": \"<code>\", \"detail\"?: string, \"retryInMs\"?: number }. Unknown /api/* paths return a JSON 404 in that same shape. VERSIONING: this surface is v1, signaled by the X-API-Version: 1 response header on every /api/* route and by info.version here. Additive changes (new optional fields, new endpoints) do not bump the version. Breaking changes ship under a new /api/v2/* prefix for at least 6 months while the old surface sends Deprecation: true and Sunset: <date> response headers before removal. There are currently no deprecated endpoints. RATE LIMITING: every limited endpoint answers with RateLimit-Limit, RateLimit-Remaining, and RateLimit-Reset (seconds) headers on both success and 429 responses; 429 additionally carries Retry-After. Self-throttle from these values.",
     "version": "1.0.0",
     "contact": {
       "name": "runs-on.dev abuse and support",
@@ -58,6 +58,25 @@
         "description": "Deploy token minted at /manage or POST /api/tokens. HMAC-signed, shown exactly once, 30-day TTL. Single scope: sites:publish — it can deploy, list, and roll back static deployments for the owning account's name only. No other capability.",
         "scopes": {
           "sites:publish": "Deploy, list, and roll back static site deployments for the owner's claimed name"
+        }
+      },
+      "registryOAuth": {
+        "type": "oauth2",
+        "description": "GitHub OAuth (authorization code, completed by /api/auth/github/callback). The resulting session grants the listed scopes for 24 hours via a signed HttpOnly cookie. sites:publish is not granted directly by the session: mint a rod1 bearer token (POST /api/tokens, scope tokens:mint) to exercise it.",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://runs-on.dev/api/auth/github",
+            "tokenUrl": "https://github.com/login/oauth/access_token",
+            "refreshUrl": "https://runs-on.dev/api/auth/github",
+            "scopes": {
+              "names:claim": "Claim one free subdomain for the signed-in GitHub account",
+              "records:write": "Edit DNS records, subdomains, and the profile of names the account owns",
+              "names:release": "Release the owned name back to the available pool",
+              "names:swap": "Trade the owned name for a different one",
+              "tokens:mint": "Mint 30-day sites:publish deploy tokens",
+              "sites:publish": "Deploy, list, and roll back static site deployments (exercised with the rod1 bearer token from tokens:mint)"
+            }
+          }
         }
       }
     },
@@ -382,6 +401,19 @@
           }
         }
       }
+    },
+    "parameters": {
+      "ApiVersionHeader": {
+        "name": "X-API-Version",
+        "in": "header",
+        "required": false,
+        "description": "API major version. Responses currently carry X-API-Version: 1. Clients may send it to pin expectations; see the versioning policy in info.description (breaking changes move to /api/v2/* with Deprecation and Sunset headers on the old surface).",
+        "schema": {
+          "type": "string",
+          "const": "1"
+        },
+        "example": "1"
+      }
     }
   },
   "paths": {
@@ -405,6 +437,9 @@
               "minLength": 2,
               "maxLength": 32
             }
+          },
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
           }
         ],
         "responses": {
@@ -551,7 +586,12 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          }
+        ]
       }
     },
     "/api/records": {
@@ -696,7 +736,12 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          }
+        ]
       }
     },
     "/api/release": {
@@ -825,7 +870,12 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          }
+        ]
       }
     },
     "/api/swap": {
@@ -958,7 +1008,12 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          }
+        ]
       }
     },
     "/api/dns-check": {
@@ -978,6 +1033,9 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
           }
         ],
         "responses": {
@@ -1094,7 +1152,12 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          }
+        ]
       }
     },
     "/api/sites/deploy": {
@@ -1210,7 +1273,12 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          }
+        ]
       }
     },
     "/api/sites/deployments": {
@@ -1259,7 +1327,12 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          }
+        ]
       }
     },
     "/api/sites/rollback": {
@@ -1367,7 +1440,12 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          }
+        ]
       }
     },
     "/.well-known/mcp": {
@@ -1438,7 +1516,12 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApiVersionHeader"
+          }
+        ]
       }
     }
   }

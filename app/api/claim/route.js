@@ -2,7 +2,7 @@ import { sessionFromRequest } from '../../../lib/session.js';
 import { evaluateClaim } from '../../../lib/claim.js';
 import { putRecord } from '../../../lib/registry.js';
 import { getOwnerIndex, putOwnerIndex } from '../../../lib/owners.js';
-import { createRateLimiter } from '../../../lib/throttle.js';
+import { createRateLimiter, rateLimitHeaders } from '../../../lib/throttle.js';
 
 const TOKEN = () => process.env.REGISTRY_TOKEN;
 
@@ -30,7 +30,7 @@ export async function POST(request) {
       const seconds = Math.ceil(budget.retryAfterMs / 1000);
       return Response.json(
         { error: 'rate_limited', retryInMs: budget.retryAfterMs },
-        { status: 429, headers: { 'Retry-After': String(seconds) } },
+        { status: 429, headers: { 'Retry-After': String(seconds), ...rateLimitHeaders(budget) } },
       );
     }
     try {

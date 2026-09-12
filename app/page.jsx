@@ -4,7 +4,7 @@ import OwnedName from './owned-name.jsx';
 import JsonLd from './components/JsonLd.jsx';
 import { Section, Quote } from './components/Section.jsx';
 import { Divider, StatusBadge } from './components/ui.jsx';
-import ClaimMap from './components/claim-map.jsx';
+import { ContinentChart } from './components/ui.jsx';
 import { CLAIM_GEO, GEO_RESOLVED, GEO_TOTAL } from './components/claim-geo.js';
 import { readSession } from '../lib/session.js';
 import { getOwnerIndex } from '../lib/owners.js';
@@ -31,6 +31,7 @@ const websiteJsonLd = {
       '@type': 'Organization',
       '@id': 'https://advancelabs.dev/#organization',
       name: 'Advance Labs',
+      description: 'Independent software studio; builds and operates the runs-on.dev free subdomain registry.',
       url: 'https://advancelabs.dev',
       logo: 'https://runs-on.dev/icon.svg',
       sameAs: ['https://github.com/zordhalo/runs-on.dev', 'https://advancelabs.dev'],
@@ -51,6 +52,7 @@ const LINKS = [
   { href: '/docs/quickstart', label: 'Quickstart', note: 'claim a name, end to end' },
   { href: '/docs/guides', label: 'Guides', note: 'point it at your own hosting' },
   { href: '/docs/records', label: 'Record reference', note: 'every field, every rule' },
+  { href: '/openapi.json', label: 'API', note: 'OpenAPI spec for programmatic access' },
   { href: '/about', label: 'About', note: 'what this is and is not' },
   { href: '/faq', label: 'FAQ', note: 'straight answers' },
   { href: 'https://github.com/zordhalo/runs-on.dev', label: 'GitHub', note: 'the registry itself', external: true },
@@ -106,9 +108,17 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Full-bleed dot-matrix world map carrying the claim heat, with the
-          continent cards beneath it as the map's filter. */}
-      <ClaimMap heading points={Object.values(CLAIM_GEO)} total={GEO_TOTAL} />
+      {/* Full-bleed dot-matrix world map carrying the claim heat, served as a
+          static image so ~1600 map elements stay out of the page HTML (the
+          interactive spotlight version lives on /stats). */}
+      <img
+        src="/claim-map.svg"
+        alt={`Dot-matrix world map where brighter dots mark claimed runs-on.dev names: ${GEO_RESOLVED} of ${GEO_TOTAL} owners resolved from public GitHub profiles`}
+        className="h-auto w-full"
+      />
+      <div className="mx-auto max-w-[900px] px-6 pt-10 pb-4">
+        <ContinentChart heading points={Object.values(CLAIM_GEO)} total={GEO_TOTAL} />
+      </div>
 
       <div className="mx-auto max-w-[1200px] px-6">
         <Section title="What this is">

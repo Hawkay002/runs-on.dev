@@ -61,3 +61,32 @@ test('every error response documents the shared Error schema', () => {
     }
   }
 });
+
+test('declares an oauth2 flow with machine-readable named scopes', () => {
+  const oauth = spec.components.securitySchemes.registryOAuth;
+  assert.equal(oauth.type, 'oauth2');
+  const scopes = oauth.flows.authorizationCode.scopes;
+  for (const scope of ['names:claim', 'records:write', 'names:release', 'names:swap', 'tokens:mint', 'sites:publish']) {
+    assert.ok(scopes[scope], `missing scope: ${scope}`);
+    assert.ok(scopes[scope].length > 10, `scope ${scope} needs a real description`);
+  }
+  assert.ok(oauth.flows.authorizationCode.authorizationUrl.includes('/api/auth/github'));
+});
+
+test('every operation pins the API version header parameter', () => {
+  for (const methods of Object.values(spec.paths)) {
+    for (const op of Object.values(methods)) {
+      const refs = (op.parameters ?? []).some((p) => p.$ref === '#/components/parameters/ApiVersionHeader');
+      assert.ok(refs, `${op.operationId} is missing the X-API-Version parameter`);
+    }
+  }
+  const param = spec.components.parameters.ApiVersionHeader;
+  assert.equal(param.in, 'header');
+  assert.equal(param.schema.const, '1');
+});
+
+test('documents the rate-limit header convention', () => {
+  assert.ok(spec.info.description.includes('RateLimit-Limit'));
+  assert.ok(spec.info.description.includes('RateLimit-Reset'));
+  assert.ok(spec.info.description.includes('Retry-After'));
+});

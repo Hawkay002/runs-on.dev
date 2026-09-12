@@ -2,7 +2,7 @@ import { sessionFromRequest } from '../../../lib/session.js';
 import { validateName } from '../../../lib/name.js';
 import { getContentsMeta } from '../../../lib/registry.js';
 import { getOwnerIndex, putOwnerIndex } from '../../../lib/owners.js';
-import { createRateLimiter } from '../../../lib/throttle.js';
+import { createRateLimiter, rateLimitHeaders } from '../../../lib/throttle.js';
 
 // Releases a claimed name: deletes domains/<name>.json from the repo,
 // making the name available for anyone to claim again. The sync-dns
@@ -37,7 +37,7 @@ export async function POST(request) {
     const seconds = Math.ceil(budget.retryAfterMs / 1000);
     return Response.json(
       { error: 'rate_limited', retryInMs: budget.retryAfterMs },
-      { status: 429, headers: { 'Retry-After': String(seconds) } },
+      { status: 429, headers: { 'Retry-After': String(seconds), ...rateLimitHeaders(budget) } },
     );
   }
 

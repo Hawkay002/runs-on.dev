@@ -1,4 +1,4 @@
-import { handleRpc, PROTOCOL_VERSION } from '../../../lib/mcp.js';
+import { handleRpc, mcpManifest, PROTOCOL_VERSION } from '../../../lib/mcp.js';
 import { getRecord } from '../../../lib/registry.js';
 
 // MCP over Streamable HTTP, mounted at /.well-known/mcp via a rewrite. All
@@ -57,6 +57,10 @@ h1{font-weight:400;font-size:22px}code{color:#98ff38}a{color:#f3f3f3}hr{border:0
 <p>full spec: <a href="/openapi.json">/openapi.json</a> · agent index: <a href="/llms.txt">/llms.txt</a></p>
 </body></html>`;
 
+// GET has three callers: an MCP client probing for the optional SSE stream
+// (protocol-correct 405 JSON refusal with Allow: POST), a human in a
+// browser (a small live status page at 405 with Allow: POST), and an agent
+// or auditor asking for JSON (a plain-JSON manifest of the server facts).
 export async function GET(request) {
   const accept = request.headers.get('accept') ?? '';
 
@@ -77,8 +81,5 @@ export async function GET(request) {
     });
   }
 
-  return Response.json(
-    { jsonrpc: '2.0', id: null, error: { code: -32601, message: 'GET is not supported; POST JSON-RPC to this endpoint' }, hint: 'POST JSON-RPC 2.0 to this URL; spec at https://runs-on.dev/openapi.json' },
-    { status: 405, headers: { Allow: 'POST' } },
-  );
+  return Response.json(mcpManifest());
 }
