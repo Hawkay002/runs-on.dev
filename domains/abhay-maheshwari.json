@@ -5,6 +5,9 @@
   },
   "claimedAt": "2026-09-12T16:32:30.699Z",
   "records": {
+    "A": [
+      "76.76.21.21"
+    ],
     "TXT": [
       "v=spf1 -all",
       "vc-domain-verify=abhay-maheshwari.runs-on.dev,a13a5a332b29406a872"
