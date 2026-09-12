@@ -5,7 +5,7 @@ import JsonLd from './components/JsonLd.jsx';
 import { Section, Quote } from './components/Section.jsx';
 import { Divider, StatusBadge } from './components/ui.jsx';
 import ClaimMap from './components/claim-map.jsx';
-import { CLAIM_GEO, GEO_TOTAL } from './components/claim-geo.js';
+import { CLAIM_GEO, GEO_RESOLVED, GEO_TOTAL } from './components/claim-geo.js';
 import { readSession } from '../lib/session.js';
 import { getOwnerIndex } from '../lib/owners.js';
 import { getRecord } from '../lib/registry.js';
@@ -32,6 +32,17 @@ const websiteJsonLd = {
       '@id': 'https://advancelabs.dev/#organization',
       name: 'Advance Labs',
       url: 'https://advancelabs.dev',
+      logo: 'https://runs-on.dev/icon.svg',
+      sameAs: ['https://github.com/zordhalo/runs-on.dev', 'https://advancelabs.dev'],
+      contactPoint: [
+        {
+          '@type': 'ContactPoint',
+          email: 'abuse@runs-on.dev',
+          contactType: 'abuse reports and support',
+          url: 'https://runs-on.dev/contact',
+        },
+      ],
+      address: { '@type': 'PostalAddress', addressCountry: 'IN' },
     },
   ],
 };
@@ -80,6 +91,11 @@ export default async function Home() {
           with negative tracking. Centered stack, then the dot-map world below. */}
       <section id="claim" className="mx-auto max-w-[1200px] px-6 pt-20 pb-16 text-center sm:pt-28">
         <StatusBadge tone="live" pulse>Free forever · live in seconds</StatusBadge>
+
+        <p className="mt-5 font-(family-name:--font-mono) text-xs tracking-[0.04em] text-(--color-muted)">
+          {GEO_TOTAL} names claimed · {GEO_RESOLVED} on the public claim map · one per GitHub
+          account · open source
+        </p>
 
         <div className="mt-8 flex justify-center">
           {owned ? (

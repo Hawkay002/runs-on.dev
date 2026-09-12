@@ -7,6 +7,8 @@ const LINKS = [
   { href: '/faq', label: 'FAQ' },
   { href: '/policy', label: 'Policy' },
   { href: '/about', label: 'About' },
+  { href: '/contact', label: 'Contact' },
+  { href: '/privacy', label: 'Privacy' },
   { href: '/manage', label: 'Manage' },
 ];
 

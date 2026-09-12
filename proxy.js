@@ -3,12 +3,27 @@ import { validateName } from './lib/name.js';
 
 const ROOT = 'runs-on.dev';
 
+function prefersMarkdown(request) {
+  const accept = request.headers.get('accept') ?? '';
+  return accept.includes('text/markdown');
+}
+
 export const config = {
   matcher: ['/((?!api|_next|favicon.ico|icon.svg).*)'],
 };
 
 export function proxy(request) {
   const host = (request.headers.get('host') ?? '').split(':')[0];
+
+  // Content negotiation for agents: a request that asks for text/markdown
+  // gets the agent index (the llms.txt content, served as text/markdown
+  // with the correct content-type) instead of HTML, on any page of the
+  // apex site. Claimed-subdomain hosts are untouched below.
+  const apexLike =
+    host === ROOT || host === `www.${ROOT}` || host.endsWith('.vercel.app') || host === 'localhost';
+  if (prefersMarkdown(request) && apexLike) {
+    return NextResponse.rewrite(new URL('/llms-md', request.url));
+  }
 
   // /sites/* is a real, publicly routable path, so refuse it from the outside on
   // every host. An internal rewrite does not re-enter proxy, so cards still render.
