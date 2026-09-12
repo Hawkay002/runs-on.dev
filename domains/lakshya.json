@@ -4,5 +4,12 @@
     "github": "chupkarlakshya"
   },
   "claimedAt": "2026-09-11T19:00:08.009Z",
-  "records": {}
+  "records": {},
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=runs-on.dev,f190d15bda404b20cc0f"
+      ]
+    }
+  }
 }
