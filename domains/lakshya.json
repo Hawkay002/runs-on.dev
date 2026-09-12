@@ -4,10 +4,5 @@
     "github": "chupkarlakshya"
   },
   "claimedAt": "2026-09-11T19:00:08.009Z",
-  "records": {},
-  "subdomains": {
-    "lakshya": {
-      "CNAME": "8aa442dd3601f79a.vercel-dns-017.com"
-    }
-  }
+  "records": {}
 }
