@@ -19,13 +19,25 @@ export async function POST(request) {
     );
   }
 
+  if (Array.isArray(body)) {
+    const replies = await handleBatch(body, { getRecord: (name) => getRecord(name, {}) });
+    return Response.json(replies);
+  }
+
   // Notifications (no id) expect no response body, just acceptance.
   if (!body || typeof body !== 'object' || body.id === undefined || body.id === null) {
-    if (body && typeof body === 'object' && typeof body.method === 'string') {
+    if (body && typeof body === 'object' && body.jsonrpc === '2.0' && typeof body.method === 'string') {
       return new Response(null, { status: 202 });
     }
     return Response.json(
       { jsonrpc: '2.0', id: null, error: { code: -32600, message: 'invalid request' } },
+      { status: 400 },
+    );
+  }
+
+  if (body.jsonrpc !== '2.0') {
+    return Response.json(
+      { jsonrpc: '2.0', id: body.id ?? null, error: { code: -32600, message: 'invalid request: jsonrpc must be "2.0"' } },
       { status: 400 },
     );
   }

@@ -468,19 +468,19 @@ a {
   transform-origin: top center;
 }
 
-@keyframes flapTopIn {
+@keyframes flap-top-in {
   from { transform: rotateX(-90deg); }
   to { transform: rotateX(0deg); }
 }
-@keyframes flapBottomIn {
+@keyframes flap-bottom-in {
   from { transform: rotateX(90deg); }
   to { transform: rotateX(0deg); }
 }
-@keyframes flapTopOut {
+@keyframes flap-top-out {
   from { transform: rotateX(0deg); }
   to { transform: rotateX(-90deg); opacity: 0; }
 }
-@keyframes flapBottomOut {
+@keyframes flap-bottom-out {
   from { transform: rotateX(0deg); }
   to { transform: rotateX(90deg); opacity: 0; }
 }
@@ -488,11 +488,11 @@ a {
 /* Flip in: the bottom half swings up first, the top half follows a beat
    later, so every tile reads as two blades closing on the new image. */
 .flap-in .flap-top {
-  animation: flapTopIn 0.3s ease-out both;
+  animation: flap-top-in 0.3s ease-out both;
   animation-delay: calc(var(--d) + 200ms);
 }
 .flap-in .flap-bottom {
-  animation: flapBottomIn 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.08) both;
+  animation: flap-bottom-in 0.34s cubic-bezier(0.2, 0.9, 0.3, 1.08) both;
   animation-delay: var(--d);
 }
 /* Resting on the artwork: no animation, both halves flat. Without this the
@@ -502,11 +502,11 @@ a {
 }
 /* On the way out the halves peel open and vanish, same stagger. */
 .flap-out .flap-top {
-  animation: flapTopOut 0.3s ease-in both;
+  animation: flap-top-out 0.3s ease-in both;
   animation-delay: var(--d);
 }
 .flap-out .flap-bottom {
-  animation: flapBottomOut 0.3s ease-in both;
+  animation: flap-bottom-out 0.3s ease-in both;
   animation-delay: var(--d);
 }
 
@@ -518,6 +518,17 @@ a {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* Zeroing the duration still leaves the flap stagger delays running (up
+     to 1.4s of blank tiles) and the pulse dot half-faded. Kill both:
+     reduced motion means the swap and the status dot are static. */
+  .flap-half,
+  .pulse-dot {
+    animation: none !important;
+    animation-delay: 0s !important;
+    transform: none !important;
+    opacity: 1;
   }
 }
 

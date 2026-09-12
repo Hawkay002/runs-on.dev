@@ -89,7 +89,7 @@ function Shell({ children }) {
       </h1>
       <p className="mt-4 max-w-[540px] text-[16px] leading-[1.5] text-(--color-muted)">
         Record changes save straight to the registry and DNS follows within seconds. A
-        deploy token publishes a static site to your name without a browser.
+        deploy token uploads a static site to your name without a browser.
       </p>
       <div className="mt-12 space-y-12">{children}</div>
     </main>

@@ -37,7 +37,10 @@ test('declares scoped security schemes (essential for agents)', () => {
   assert.ok(schemes.siteToken, 'deploy token scheme missing');
   assert.ok(schemes.githubSession.description.includes('names:claim'));
   assert.ok(schemes.siteToken.description.includes('sites:publish'));
-  assert.match(schemes.githubSession.scopes['records:write'], /record/i);
+  const oauthScopes = schemes.registryOAuth.flows.authorizationCode.scopes;
+  assert.ok(oauthScopes['records:write'], 'oauth2 flow must name records:write');
+  assert.equal(schemes.githubSession.scopes, undefined, 'scopes live on the oauth2 scheme, not apiKey schemes');
+  assert.equal(schemes.siteToken.scopes, undefined, 'scopes live on the oauth2 scheme, not http schemes');
 });
 
 test('write paths declare their security requirements explicitly', () => {

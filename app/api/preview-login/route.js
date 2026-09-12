@@ -33,6 +33,8 @@ export async function GET(request) {
   const maxAge = Math.floor(SESSION_TTL_MS / 1000);
   const headers = new Headers();
   headers.append('Location', '/manage');
+  // The key rode in on the URL; never leak it onward through Referer.
+  headers.append('Referrer-Policy', 'no-referrer');
   headers.append(
     'Set-Cookie',
     `session=${session}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`,

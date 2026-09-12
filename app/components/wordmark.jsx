@@ -16,6 +16,7 @@ export default function Wordmark() {
   const navTimer = useRef(null);
 
   function onClick(event) {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
     event.preventDefault();
     clearTimeout(navTimer.current);
 

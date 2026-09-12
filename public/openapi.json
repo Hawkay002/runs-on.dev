@@ -42,23 +42,13 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "session",
-        "description": "GitHub OAuth session cookie, minted by the sign-in flow at https://runs-on.dev/api/auth/github (start) and /api/auth/github/callback (completion). Signed HttpOnly cookie, 24-hour TTL. Grants: claim (names:claim), edit own records (records:write), release (names:release), swap (names:swap), mint deploy tokens (tokens:mint). One name per GitHub account.",
-        "scopes": {
-          "names:claim": "Claim one free subdomain with the signed-in GitHub account",
-          "records:write": "Edit the DNS records, subdomains, and profile of a name the account owns",
-          "names:release": "Release the owned name back to the pool",
-          "names:swap": "Trade the owned name for a different one",
-          "tokens:mint": "Mint a 30-day sites:publish deploy token"
-        }
+        "description": "GitHub OAuth session cookie, minted by the sign-in flow at https://runs-on.dev/api/auth/github (start) and /api/auth/github/callback (completion). Signed HttpOnly cookie, 24-hour TTL. Grants: claim (names:claim), edit own records (records:write), release (names:release), swap (names:swap), mint deploy tokens (tokens:mint). One name per GitHub account. Scopes granted: names:claim, records:write, names:release, names:swap, tokens:mint (machine list in components.securitySchemes.registryOAuth and /.well-known/oauth-protected-resource)."
       },
       "siteToken": {
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "rod1",
-        "description": "Deploy token minted at /manage or POST /api/tokens. HMAC-signed, shown exactly once, 30-day TTL. Single scope: sites:publish — it can deploy, list, and roll back static deployments for the owning account's name only. No other capability.",
-        "scopes": {
-          "sites:publish": "Deploy, list, and roll back static site deployments for the owner's claimed name"
-        }
+        "description": "Deploy token minted at /manage or POST /api/tokens. HMAC-signed, shown exactly once, 30-day TTL. Single scope: sites:publish — it can deploy, list, and roll back static deployments for the owning account's name only. No other capability. Scope: sites:publish (machine list in components.securitySchemes.registryOAuth.flows.authorizationCode.scopes and /.well-known/oauth-protected-resource)."
       },
       "registryOAuth": {
         "type": "oauth2",
@@ -291,12 +281,16 @@
                 ]
               },
               "title": {
-                "type": "string",
-                "nullable": true
+                "type": [
+                  "string",
+                  "null"
+                ]
               },
               "finalUrl": {
-                "type": "string",
-                "nullable": true
+                "type": [
+                  "string",
+                  "null"
+                ]
               }
             }
           }
@@ -358,8 +352,10 @@
         ],
         "properties": {
           "active": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "deployments": {
             "type": "array",
@@ -623,13 +619,22 @@
                     "type": "string"
                   },
                   "records": {
-                    "nullable": true
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   },
                   "subdomains": {
-                    "nullable": true
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   },
                   "profile": {
-                    "nullable": true
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   }
                 }
               }
@@ -648,8 +653,10 @@
                       "type": "boolean"
                     },
                     "commit": {
-                      "type": "string",
-                      "nullable": true
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "unchanged": {
                       "type": "boolean"

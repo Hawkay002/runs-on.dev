@@ -102,8 +102,8 @@ async function nominatim(q) {
 // it appears on the profile. Everything still unplaceable after this is a
 // genuine 404 (jokes, IP addresses) and stays off the map.
 const HAND_CHECKED = {
-  'uttrakhand dehradun': [30.3165, 78.0322], // Dehradun, Uttarakhand, India
-  'koh e noor faislabad': [31.4187, 73.0791], // Faisalabad, Punjab, Pakistan
+  'uttrakhand dehradun': { lat: 30.3165, lon: 78.0322 }, // Dehradun, Uttarakhand, India
+  'koh e noor faislabad': { lat: 31.4187, lon: 73.0791 }, // Faisalabad, Punjab, Pakistan
 };
 
 async function geocode(place) {
@@ -147,7 +147,7 @@ for (let i = 0; i < uniqueLogins.length; i++) {
     await sleep(DELAY_MS);
   }
   const hit = geoCache.get(place);
-  if (hit) {
+  if (hit && Number.isFinite(hit.lat) && Number.isFinite(hit.lon)) {
     out[login] = [hit.lat, hit.lon];
     resolved++;
   } else {

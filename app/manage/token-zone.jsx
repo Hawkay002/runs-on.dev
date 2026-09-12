@@ -79,6 +79,7 @@ export default function TokenZone({ login }) {
   const [expiresAt, setExpiresAt] = useState(null);
   const [copied, setCopied] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const [errorCode, setErrorCode] = useState(null);
 
   async function mint() {
     setState('minting');
