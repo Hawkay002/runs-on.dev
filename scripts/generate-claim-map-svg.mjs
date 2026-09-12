@@ -11,19 +11,19 @@ const PITCH = 10;
 const DOT_R = 2.2;
 const HEAT_R_BASE = DOT_R + 1;
 const COLS = DOTMAP.cols;
-const ROWS = DOTMAP.rows;
+const NROWS = DOTMAP.rows.length;
 
 // Same projection the map component uses.
 const counts = new Map();
 for (const [lat, lon] of Object.values(CLAIM_GEO)) {
   const c = Math.min(COLS - 1, Math.max(0, Math.floor(((lon + 180) / 360) * COLS)));
-  const r = Math.min(ROWS - 1, Math.max(0, Math.floor(((84 - lat) / 140) * ROWS.length)));
+  const r = Math.min(NROWS - 1, Math.max(0, Math.floor(((84 - lat) / 140) * NROWS)));
   const key = `${c}:${r}`;
   counts.set(key, (counts.get(key) ?? 0) + 1);
 }
 
 const w = COLS * PITCH;
-const h = ROWS.length * PITCH;
+const h = NROWS * PITCH;
 
 let base = '';
 DOTMAP.rows.forEach((line, r) => {
