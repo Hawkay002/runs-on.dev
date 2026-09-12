@@ -1,33 +1,37 @@
 'use client';
 
+import { useRef } from 'react';
+
 // The wordmark still goes home on a normal click (after a half-second beat,
 // so the click count can settle). Three quick taps inside 1.2 seconds
 // instead flip the claim map into its alternate artwork. It is an easter
 // egg, so it lives on click counting rather than a visible control; pages
-// without a claim map get the normal navigation.
+// without a claim map get the normal navigation. The tap log and the nav
+// timer are refs, not locals: a parent re-render mid-sequence must never
+// reset the count.
 const TRIPLE_TAP_MS = 1200;
 
 export default function Wordmark() {
-  let taps = [];
-  let navTimer = null;
+  const taps = useRef([]);
+  const navTimer = useRef(null);
 
   function onClick(event) {
     event.preventDefault();
-    clearTimeout(navTimer);
+    clearTimeout(navTimer.current);
 
     const now = Date.now();
-    taps = taps.filter((t) => now - t < TRIPLE_TAP_MS);
-    taps.push(now);
+    taps.current = taps.current.filter((t) => now - t < TRIPLE_TAP_MS);
+    taps.current.push(now);
 
-    if (taps.length >= 3) {
-      taps = [];
+    if (taps.current.length >= 3) {
+      taps.current = [];
       if (document.querySelector('[data-claim-map]')) {
         window.dispatchEvent(new CustomEvent('runs-on:flipmap'));
         return;
       }
     }
 
-    navTimer = setTimeout(() => {
+    navTimer.current = setTimeout(() => {
       taps = [];
       window.location.href = '/';
     }, 500);
