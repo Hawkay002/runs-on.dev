@@ -4,7 +4,7 @@ export const metadata = {
   title: 'FAQ',
   description: 'Straight answers about runs-on.dev: is it free, is it a TLD, who owns your name, and what happens if it shuts down.',
   alternates: { canonical: 'https://runs-on.dev/faq' },
-  openGraph: { title: 'FAQ — runs-on.dev' },
+  openGraph: { title: 'FAQ · runs-on.dev' },
 };
 
 const faqs = [
@@ -62,24 +62,24 @@ function slugify(q) {
 
 function FaqEntry({ q, a }) {
   return (
-    <div className="mt-6 border-l-2 border-(--color-rule) py-1 pl-4 first:mt-10">
+    <div className="slit-bar-l mt-8 py-1 pl-5 first:mt-10">
       <p className="font-(family-name:--font-mono) text-[11px] text-(--color-muted) sm:text-xs">
         faq/{slugify(q)}.json
       </p>
-      <h2 className="mt-1.5 font-(family-name:--font-mono) text-xs sm:text-[13px]">
+      <h2 className="mt-2 font-(family-name:--font-mono) text-xs sm:text-[13px]">
         <span className="text-(--color-muted)">&quot;q&quot;:</span>{' '}
         <span className="text-(--color-ink)">&quot;{q}&quot;</span>
       </h2>
-      <p className="mt-2 text-sm leading-relaxed sm:text-base">{a}</p>
+      <p className="mt-3 max-w-[600px] text-sm leading-relaxed text-(--color-ash) sm:text-base">{a}</p>
     </div>
   );
 }
 
 export default function Faq() {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
       <JsonLd data={faqJsonLd} />
-      <h1 className="font-(family-name:--font-display) text-3xl font-medium tracking-tight text-(--color-ink) sm:text-4xl">FAQ</h1>
+      <h1 className="text-[34px] leading-[1.03] font-normal tracking-[-0.005em] text-(--color-ink) sm:text-[44px] sm:tracking-[-0.007em]">FAQ</h1>
 
       {faqs.map((f) => (
         <FaqEntry q={f.q} a={f.a} key={f.q} />

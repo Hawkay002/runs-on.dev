@@ -3,12 +3,15 @@ import ClaimForm from './claim-form.jsx';
 import OwnedName from './owned-name.jsx';
 import JsonLd from './components/JsonLd.jsx';
 import { Section, Quote } from './components/Section.jsx';
+import { Divider, StatusBadge } from './components/ui.jsx';
+import HomeMap from './components/home-map.jsx';
+import { CLAIM_GEO, GEO_RESOLVED, GEO_TOTAL } from './components/claim-geo.js';
 import { readSession } from '../lib/session.js';
 import { getOwnerIndex } from '../lib/owners.js';
 import { getRecord } from '../lib/registry.js';
 
 export const metadata = {
-  title: 'runs-on.dev — free subdomains',
+  title: 'runs-on.dev · free subdomains',
   description: 'Claim your own name.runs-on.dev in seconds. Free, forever.',
   alternates: { canonical: 'https://runs-on.dev' },
 };
@@ -28,10 +31,32 @@ const websiteJsonLd = {
       '@type': 'Organization',
       '@id': 'https://advancelabs.dev/#organization',
       name: 'Advance Labs',
+      description: 'Independent software studio; builds and operates the runs-on.dev free subdomain registry.',
       url: 'https://advancelabs.dev',
+      logo: 'https://runs-on.dev/icon.svg',
+      sameAs: ['https://github.com/zordhalo/runs-on.dev', 'https://advancelabs.dev'],
+      contactPoint: [
+        {
+          '@type': 'ContactPoint',
+          email: 'abuse@runs-on.dev',
+          contactType: 'abuse reports and support',
+          url: 'https://runs-on.dev/contact',
+        },
+      ],
+      address: { '@type': 'PostalAddress', addressCountry: 'IN' },
     },
   ],
 };
+
+const LINKS = [
+  { href: '/docs/quickstart', label: 'Quickstart', note: 'claim a name, end to end' },
+  { href: '/docs/guides', label: 'Guides', note: 'point it at your own hosting' },
+  { href: '/docs/records', label: 'Record reference', note: 'every field, every rule' },
+  { href: '/openapi.json', label: 'API', note: 'OpenAPI spec for programmatic access' },
+  { href: '/about', label: 'About', note: 'what this is and is not' },
+  { href: '/faq', label: 'FAQ', note: 'straight answers' },
+  { href: 'https://github.com/zordhalo/runs-on.dev', label: 'GitHub', note: 'the registry itself', external: true },
+];
 
 // Only for a signed-in visitor: this page is the highest-traffic route on the
 // site and these reads come out of REGISTRY_TOKEN's quota, the same one
@@ -59,62 +84,98 @@ export default async function Home() {
   const owned = await ownedName(session);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-14 sm:py-20">
+    <main>
       <JsonLd data={websiteJsonLd} />
 
-      <h1 className="sr-only">runs-on.dev — a free subdomain registry</h1>
+      <h1 className="sr-only">runs-on.dev · a free subdomain registry</h1>
 
-      <p className="font-(family-name:--font-mono) text-xs tracking-[0.14em] text-(--color-muted) uppercase">
-        A free subdomain registry
-      </p>
+      {/* Hero: the claim line IS the display headline, set at 63px weight 400
+          with negative tracking. Centered stack, then the dot-map world below. */}
+      <section id="claim" className="mx-auto max-w-[1200px] px-6 pt-20 pb-16 text-center sm:pt-28">
+        <StatusBadge tone="live" pulse>Free forever · live in seconds</StatusBadge>
 
-      <div className="mt-3">
-        {owned ? (
-          <OwnedName name={owned.name} record={owned.record} />
-        ) : (
-          <ClaimForm signedIn={Boolean(session)} />
-        )}
-      </div>
-
-      <Section title="What this is">
-        <p className="text-sm leading-relaxed sm:text-base">
-          Claiming a name writes a JSON file to a public repo. That file is the record: it says
-          the name is yours, and it is the only thing that makes <span className="font-(family-name:--font-mono)">*.runs-on.dev</span> resolve.
-          No hidden database, nothing you can't read yourself.
+        <p className="mt-5 font-(family-name:--font-mono) text-xs tracking-[0.04em] text-(--color-muted)">
+          {GEO_TOTAL} names claimed · {GEO_RESOLVED} on the public claim map · one per GitHub
+          account · open source
         </p>
-        <dl className="space-y-1.5 font-(family-name:--font-mono) text-xs sm:text-[13px]">
-          <div>
-            <dt className="inline text-(--color-muted) uppercase tracking-[0.1em]">live —</dt>{' '}
-            <dd className="inline text-(--color-ink)">
-              seconds, with HTTPS, and your own hosting whenever you like via pull request.
-            </dd>
-          </div>
-          <div>
-            <dt className="inline text-(--color-muted) uppercase tracking-[0.1em]">free —</dt>{' '}
-            <dd className="inline text-(--color-ink)">
-              forever. No ads, no tracking, no account beyond the GitHub one you already have.
-            </dd>
-          </div>
-        </dl>
-      </Section>
 
-      <Section title="Important links">
-        <ul className="space-y-1.5 text-sm sm:text-base">
-          <li><a className="text-(--color-signal) underline" href="/docs/quickstart">Quickstart</a></li>
-          <li><a className="text-(--color-signal) underline" href="/docs/guides">Guides: point your name at your own hosting</a></li>
-          <li><a className="text-(--color-signal) underline" href="/about">About runs-on.dev</a></li>
-          <li><a className="text-(--color-signal) underline" href="/faq">FAQ</a></li>
-          <li><a className="text-(--color-signal) underline" href="/policy">Policy</a></li>
-          <li><a className="text-(--color-signal) underline" href="https://github.com/zordhalo/runs-on.dev">Registry on GitHub</a></li>
-        </ul>
-      </Section>
+        <div className="mt-8 flex justify-center">
+          {owned ? (
+            <OwnedName name={owned.name} record={owned.record} />
+          ) : (
+            <ClaimForm signedIn={Boolean(session)} />
+          )}
+        </div>
+      </section>
 
-      <Section title="Report abuse">
-        <Quote>
-          If a subdomain is phishing, impersonating someone, or serving malware, email
-          abuse@runs-on.dev and it will be reclaimed.
-        </Quote>
-      </Section>
+      {/* Full-bleed dot-matrix world map carrying the claim heat. The base
+          world is a static image (keeps ~1600 elements out of the HTML);
+          selecting a continent dims it and spotlights that continent
+          client-side. The split-flap frame keeps the easter egg alive. */}
+      <HomeMap heading />
+
+      <div className="mx-auto max-w-[1200px] px-6">
+        <Section title="What this is">
+          <div className="mx-auto max-w-[600px] text-center">
+            <h2 className="text-[23px] leading-[1.07] font-normal tracking-[-0.005em] text-(--color-ink)">
+              A JSON file in a public repo is the whole registry.
+            </h2>
+            <p className="mt-5 text-[16px] leading-[1.5] text-(--color-muted)">
+              That file says the name is yours, and it is the only thing that makes{' '}
+              <span className="font-(family-name:--font-mono) text-[15px]">*.runs-on.dev</span>{' '}
+              resolve. No hidden database, nothing you can&rsquo;t read yourself.
+            </p>
+            <dl className="mx-auto mt-8 max-w-[440px] space-y-3 text-left font-(family-name:--font-mono) text-[13px]">
+              <div className="slit-top slit-dim pt-3">
+                <dt className="meta mb-1">live</dt>
+                <dd className="text-(--color-ink)">
+                  seconds, with HTTPS, and your own hosting whenever you like via pull request.
+                </dd>
+              </div>
+              <div className="slit-top slit-dim pt-3">
+                <dt className="meta mb-1">free</dt>
+                <dd className="text-(--color-ink)">
+                  forever. No ads, no tracking, no account beyond the GitHub one you already have.
+                </dd>
+              </div>
+              <div className="slit-top slit-dim pt-3">
+                <dt className="meta mb-1">open</dt>
+                <dd className="text-(--color-ink)">
+                  AGPL-3.0, end to end. Every rule, every record, and the whole app are public on GitHub.
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </Section>
+
+        <Section title="Where to go next">
+          {/* Link grid, service-cell style: each cell outlined by its own
+              fading slit (open corners), brightening on hover. */}
+          <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 sm:gap-16 lg:grid-cols-3">
+            {LINKS.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                className="slit-frame group rounded-lg p-6 transition-colors hover:bg-(--color-card)"
+              >
+                <p className="text-[14px] tracking-[0.01em] text-(--color-ink) uppercase transition-colors group-hover:text-(--color-muted)">
+                  {link.label}
+                  <span aria-hidden="true" className="ml-2 text-(--color-muted)">↗</span>
+                </p>
+                <p className="mt-2 text-[14px] leading-relaxed text-(--color-muted)">{link.note}</p>
+              </a>
+            ))}
+          </div>
+        </Section>
+
+        <Section title="Report abuse">
+          <Quote>
+            If a subdomain is phishing, impersonating someone, or serving malware, email
+            abuse@runs-on.dev and it will be reclaimed.
+          </Quote>
+        </Section>
+      </div>
     </main>
   );
 }

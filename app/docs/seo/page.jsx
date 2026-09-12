@@ -6,7 +6,7 @@ export const metadata = {
   description:
     'How search engines treat a runs-on.dev name: why robots.txt and sitemaps are per host, why a URL redirect cannot rank, and which canonical to declare.',
   alternates: { canonical: 'https://runs-on.dev/docs/seo' },
-  openGraph: { title: 'SEO — runs-on.dev' },
+  openGraph: { title: 'SEO · runs-on.dev' },
 };
 
 export default function Seo() {

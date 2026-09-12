@@ -1,11 +1,11 @@
 import { Section, Quote } from '../../components/Section.jsx';
-import { Eyebrow, DocTitle, Lede, DocList } from '../components.jsx';
+import { C, Eyebrow, DocTitle, Lede, DocList } from '../components.jsx';
 
 export const metadata = {
   title: 'Resources',
   description: 'Where to find the runs-on.dev registry, the record schema, how to report abuse, and where the policy lives.',
   alternates: { canonical: 'https://runs-on.dev/docs/resources' },
-  openGraph: { title: 'Resources — runs-on.dev' },
+  openGraph: { title: 'Resources · runs-on.dev' },
 };
 
 export default function Resources() {
@@ -38,6 +38,23 @@ export default function Resources() {
           items={[
             { href: 'https://github.com/zordhalo/runs-on.dev/blob/main/lib/schema.js', label: 'lib/schema.js', note: 'validateRecord, the source of truth' },
             { href: 'https://github.com/zordhalo/runs-on.dev/blob/main/schema/record.schema.json', label: 'schema/record.schema.json', note: 'the JSON Schema mirror' },
+          ]}
+        />
+      </Section>
+
+      <Section title="For machines and agents">
+        <p className="text-sm leading-relaxed sm:text-base">
+          Everything an agent or script needs is a plain file or a JSON endpoint. Send
+        <C>Accept: text/markdown</C> on any page of this site and you get the agent index as
+          markdown instead of HTML.
+        </p>
+        <DocList
+          items={[
+            { href: '/openapi.json', label: '/openapi.json', note: 'the full API spec: every endpoint, typed, with auth scopes' },
+            { href: '/.well-known/mcp', label: '/.well-known/mcp', note: 'MCP server (JSON-RPC): check_name, get_record' },
+            { href: '/llms.txt', label: '/llms.txt', note: 'agent index: when to use this site, how to claim and deploy' },
+            { href: '/sitemap.xml', label: '/sitemap.xml', note: 'every page' },
+            { href: '/docs/records', label: '/docs/records', note: 'the record format the API writes' },
           ]}
         />
       </Section>

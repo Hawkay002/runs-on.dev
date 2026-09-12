@@ -5,18 +5,18 @@ export const metadata = {
   description:
     'runs-on.dev is a free subdomain registry, not a top-level domain. What that means, why it exists, and who runs it.',
   alternates: { canonical: 'https://runs-on.dev/about' },
-  openGraph: { title: 'About — runs-on.dev' },
+  openGraph: { title: 'About · runs-on.dev' },
 };
 
 export default function About() {
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <h1 className="font-(family-name:--font-display) text-3xl font-medium tracking-tight text-(--color-ink) sm:text-4xl">About</h1>
+    <main className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
+      <h1 className="text-[34px] leading-[1.03] font-normal tracking-[-0.005em] text-(--color-ink) sm:text-[44px] sm:tracking-[-0.007em]">About</h1>
 
       <Section title="What this is">
         <p className="text-sm leading-relaxed">
           runs-on.dev gives away subdomains under one domain that Advance Labs registered. Sign
-          in with GitHub, claim a name like <code className="border border-(--color-rule) bg-(--color-card) px-1 py-0.5 font-(family-name:--font-mono) text-(--color-ink)">you.runs-on.dev</code>, and
+          in with GitHub, claim a name like <code className="slit-inline bg-(--color-card) px-1.5 py-0.5 font-(family-name:--font-mono) text-(--color-ash)">you.runs-on.dev</code>, and
           it's live within seconds. No DNS panel, no yearly renewal on your end.
         </p>
       </Section>
@@ -29,8 +29,8 @@ export default function About() {
           distinctive-looking address for a side project.
         </p>
         <Quote>
-          runs-on.dev gets the same feeling, a name that isn't <code className="border border-(--color-rule) bg-(--color-card) px-1 py-0.5 font-(family-name:--font-mono) text-(--color-ink)">vercel.app</code> or
-          <code className="border border-(--color-rule) bg-(--color-card) px-1 py-0.5 font-(family-name:--font-mono) text-(--color-ink)"> github.io</code>, for the price of one domain: about $10 a year. Every
+          runs-on.dev gets the same feeling, a name that isn't <code className="slit-inline bg-(--color-card) px-1.5 py-0.5 font-(family-name:--font-mono) text-(--color-ash)">vercel.app</code> or
+          <code className="slit-inline bg-(--color-card) px-1.5 py-0.5 font-(family-name:--font-mono) text-(--color-ash)"> github.io</code>, for the price of one domain: about $10 a year. Every
           name you claim lives under runs-on.dev, which Advance Labs registered and answers
           for.
         </Quote>

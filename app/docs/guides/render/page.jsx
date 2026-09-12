@@ -5,7 +5,7 @@ export const metadata = {
   title: 'Render',
   description: 'Point name.runs-on.dev at a Render web service with a CNAME record.',
   alternates: { canonical: 'https://runs-on.dev/docs/guides/render' },
-  openGraph: { title: 'Render — runs-on.dev' },
+  openGraph: { title: 'Render · runs-on.dev' },
 };
 
 export default function RenderGuide() {

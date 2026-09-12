@@ -1,7 +1,7 @@
 import { validateName } from '../../../lib/name.js';
 import { isReserved } from '../../../lib/blocklist.js';
 import { getRecord } from '../../../lib/registry.js';
-import { createRateLimiter } from '../../../lib/throttle.js';
+import { createRateLimiter, rateLimitHeaders } from '../../../lib/throttle.js';
 
 // A separate card-read token keeps availability checks off REGISTRY_TOKEN,
 // the same quota /api/claim depends on. Every other read-only route
@@ -34,7 +34,7 @@ export async function GET(request) {
     const seconds = Math.ceil(budget.retryAfterMs / 1000);
     return Response.json(
       { error: 'rate_limited', retryInMs: budget.retryAfterMs },
-      { status: 429, headers: { 'Retry-After': String(seconds) } },
+      { status: 429, headers: { 'Retry-After': String(seconds), ...rateLimitHeaders(budget) } },
     );
   }
 
@@ -50,5 +50,8 @@ export async function GET(request) {
     const code = err.status === 403 || err.status === 429 ? 'busy' : 'check_failed';
     return Response.json({ available: false, code });
   }
-  return Response.json({ available: existing === null, code: existing ? 'taken' : 'available' });
+  return Response.json(
+    { available: existing === null, code: existing ? 'taken' : 'available' },
+    { headers: rateLimitHeaders(budget) },
+  );
 }

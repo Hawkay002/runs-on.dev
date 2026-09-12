@@ -3,6 +3,7 @@ import { getRecord } from '../../../lib/registry.js';
 import { isValidRedirectUrl } from '../../../lib/schema.js';
 import { cardMetadata } from '../../../lib/metadata.js';
 import { REPO_URL } from '../../../lib/repo.js';
+import { StatusBadge } from '../../components/ui.jsx';
 
 // Record freshness, not the GitHub profile's: a name claimed just now must
 // stop serving a cached 404 within seconds, not up to an hour.
@@ -41,7 +42,16 @@ async function fetchRecord(name) {
 export async function generateMetadata({ params }) {
   const { name } = await params;
   const record = await fetchRecord(name);
-  if (!record) return { title: { absolute: 'Not found' }, robots: { index: false } };
+  // An unclaimed wildcard hit is the claim page, not an error: the title
+  // must say what the page says (available, claim it), or agents and link
+  // previews read "Not found" for a 200 page whose whole job is conversion.
+  if (!record) {
+    return {
+      title: { absolute: `${name}.runs-on.dev is available · runs-on.dev` },
+      description: 'This name is not claimed yet. Claim it with GitHub in seconds, free, forever.',
+      robots: { index: false },
+    };
+  }
 
   const profile = await githubProfile(record.owner.github);
   // Field-by-field merge, same as the page below: record.profile wins where
@@ -91,53 +101,57 @@ export default async function Site({ params }) {
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-16 sm:py-24">
-      <p className="font-(family-name:--font-mono) text-xs tracking-[0.14em] text-(--color-muted) uppercase">
+      <p className="font-(family-name:--font-mono) text-xs tracking-[0.08em] text-(--color-muted) uppercase">
         domains/{name}.json
       </p>
 
-      <div className="mt-4 border border-(--color-rule) bg-(--color-card) p-6 sm:p-8">
-        <div className="flex items-center gap-4">
+      <div className="slit-frame mt-5 rounded-lg bg-(--color-card) p-6 sm:p-8">
+        <div className="flex items-center gap-5">
           {profile?.avatar_url && (
-            <img
-              src={profile.avatar_url}
-              alt=""
-              width={56}
-              height={56}
-              className="border border-(--color-rule)"
-            />
+            <span className="slit-frame inline-block shrink-0 rounded-full p-[3px]">
+              <img
+                src={profile.avatar_url}
+                alt=""
+                width={64}
+                height={64}
+                className="rounded-full"
+              />
+            </span>
           )}
-          <div>
-            <div className="flex items-center gap-2">
-              <a
-                href={`https://${name}.runs-on.dev`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-(family-name:--font-display) text-2xl font-medium tracking-tight text-(--color-ink) underline decoration-(--color-muted) underline-offset-4 transition-colors hover:text-(--color-signal) hover:decoration-(--color-signal) sm:text-3xl"
-              >
-                {name}.runs-on.dev
-              </a>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="min-w-0">
+                <a
+                  href={`https://${name}.runs-on.dev`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[23px] leading-[1.07] font-normal tracking-[-0.004em] text-(--color-ink) underline decoration-(--color-blue) decoration-2 underline-offset-[6px] sm:text-[34px] sm:tracking-[-0.005em]"
+                >
+                  {name}.runs-on.dev
+                </a>
+              </h1>
               <a
                 href="/manage"
-                className="flex items-center justify-center border border-(--color-rule) px-2.5 py-1 font-(family-name:--font-mono) text-xs text-(--color-muted) transition-colors hover:border-(--color-signal) hover:text-(--color-signal)"
+                className="slit-frame [--slit-over:8px] rounded-full px-3 py-1 font-(family-name:--font-mono) text-xs text-(--color-muted) transition-colors hover:text-(--color-ink)"
               >
                 manage
               </a>
             </div>
-            {displayName && <p className="text-sm text-(--color-muted)">{displayName}</p>}
+            {displayName && <p className="mt-1.5 text-sm text-(--color-muted)">{displayName}</p>}
           </div>
         </div>
 
-        {bio && <p className="mt-4 text-sm leading-relaxed">{bio}</p>}
+        {bio && <p className="mt-5 max-w-[540px] text-[16px] leading-[1.5] text-(--color-ash)">{bio}</p>}
 
         {links.length > 0 && (
-          <ul className="mt-6 space-y-2">
+          <ul className="mt-6 space-y-12">
             {links.map((link) => (
               <li key={`${link.label}-${link.url}`}>
                 <a
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between border border-(--color-rule) px-4 py-3 font-(family-name:--font-mono) text-sm text-(--color-ink) transition-colors hover:border-(--color-signal)"
+                  className="slit-frame flex items-center justify-between rounded-lg px-4 py-3 font-(family-name:--font-mono) text-sm text-(--color-ink) transition-colors"
                 >
                   <span className="truncate">{link.label}</span>
                   <span aria-hidden className="ml-3 shrink-0 text-(--color-muted)">↗</span>
@@ -147,12 +161,12 @@ export default async function Site({ params }) {
           </ul>
         )}
 
-        <dl className="mt-6 space-y-1 border-t border-(--color-rule) pt-4 font-(family-name:--font-mono) text-xs sm:text-[13px]">
-          <div className="flex gap-2">
+        <dl className="slit-top mt-8 space-y-1.5 pt-5 font-(family-name:--font-mono) text-xs sm:text-[13px]">
+          <div className="flex gap-4">
             <dt className="w-24 shrink-0 text-(--color-muted)">owner</dt>
             <dd>
               <a
-                className="text-(--color-signal) underline"
+                className="text-(--color-ink) underline"
                 href={`https://github.com/${record.owner.github}`}
               >
                 @{record.owner.github}
@@ -160,7 +174,7 @@ export default async function Site({ params }) {
             </dd>
           </div>
           {record.claimedAt && (
-            <div className="flex gap-2">
+            <div className="flex gap-4">
               <dt className="w-24 shrink-0 text-(--color-muted)">claimedAt</dt>
               <dd className="text-(--color-ink)">{record.claimedAt}</dd>
             </div>
@@ -169,11 +183,11 @@ export default async function Site({ params }) {
               on <name>.runs-on.dev hosts, where a relative /banner/<name>
               would be rewritten by proxy.js into /sites/<name>/banner/... and
               404. The banner route lives on runs-on.dev itself. */}
-          <div className="flex gap-2">
+          <div className="flex gap-4">
             <dt className="w-24 shrink-0 text-(--color-muted)">share</dt>
-            <dd>
+            <dd className="text-(--color-muted)">
               <a
-                className="text-(--color-signal) underline"
+                className="text-(--color-ink) underline"
                 href={`https://runs-on.dev/banner/${name}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -182,7 +196,7 @@ export default async function Site({ params }) {
               </a>
               {' / '}
               <a
-                className="text-(--color-signal) underline"
+                className="text-(--color-ink) underline"
                 href={`https://runs-on.dev/banner/${name}?theme=dark`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -196,7 +210,7 @@ export default async function Site({ params }) {
 
       <p className="mt-6 text-sm text-(--color-muted)">
         This name is registered on{' '}
-        <a className="text-(--color-signal) underline" href="https://runs-on.dev">
+        <a className="text-(--color-ink) underline" href="https://runs-on.dev">
           runs-on.dev
         </a>
         . Claim your own.
@@ -205,7 +219,7 @@ export default async function Site({ params }) {
       <p className="mt-2 font-(family-name:--font-mono) text-xs text-(--color-muted)">
         The record above is{' '}
         <a
-          className="text-(--color-signal) underline"
+          className="text-(--color-ink) underline"
           href={`${REPO_URL}/blob/main/domains/${name}.json`}
           target="_blank"
           rel="noopener noreferrer"
@@ -214,7 +228,7 @@ export default async function Site({ params }) {
         </a>
         , in a public repo you can read without asking anyone.{' '}
         <a
-          className="text-(--color-signal) underline"
+          className="text-(--color-ink) underline"
           href={REPO_URL}
           target="_blank"
           rel="noopener noreferrer"
@@ -279,33 +293,26 @@ async function ClaimPage({ name }) {
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col items-center px-6 py-24 text-center">
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 font-(family-name:--font-mono) text-xs font-semibold uppercase tracking-wide text-green-600">
-        <span className="inline-block h-1.5 w-1.5 rounded-full bg-green-500" />
-        Available
-      </span>
+      <StatusBadge tone="live" pulse>Available</StatusBadge>
 
-      <h1 className="mt-6 font-(family-name:--font-display) text-3xl font-medium tracking-tight text-(--color-ink) sm:text-4xl">
+      <h1 className="mt-7 text-[34px] leading-[1.03] font-normal tracking-[-0.005em] text-(--color-ink) sm:text-[44px] sm:tracking-[-0.007em]">
         {name}.runs-on.dev
       </h1>
 
-      <p className="mt-3 max-w-md text-sm leading-relaxed text-(--color-muted)">
+      <p className="mt-4 max-w-md text-[16px] leading-[1.5] text-(--color-muted)">
         This name isn&rsquo;t claimed yet. It could be yours in seconds, free, forever.
       </p>
 
       <a
         href={`/api/auth/github?claim=${encodeURIComponent(name)}`}
-        className="mt-6 inline-block border px-6 py-3 font-(family-name:--font-mono) text-sm transition-opacity hover:opacity-90"
-        style={{
-          borderColor: 'var(--color-signal)',
-          background: 'var(--color-signal)',
-          color: 'var(--color-paper)',
-        }}
+        className="btn-pill mt-8"
       >
-        Sign in with GitHub to claim {name}.runs-on.dev →
+        Claim {name}.runs-on.dev
+        <span aria-hidden="true">→</span>
       </a>
 
       {suggestions.length > 0 && (
-        <div className="mt-10 border-t border-(--color-rule) pt-6">
+        <div className="slit-top mt-12 w-full max-w-sm pt-7">
           <p className="font-(family-name:--font-mono) text-xs text-(--color-muted)">
             did you mean…
           </p>
@@ -314,7 +321,7 @@ async function ClaimPage({ name }) {
               <li key={s}>
                 <a
                   href={`https://${s}.runs-on.dev`}
-                  className="font-(family-name:--font-mono) text-sm text-(--color-signal) underline"
+                  className="font-(family-name:--font-mono) text-sm text-(--color-ink) underline"
                 >
                   {s}.runs-on.dev
                 </a>
@@ -324,13 +331,13 @@ async function ClaimPage({ name }) {
         </div>
       )}
 
-      <p className="mt-10 font-(family-name:--font-mono) text-xs text-(--color-muted)">
-        <a className="text-(--color-signal) underline" href="https://runs-on.dev">
+      <p className="mt-12 font-(family-name:--font-mono) text-xs text-(--color-muted)">
+        <a className="text-(--color-ink) underline" href="https://runs-on.dev">
           runs-on.dev
         </a>{' '}
-        — every name here is a file in a{' '}
+        · every name here is a file in a{' '}
         <a
-          className="text-(--color-signal) underline"
+          className="text-(--color-ink) underline"
           href={REPO_URL}
           target="_blank"
           rel="noopener noreferrer"
