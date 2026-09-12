@@ -32,7 +32,7 @@ export default function Wordmark() {
     }
 
     navTimer.current = setTimeout(() => {
-      taps = [];
+      taps.current = [];
       window.location.href = '/';
     }, 500);
   }
