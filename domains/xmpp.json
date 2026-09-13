@@ -15,6 +15,9 @@
     },
     "pubsub": {
       "CNAME": "xmpp.runs-on.dev"
+    },
+    "irc": {
+      "CNAME": "xmpp.runs-on.dev"
     }
   }
 }

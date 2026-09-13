@@ -9,11 +9,19 @@
   },
   "profile": {
     "name": "Lesley Mutsambiwa",
-    "bio": "👋 Hey there! I'm Lesley Mutsambiwa, a passionate full-stack developer in the making. I love building clean, functional, and user-friendly applications.",
+    "bio": "Designer & Developer — I craft brand identities, visual design, and full-stack applications, from concept to shipped product. Building from Harare, Zimbabwe.",
     "links": [
       {
-        "label": "My Portfolio",
-        "url": "https://le-e-lab.github.io/portfolio/"
+        "label": "Portfolio",
+        "url": "https://lesley.runs-on.dev/"
+      },
+      {
+        "label": "GitHub",
+        "url": "https://github.com/Le-e-lab"
+      },
+      {
+        "label": "LinkedIn",
+        "url": "https://www.linkedin.com/in/lesley-mutsambiwa/"
       }
     ]
   }
