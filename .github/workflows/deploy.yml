@@ -26,9 +26,10 @@ on:
     # evidence, not application code, and a burst of spam should not spend
     # the deploy budget. `sites/**` is registry data too (hosted-site
     # pointers, written per deploy), so it never triggers a build either.
-    paths-ignore: ['domains/**', 'owners/**', 'data/**', 'docs/**', '.moderation/**', 'sites/**', '*.md']
+    paths-ignore: ['domains/**', 'owners/**', 'data/**', 'docs/**', '.moderation/**', 'sites/**', '*.md', '!content/**']
   schedule:
-    # Daily at 04:00 UTC, off the top of the hour so it doesn't co-fire with
+    # Daily at 04:00 UTC (blog content changes always deploy: content/** is
+    # un-ignored below, so a new post ships without waiting for the next day), off the top of the hour so it doesn't co-fire with
     # the health check. Rebuilds /stats from the current state of domains/.
     - cron: '0 4 * * *'
   workflow_dispatch:

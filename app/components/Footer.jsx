@@ -2,6 +2,7 @@ import { REPO_URL } from '../../lib/repo.js';
 import { getStarCount } from '../../lib/stars.js';
 
 const LINKS = [
+  { href: '/blog', label: 'Blog' },
   { href: '/docs', label: 'Docs' },
   { href: '/stats', label: 'Stats' },
   { href: '/faq', label: 'FAQ' },
@@ -10,6 +11,7 @@ const LINKS = [
   { href: '/contact', label: 'Contact' },
   { href: '/privacy', label: 'Privacy' },
   { href: '/manage', label: 'Manage' },
+  { href: '/feed.xml', label: 'RSS' },
 ];
 
 export default async function Footer() {

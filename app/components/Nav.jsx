@@ -4,6 +4,7 @@
 import Wordmark from './wordmark.jsx';
 
 const LINKS = [
+  { href: '/blog', label: 'Blog' },
   { href: '/docs', label: 'Docs' },
   { href: '/stats', label: 'Stats' },
   { href: '/faq', label: 'FAQ' },
