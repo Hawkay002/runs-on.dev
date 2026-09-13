@@ -35,12 +35,21 @@ export function GrowthChart({ series }) {
         role="img"
         aria-label={`Cumulative names claimed, ${first} to ${last}, ending at ${max}`}
       >
+        <defs>
+          {/* The baseline is a slit too: light that fades out at both ends. */}
+          <linearGradient id="growth-axis" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stopColor="#f3f3f3" stopOpacity="0" />
+            <stop offset="0.18" stopColor="#f3f3f3" stopOpacity="0.35" />
+            <stop offset="0.82" stopColor="#f3f3f3" stopOpacity="0.35" />
+            <stop offset="1" stopColor="#f3f3f3" stopOpacity="0" />
+          </linearGradient>
+        </defs>
         <line
           x1={PAD}
           y1={H - PAD}
           x2={W - PAD}
           y2={H - PAD}
-          stroke="var(--rule)"
+          stroke="url(#growth-axis)"
           strokeWidth="1"
         />
         <path d={area} fill="var(--signal)" fillOpacity="0.08" />

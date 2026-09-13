@@ -3,7 +3,7 @@ import { validateName } from '../../../lib/name.js';
 import { isReserved } from '../../../lib/blocklist.js';
 import { getRecord, getContentsMeta, putRecord } from '../../../lib/registry.js';
 import { getOwnerIndex, putOwnerIndex } from '../../../lib/owners.js';
-import { createRateLimiter } from '../../../lib/throttle.js';
+import { createRateLimiter, rateLimitHeaders } from '../../../lib/throttle.js';
 
 // Swaps the user's claimed name for a new one. Releases the old name
 // FIRST, then creates the new record with everything carried over
@@ -47,7 +47,7 @@ export async function POST(request) {
     const seconds = Math.ceil(budget.retryAfterMs / 1000);
     return Response.json(
       { error: 'rate_limited', retryInMs: budget.retryAfterMs },
-      { status: 429, headers: { 'Retry-After': String(seconds) } },
+      { status: 429, headers: { 'Retry-After': String(seconds), ...rateLimitHeaders(budget) } },
     );
   }
 
@@ -101,6 +101,12 @@ export async function POST(request) {
   // Copy profile
   if (meta.data.profile) {
     newRecord.profile = meta.data.profile;
+  }
+
+  // Carry the claim-time country over: it describes the owner at the moment
+  // of their claim, and a swap changes the name, not the person.
+  if (typeof meta.data.country === 'string' && /^[A-Z]{2}$/.test(meta.data.country)) {
+    newRecord.country = meta.data.country;
   }
 
   // Step 1: Release the old record first (SHA from our read, so if anything

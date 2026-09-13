@@ -5,7 +5,7 @@ export const metadata = {
   title: 'Bluesky handle',
   description: 'Use you.runs-on.dev as a verified Bluesky handle with an _atproto TXT subdomain.',
   alternates: { canonical: 'https://runs-on.dev/docs/guides/bluesky-handle' },
-  openGraph: { title: 'Bluesky handle — runs-on.dev' },
+  openGraph: { title: 'Bluesky handle · runs-on.dev' },
 };
 
 export default function BlueskyHandleGuide() {

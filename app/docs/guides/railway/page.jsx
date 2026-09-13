@@ -5,7 +5,7 @@ export const metadata = {
   title: 'Railway',
   description: 'Point name.runs-on.dev at a Railway service with a CNAME record, and the one case our schema cannot express.',
   alternates: { canonical: 'https://runs-on.dev/docs/guides/railway' },
-  openGraph: { title: 'Railway — runs-on.dev' },
+  openGraph: { title: 'Railway · runs-on.dev' },
 };
 
 export default function RailwayGuide() {

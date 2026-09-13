@@ -5,7 +5,7 @@ export const metadata = {
   title: 'Guides',
   description: 'Copy-paste walkthroughs for pointing a runs-on.dev name at a host, email forwarding, or a social verification record.',
   alternates: { canonical: 'https://runs-on.dev/docs/guides' },
-  openGraph: { title: 'Guides — runs-on.dev' },
+  openGraph: { title: 'Guides · runs-on.dev' },
 };
 
 export default function Guides() {

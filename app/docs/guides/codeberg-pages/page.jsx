@@ -5,7 +5,7 @@ export const metadata = {
   title: 'Codeberg Pages',
   description: 'Point name.runs-on.dev at a Codeberg Pages site with a CNAME record.',
   alternates: { canonical: 'https://runs-on.dev/docs/guides/codeberg-pages' },
-  openGraph: { title: 'Codeberg Pages — runs-on.dev' },
+  openGraph: { title: 'Codeberg Pages · runs-on.dev' },
 };
 
 export default function CodebergPagesGuide() {

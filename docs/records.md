@@ -35,6 +35,15 @@ request — go through it.
 An ISO 8601 timestamp, set once when the name is claimed. Also immutable,
 by either path.
 
+### `country`
+
+Optional. An ISO 3166-1 alpha-2 code (`"IN"`, `"US"`), recorded
+automatically at the moment of the claim from the request's edge-inferred
+country. It is never entered by hand, never more precise than a country,
+and exists only for the aggregate claim map on the stats page; malformed
+values are dropped rather than repaired. Carried over unchanged by a name
+swap, and left alone by record edits.
+
 ### `records`
 
 An object holding zero or more record types. An empty `records` object is

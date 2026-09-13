@@ -5,7 +5,7 @@ export const metadata = {
   title: 'Firebase Hosting',
   description: 'Point name.runs-on.dev at a Firebase Hosting site with an A record.',
   alternates: { canonical: 'https://runs-on.dev/docs/guides/firebase' },
-  openGraph: { title: 'Firebase Hosting — runs-on.dev' },
+  openGraph: { title: 'Firebase Hosting · runs-on.dev' },
 };
 
 export default function FirebaseGuide() {

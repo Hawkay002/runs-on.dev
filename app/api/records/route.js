@@ -1,6 +1,6 @@
 import { sessionFromRequest } from '../../../lib/session.js';
 import { validateEdit, isUnchanged } from '../../../lib/edit.js';
-import { createRateLimiter } from '../../../lib/throttle.js';
+import { createRateLimiter, rateLimitHeaders } from '../../../lib/throttle.js';
 import { getContentsMeta, putRecordUpdate } from '../../../lib/registry.js';
 import { validateName } from '../../../lib/name.js';
 
@@ -43,7 +43,7 @@ export async function POST(request) {
     const seconds = Math.ceil(budget.retryAfterMs / 1000);
     return Response.json(
       { error: 'rate_limited', retryInMs: budget.retryAfterMs },
-      { status: 429, headers: { 'Retry-After': String(seconds) } },
+      { status: 429, headers: { 'Retry-After': String(seconds), ...rateLimitHeaders(budget) } },
     );
   }
 

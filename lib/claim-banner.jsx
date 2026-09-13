@@ -16,18 +16,18 @@ export const BANNER_SIZE = { width: 1200, height: 630 };
 
 const THEMES = {
   light: {
-    ground: '#F4F5F3',
-    muted: '#5E6668',
-    ink: '#14181B',
-    rule: '#D8DBD7',
-    signal: '#1B4DFF',
+    ground: '#101010',
+    muted: '#9C9C9C',
+    ink: '#F3F3F3',
+    rule: '#212121',
+    signal: '#F3F3F3',
   },
   dark: {
-    ground: '#18140F',
-    muted: '#A89C89',
-    ink: '#EFE7D9',
-    rule: '#3A342B',
-    signal: '#8399FF',
+    ground: '#080808',
+    muted: '#9C9C9C',
+    ink: '#F3F3F3',
+    rule: '#212121',
+    signal: '#8A8172',
   },
 };
 
@@ -129,9 +129,9 @@ export function ClaimBanner({ name, login, displayName, bio, claimedYear, avatar
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <span style={{ fontSize: 88, fontWeight: 600, color: t.ink, display: 'flex' }}>
+        <span style={{ fontSize: 88, fontWeight: 400, letterSpacing: -1, color: t.ink, display: 'flex' }}>
           {name}
-          <span style={{ fontSize: 88, fontWeight: 600, color: t.muted, display: 'flex' }}>.runs-on.dev</span>
+          <span style={{ fontSize: 88, fontWeight: 400, letterSpacing: -1, color: t.muted, display: 'flex' }}>.runs-on.dev</span>
         </span>
         {bio ? (
           <span style={{ fontSize: 26, color: t.muted, marginTop: 20, display: 'flex', maxWidth: 900 }}>
