@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getPost, publishedPosts, BLOG_POSTS } from '../../../lib/blog.js';
+import { getPost, publishedPosts } from '../../../lib/blog.js';
 
 export const dynamic = 'force-static';
 
@@ -11,6 +11,12 @@ export async function generateMetadata({ params }) {
   const { slug } = await params;
   const post = getPost(slug);
   if (!post) return { title: 'Not found' };
+
+  // Optional featured media from frontmatter, absolute-ized for crawlers.
+  const media = {};
+  if (post.image) media.images = [{ url: new URL(post.image, 'https://runs-on.dev').toString() }];
+  if (post.video) media.videos = [{ url: new URL(post.video, 'https://runs-on.dev').toString() }];
+
   return {
     title: post.title,
     description: post.description,
@@ -23,8 +29,14 @@ export async function generateMetadata({ params }) {
       modifiedTime: post.updated ?? post.date,
       authors: [post.author],
       tags: post.tags,
+      ...media,
     },
-    twitter: { card: 'summary', title: post.title, description: post.description },
+    twitter: {
+      card: post.image ? 'summary_large_image' : 'summary',
+      title: post.title,
+      description: post.description,
+      images: media.images,
+    },
   };
 }
 
@@ -33,8 +45,6 @@ const CATEGORY_LABEL = { announcement: 'Announcement', feature: 'Feature', engin
 export default async function BlogPost({ params }) {
   const { slug } = await params;
   const post = getPost(slug);
-  // eslint-disable-next-line no-console
-  console.log('[blog-debug]', JSON.stringify({ slug, found: Boolean(post), slugs: BLOG_POSTS.map((x) => x.slug).slice(0, 3) }));
   if (!post) notFound();
 
   const html = post.html;
@@ -69,6 +79,22 @@ export default async function BlogPost({ params }) {
         by {post.author} · published {date}
         {updated && ` · updated ${new Date(updated).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`}
       </p>
+
+      {post.image && (
+        <img
+          src={post.image}
+          alt={post.title}
+          className="mt-8 w-full rounded-lg border border-(--color-rule)"
+        />
+      )}
+      {post.video && (
+        <video
+          src={post.video}
+          controls
+          preload="metadata"
+          className="mt-8 w-full rounded-lg border border-(--color-rule)"
+        />
+      )}
 
       <article
         className="post-prose mt-10"

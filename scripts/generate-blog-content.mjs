@@ -13,6 +13,9 @@ import { marked } from 'marked';
 const DIR = 'content/blog';
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+// Optional media must be a root-relative path (file committed under
+// public/blog-media/) or an absolute https URL.
+const MEDIA_PATH = /^\/|https:\/\//;
 
 function loadPosts() {
   if (!existsSync(DIR)) return [];
@@ -26,6 +29,14 @@ function loadPosts() {
     for (const field of ['date', 'updated']) {
       if (d[field] instanceof Date) d[field] = d[field].toISOString().slice(0, 10);
     }
+    // Optional media: warn-and-drop on malformed values rather than failing
+    // the whole content build.
+    for (const field of ['image', 'video']) {
+      if (d[field] !== undefined && (typeof d[field] !== 'string' || !(d[field].startsWith('/') || d[field].startsWith('https://')))) {
+        console.warn(`[${file}] ignoring malformed ${field}: must be a root-relative path or an https URL`);
+        delete d[field];
+      }
+    }
     posts.push({
       slug,
       title: d.title ?? '',
@@ -36,6 +47,8 @@ function loadPosts() {
       category: d.category ?? '',
       tags: Array.isArray(d.tags) ? d.tags : [],
       status: d.status ?? 'published',
+      image: d.image ?? null,
+      video: d.video ?? null,
       html: marked.parse(content.trim(), { async: false, gfm: true }),
     });
   }

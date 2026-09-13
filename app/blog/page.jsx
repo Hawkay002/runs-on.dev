@@ -16,6 +16,13 @@ function PostRow({ post }) {
   return (
     <li className="slit-top slit-dim first:border-t-0">
       <a href={`/blog/${post.slug}`} className="group block py-6 no-underline">
+        {post.image && (
+          <img
+            src={post.image}
+            alt=""
+            className="mb-4 aspect-video w-full rounded-lg border border-(--color-rule) object-cover"
+          />
+        )}
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <h2 className="text-[23px] leading-[1.07] font-normal tracking-[-0.004em] text-(--color-ink) underline decoration-(--color-iron) decoration-1 underline-offset-[5px] transition-colors group-hover:decoration-(--color-blue)">
             {post.title}
@@ -28,6 +35,7 @@ function PostRow({ post }) {
         <p className="meta mt-3">
           {CATEGORY_LABEL[post.category] ?? post.category}
           {post.tags.length > 0 && <span className="normal-case"> · {post.tags.join(' · ')}</span>}
+          {post.video && <span className="ml-2 text-(--color-blue)">video</span>}
         </p>
       </a>
     </li>

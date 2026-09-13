@@ -18,6 +18,7 @@ export function GET() {
       <pubDate>${new Date(p.date).toUTCString()}</pubDate>
       <description>${escapeXml(p.description)}</description>
       <category>${escapeXml(p.category)}</category>
+      ${p.image ? `<enclosure url="https://runs-on.dev${escapeXml(p.image)}" type="${p.image.endsWith('.png') ? 'image/png' : p.image.endsWith('.webp') ? 'image/webp' : 'image/jpeg'}" />` : ''}
     </item>`,
     )
     .join('\n');

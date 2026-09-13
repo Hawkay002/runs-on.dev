@@ -32,3 +32,14 @@ test('unknown, invalid, and draft slugs resolve to null', () => {
     assert.equal(getPost(slug), null, slug);
   }
 });
+
+test('the redesign post carries its featured cover', () => {
+  const post = getPost('2026-09-12-a-new-look-for-runs-on-dev');
+  assert.equal(post.image, '/blog-media/redesign-cover.png');
+});
+
+
+test('the redesign post carries its featured cover', () => {
+  const post = getPost('2026-09-12-a-new-look-for-runs-on-dev');
+  assert.equal(post.image, '/blog-media/redesign-cover.png');
+});

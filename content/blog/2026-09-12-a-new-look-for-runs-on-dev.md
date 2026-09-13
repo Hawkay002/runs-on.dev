@@ -5,6 +5,7 @@ date: "2026-09-12"
 author: "Advance Labs"
 category: "announcement"
 tags: ["redesign", "design"]
+image: /blog-media/redesign-cover.png
 status: "published"
 ---
 
