@@ -7,5 +7,12 @@
   "records": {
     "CNAME": "4b4c33e68e0affe4.vercel-dns-017.com"
   },
-  "country": "IN"
+  "country": "IN",
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=vashisht.runs-on.dev,853c73b8225198a594c4"
+      ]
+    }
+  }
 }
