@@ -4,6 +4,13 @@
     "github": "ln-tc999"
   },
   "claimedAt": "2026-09-18T15:02:07.231Z",
-  "records": {},
+  "records": {
+    "A": [
+      "76.76.21.21"
+    ],
+    "TXT": [
+      "_vercel"
+    ]
+  },
   "country": "ID"
 }
