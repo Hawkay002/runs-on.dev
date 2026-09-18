@@ -4,7 +4,9 @@
     "github": "Jstarzz"
   },
   "claimedAt": "2026-09-18T16:52:22.203Z",
-  "records": {},
+  "records": {
+    "CNAME": "jstarzz.github.io"
+  },
   "country": "KN",
   "profile": {
     "name": "Jstarzz",
