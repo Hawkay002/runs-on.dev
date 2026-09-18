@@ -4,6 +4,8 @@
     "github": "MaleakhiNymmo"
   },
   "claimedAt": "2026-09-18T13:26:02.634Z",
-  "records": {},
+  "records": {
+    "CNAME": "09bd37d18a375e94.vercel-dns-017.com"
+  },
   "country": "ID"
 }
