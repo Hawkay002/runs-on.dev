@@ -4,6 +4,10 @@
     "github": "MaleakhiNymmo"
   },
   "claimedAt": "2026-09-18T13:26:02.634Z",
-  "records": {},
+  "records": {
+    "TXT": [
+      "vc-domain-verify=nymmo.runs-on.dev,b1bda5a00a13facf3bba"
+    ]
+  },
   "country": "ID"
 }
