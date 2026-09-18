@@ -1,4 +1,5 @@
 import { readFile, readdir, appendFile } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
 import {
   planDnsChanges,
   planZoneVerificationRecords,
@@ -12,6 +13,7 @@ import {
   ZONE_VERIFICATION_LABEL,
   formatApiError,
   syncEach,
+  planSweep,
 } from '../lib/dns.js';
 
 const DOMAIN = 'runs-on.dev';
@@ -133,11 +135,11 @@ async function rollback(deleted) {
 // Returns false when the name could not be synced. A rejected delete stops
 // the name there: creating the new records anyway would leave the stale
 // ones live alongside them.
-async function reconcile(name, desired) {
+async function reconcile(name, desired, { quiet = false } = {}) {
   const existing = await existingFor(name);
   const { unchanged, remove, create } = reconcileDnsRecords(existing, desired);
 
-  if (unchanged.length > 0) {
+  if (unchanged.length > 0 && !quiet) {
     console.log(`${name}: ${unchanged.length} record(s) unchanged, not touched`);
   }
 
@@ -158,7 +160,7 @@ async function reconcile(name, desired) {
     }
   }
 
-  if (remove.length === 0 && create.length === 0 && unchanged.length > 0) {
+  if (remove.length === 0 && create.length === 0 && unchanged.length > 0 && !quiet) {
     console.log(`${name}: already in sync`);
   }
   return true;
@@ -192,12 +194,10 @@ const names = changed
   .filter(Boolean);
 const failed = await syncEach(names, syncName);
 
-// Zone-level verification mirror (see lib/dns.js for why planDnsChanges can
-// never publish this host). The desired set is the union across ALL claims,
-// not CHANGED_FILES: any other name's sync must preserve every claim's
-// mirrored TXT, so reconciling against only the changed files would delete
-// the rest as "unclaimed".
+// Every claim, read once: the sweep and the zone mirror both need the whole
+// registry, not just CHANGED_FILES.
 const claims = [];
+const unreadable = new Set();
 for (const file of await readdir('domains')) {
   if (!file.endsWith('.json')) continue;
   try {
@@ -207,6 +207,54 @@ for (const file of await readdir('domains')) {
     // instead would leave the names above already applied and the run half
     // finished with no record of what was skipped.
     console.error(`zone mirror: skipping unreadable ${file}: ${err.message}`);
+    // Still a live claim. Left out of the sweep's skip set, a file that once
+    // was deleted and has since been reclaimed would read as released.
+    unreadable.add(file.replace(/\.json$/, ''));
+  }
+}
+
+// The sweep: converge every other name too (see planSweep in lib/dns.js for
+// the cancelled-run drift this exists for). It runs after the named pass and
+// skips those names, whose cached listing is now stale, so nothing is touched
+// twice.
+//
+// A sweep failure warns rather than fails. The names above are the ones this
+// run was asked to sync and a failure there is still red; a name that drifted
+// earlier and still will not apply is retried by every later run, and failing
+// all of them over it would bring back the red-for-everyone problem #208 fixed.
+const SWEEP_LIMIT = 25;
+let released = new Set();
+try {
+  // --no-renames: the swap route moves one file to another, which rename
+  // detection would report as R rather than D, hiding the name given up.
+  const log = execFileSync('git', ['log', '--no-renames', '--diff-filter=D', '--name-only', '--format=', '--', 'domains/'], { encoding: 'utf8' });
+  released = new Set(log.split('\n').map((file) => /^domains\/([a-z0-9-]+)\.json$/.exec(file)?.[1]).filter(Boolean));
+} catch (err) {
+  console.log(`::warning::sweep: could not read released names from git, skipping their cleanup: ${err.message}`);
+}
+const sweep = planSweep(claims, await zoneRecords(), { skip: new Set([...names, ...unreadable]), released });
+const sweepFailed = [];
+if (sweep.length > SWEEP_LIMIT) {
+  // Drift on this scale is not a few lost runs; it is far likelier a listing
+  // that came back short, and acting on it would delete working DNS in bulk.
+  // Stop and make a person look. The named pass above has already applied.
+  console.log(`::error::sweep: ${sweep.length} names differ from DNS, over the ${SWEEP_LIMIT}-name safety limit; not applying. First few: ${sweep.slice(0, 10).map((d) => d.name).join(', ')}`);
+  sweepFailed.push(...sweep.map((d) => d.name));
+} else {
+  for (const { name, desired } of sweep) {
+    console.log(`sweep: ${name} differs from DNS, reconciling`);
+    let ok = false;
+    try {
+      ok = await reconcile(name, desired, { quiet: true });
+    } catch (err) {
+      console.error(`sweep: ${name}: ${err.message}`);
+    }
+    if (!ok) sweepFailed.push(name);
+  }
+  if (sweepFailed.length > 0) {
+    console.log(`::warning::sweep: could not reconcile ${sweepFailed.join(', ')}; the next run retries`);
+  } else if (sweep.length > 0) {
+    console.log(`sweep: reconciled ${sweep.length} drifted name(s)`);
   }
 }
 
@@ -249,8 +297,9 @@ if (deferred.length > 0) {
 
 // Still red, so a broken name gets noticed, but only after every other name
 // and the mirror have been applied, and the log says which record to fix.
-if (failed.length > 0 || mirrorFailures > 0) {
+if (failed.length > 0 || mirrorFailures > 0 || sweep.length > SWEEP_LIMIT) {
   const parts = [];
+  if (sweep.length > SWEEP_LIMIT) parts.push(`sweep refused ${sweep.length} drifted names`);
   if (failed.length > 0) parts.push(`could not sync ${failed.join(', ')} (see the errors above; the record likely holds a value Vercel rejects)`);
   if (mirrorFailures > 0) parts.push(`${mirrorFailures} zone mirror write(s) failed`);
   console.log(`::error::sync-dns: ${parts.join('; ')}`);

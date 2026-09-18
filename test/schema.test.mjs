@@ -475,3 +475,19 @@ test('rejects TXT values Vercel reads as empty', () => {
   }
   assert.equal(validateRecord({ ...valid, records: { TXT: ['a{b'] } }).ok, true);
 });
+
+test('rejects a CNAME pointing at the claim\'s own hostname', () => {
+  const out = validateRecord({ ...valid, records: { CNAME: `${valid.name}.runs-on.dev` } });
+  assert.equal(out.ok, false);
+  assert.ok(out.errors.some((e) => e.includes('itself')));
+});
+
+test('rejects a subdomain CNAME pointing at its own hostname', () => {
+  const out = validateRecord({ ...valid, records: {}, subdomains: { blog: { CNAME: `blog.${valid.name}.runs-on.dev` } } });
+  assert.equal(out.ok, false);
+  assert.ok(out.errors.some((e) => e.includes('itself')));
+});
+
+test('a CNAME to another runs-on.dev name is still allowed', () => {
+  assert.equal(validateRecord({ ...valid, records: { CNAME: 'someone-else.runs-on.dev' } }).ok, true);
+});

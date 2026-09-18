@@ -4,12 +4,10 @@ on:
   push:
     branches: [main]
     paths: ['domains/**']
-  # A push only ever syncs the names that push touched, so a run that fails
-  # leaves those names stale with no way back: re-running it checks out the
-  # original commit, which is the code that just failed. This is the repair
-  # path. Names are required rather than defaulting to "all" -- deleteStale
-  # runs before the creates, so a full resync would drop every name's DNS for
-  # the length of the run.
+  # Every run also sweeps the whole registry (planSweep in lib/dns.js), so a
+  # plain re-run repairs drift on its own. This trigger remains for naming the
+  # names that must succeed: a named name that fails turns the run red, where
+  # a swept one only warns.
   workflow_dispatch:
     inputs:
       names:
@@ -33,6 +31,11 @@ permissions:
 
 # A manual repair run and an automatic push run touching the same name would
 # race: both list the zone, then both delete what the other just created.
+#
+# The group holds one running and ONE pending run; a third arrival cancels the
+# pending one, grey rather than red. Under /manage save bursts that happens
+# daily, and it is why every run now sweeps: a cancelled run's names are picked
+# up by whichever run does go ahead.
 concurrency:
   group: sync-dns
   cancel-in-progress: false
@@ -43,8 +46,15 @@ jobs:
     outputs:
       over_cap: ${{ steps.sync.outputs.over_cap }}
     steps:
+      # The tip of main, not the commit that triggered the run. Runs queue, and
+      # a queued run can start after newer pushes have landed; the sweep makes
+      # this run write every name, so reading an older tree would revert them.
+      # The push range below is still diffed from the event's own SHAs, which
+      # are ancestors of the tip. fetch-depth 0 is also what the sweep's
+      # released-name lookup reads.
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
@@ -55,8 +65,14 @@ jobs:
           # `${{ ... }}` expansion inside `run:` is substituted before bash sees
           # it, so a crafted dispatch input would be executed rather than read.
           DISPATCH_NAMES: ${{ inputs.names }}
+          EVENT_NAME: ${{ github.event_name }}
+        # Not `event_name = workflow_dispatch`: under workflow_call, event_name
+        # is the CALLER's event. health-check's daily repair arrives as
+        # `schedule`, which fell through to the push branch below, diffed
+        # against an empty SHA, and died (exit 128) every time it was needed.
+        # It only ever worked when health-check was dispatched by hand.
         run: |
-          if [ "${{ github.event_name }}" = 'workflow_dispatch' ]; then
+          if [ "$EVENT_NAME" != 'push' ]; then
             if [ -z "$DISPATCH_NAMES" ]; then
               echo '::error::names input is required'
               exit 1

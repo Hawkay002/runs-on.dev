@@ -11,6 +11,7 @@ import {
   createPath,
   removePath,
   formatApiError,
+  planSweep,
 } from '../lib/dns.js';
 
 const base = { name: 'lucas', owner: { github: 'zordhalo' }, claimedAt: '2026-08-30T00:00:00Z' };
@@ -350,4 +351,63 @@ test('syncEach keeps going past a failed name and reports every failure', async 
   });
   assert.deepEqual(seen, ['a', 'bad', 'c', 'boom', 'e']);
   assert.deepEqual(failed, ['bad', 'boom']);
+});
+
+const claim = (name, records = {}, subdomains) => ({ ...base, name, records, ...(subdomains ? { subdomains } : {}) });
+
+test('sweep finds a claim whose push run was cancelled before it synced', () => {
+  const zone = [{ id: 'a', type: 'CNAME', name: 'lucas', value: 'lucas.vercel.app.' }];
+  const claims = [claim('lucas', { CNAME: 'lucas.vercel.app' }), claim('vishal', { CNAME: 'x.vercel-dns-017.com' })];
+  assert.deepEqual(planSweep(claims, zone).map((d) => d.name), ['vishal']);
+});
+
+test('sweep finds a stale record left behind when the owner removed it', () => {
+  const zone = [{ id: 'a', type: 'CNAME', name: 'vinit', value: 'old.vercel.app.' }];
+  const [drift] = planSweep([claim('vinit', { URL: 'https://example.com/' })], zone);
+  assert.deepEqual(drift, { name: 'vinit', desired: [] });
+});
+
+test('sweep sees subdomain drift as the claim\'s own', () => {
+  const zone = [{ id: 'a', type: 'TXT', name: '_vercel.lucas', value: 'old' }];
+  const claims = [claim('lucas', {}, { _vercel: { TXT: ['new'] } })];
+  assert.deepEqual(planSweep(claims, zone).map((d) => d.name), ['lucas']);
+});
+
+test('an in-sync zone plans no sweep work', () => {
+  const zone = [
+    { id: 'a', type: 'CNAME', name: 'lucas', value: 'lucas.vercel.app.' },
+    { id: 'b', type: 'TXT', name: '_vercel', value: 'vc-domain-verify=lucas.runs-on.dev,abc' },
+  ];
+  assert.deepEqual(planSweep([claim('lucas', { CNAME: 'lucas.vercel.app' })], zone), []);
+});
+
+test('sweep leaves names already synced this run alone', () => {
+  const claims = [claim('vishal', { CNAME: 'x.vercel-dns-017.com' })];
+  assert.deepEqual(planSweep(claims, [], { skip: new Set(['vishal']) }), []);
+});
+
+test('sweep clears a released name that still holds records', () => {
+  const zone = [{ id: 'a', type: 'CNAME', name: 'gone', value: 'x.example.com.' }];
+  assert.deepEqual(planSweep([], zone, { released: new Set(['gone']) }), [{ name: 'gone', desired: [] }]);
+});
+
+test('sweep never touches records for a label that was never a claim', () => {
+  // The operator's Bing verification CNAME, the zone mirror, the wildcard.
+  const zone = [
+    { id: 'a', type: 'CNAME', name: '50aa782de4a596073f9d2a9ff3bd04e6', value: 'verify.bing.com.' },
+    { id: 'b', type: 'TXT', name: '_vercel', value: 'vc-domain-verify=x.runs-on.dev,1' },
+    { id: 'c', type: 'CNAME', name: '*', value: 'cname.vercel-dns.com.' },
+  ];
+  assert.deepEqual(planSweep([], zone, { released: new Set(['old']) }), []);
+});
+
+test('a released name since reclaimed is reconciled as a claim, not cleared', () => {
+  const zone = [{ id: 'a', type: 'CNAME', name: 'back', value: 'mine.vercel.app.' }];
+  const claims = [claim('back', { CNAME: 'mine.vercel.app' })];
+  assert.deepEqual(planSweep(claims, zone, { released: new Set(['back']) }), []);
+});
+
+test('a skipped released name (unreadable claim file) is never cleared', () => {
+  const zone = [{ id: 'a', type: 'CNAME', name: 'broken', value: 'x.example.com.' }];
+  assert.deepEqual(planSweep([], zone, { skip: new Set(['broken']), released: new Set(['broken']) }), []);
 });
