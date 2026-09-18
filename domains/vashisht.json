@@ -4,6 +4,8 @@
     "github": "VDB24"
   },
   "claimedAt": "2026-09-18T17:32:45.294Z",
-  "records": {},
+  "records": {
+    "CNAME": "cname.vercel-dns.com"
+  },
   "country": "IN"
 }
