@@ -8,13 +8,6 @@
     "CNAME": "jumodavid.netlify.app"
   },
   "country": "NG",
-  "subdomains": {
-    "subdomain-owner-verification": {
-      "TXT": [
-        "75050854476f8fcf0736c5286b50b63f"
-      ]
-    }
-  },
   "profile": {
     "name": "Adejumo Aderinsola David",
     "bio": "Developer"
