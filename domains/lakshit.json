@@ -4,9 +4,11 @@
     "github": "iblamesomeone"
   },
   "claimedAt": "2026-09-18T14:55:59.518Z",
-  "records": {},
+  "records": {
+    "CNAME": "portfolio-lakshit.vercel.app"
+  },
   "country": "IN",
   "profile": {
-    "name": "iblamesomeone"
+    "name": "Lakshit"
   }
 }
