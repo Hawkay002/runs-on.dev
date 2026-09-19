@@ -14,5 +14,13 @@
     "berries": {
       "CNAME": "2dde8a6ded0658ea.vercel-dns-017.com"
     }
+  },
+  "profile": {
+    "links": [
+      {
+        "label": "My site",
+        "url": "https://berry-x-xz.vercel.app/"
+      }
+    ]
   }
 }
