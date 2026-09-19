@@ -10,12 +10,6 @@
   "country": "RO",
   "profile": {
     "name": "Turcu Fineas",
-    "bio": "Tech enthusiast building with code, Al & creativity. Exploring cybersecurity, web development and the future of technology",
-    "links": [
-      {
-        "label": "My website",
-        "url": "https://finimus.my.canva.site/"
-      }
-    ]
+    "bio": "Tech enthusiast building with code, Al & creativity. Exploring cybersecurity, web development and the future of technology"
   }
 }
