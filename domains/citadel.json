@@ -9,7 +9,7 @@
   "subdomains": {
     "_vercel": {
       "TXT": [
-        "vc-domain-verify=citadel.runs-on.dev,3b9e7cc02f9516fa6ff3"
+        "vc-domain-verify=runs-on.dev,7d41b8aaad1812a855b8"
       ]
     }
   },
