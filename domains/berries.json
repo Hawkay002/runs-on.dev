@@ -1,0 +1,17 @@
+{
+  "name": "berries",
+  "owner": {
+    "github": "hoshimiMiyabi-dev"
+  },
+  "claimedAt": "2026-09-19T14:10:17.083Z",
+  "records": {
+    "CNAME": "cname.vercel-dns.com"
+  },
+  "subdomains": {
+    "_discord": {
+      "TXT": [
+        "dh=8d7267eb2dd4d26c6f9201d89481fd67062a7c99"
+      ]
+    }
+  }
+}
