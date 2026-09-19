@@ -13,6 +13,9 @@
       "TXT": [
         "vc-domain-verify=inward.runs-on.dev,1719c7169056dc3c46c9"
       ]
+    },
+    "inward": {
+      "CNAME": "85ae0c8370b9f017.vercel-dns-017.com"
     }
   }
 }
