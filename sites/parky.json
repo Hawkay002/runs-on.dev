@@ -1,14 +1,8 @@
 {
   "name": "parky",
   "owner": "parky-nss",
-  "active": "97f47627",
+  "active": "c6aabcbc",
   "deployments": [
-    {
-      "id": "ca811b8d",
-      "at": "2026-09-18T16:58:40.250Z",
-      "files": 10,
-      "bytes": 33392
-    },
     {
       "id": "ad40dd71",
       "at": "2026-09-18T18:09:07.987Z",
@@ -32,7 +26,13 @@
       "at": "2026-09-19T11:50:12.029Z",
       "files": 10,
       "bytes": 33460
+    },
+    {
+      "id": "c6aabcbc",
+      "at": "2026-09-19T11:52:57.774Z",
+      "files": 10,
+      "bytes": 33460
     }
   ],
-  "updatedAt": "2026-09-19T11:50:12.029Z"
+  "updatedAt": "2026-09-19T11:52:57.774Z"
 }
