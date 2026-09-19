@@ -6,13 +6,13 @@
   "claimedAt": "2026-09-19T14:10:17.083Z",
   "records": {},
   "subdomains": {
-    "_discord": {
-      "TXT": [
-        "dh=8d7267eb2dd4d26c6f9201d89481fd67062a7c99"
-      ]
-    },
     "berries": {
       "CNAME": "2dde8a6ded0658ea.vercel-dns-017.com"
+    },
+    "_discord": {
+      "TXT": [
+        "dh=db2f2d82c11eb14f6c2e170bdb443132dea75a6a"
+      ]
     }
   }
 }
