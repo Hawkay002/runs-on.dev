@@ -4,6 +4,8 @@
     "github": "Pushkkaarr"
   },
   "claimedAt": "2026-09-19T18:12:37.896Z",
-  "records": {},
+  "records": {
+    "CNAME": "cname.vercel-dns.com"
+  },
   "country": "IN"
 }
