@@ -4,6 +4,12 @@
     "github": "anandude"
   },
   "claimedAt": "2026-09-19T09:54:58.556Z",
-  "records": {},
-  "country": "IN"
+  "records": {
+    "CNAME": "cname.vercel-dns.com"
+  },
+  "country": "IN",
+  "profile": {
+    "name": "Anandude",
+    "bio": "Passionately curious"
+  }
 }
