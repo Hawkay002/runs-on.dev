@@ -13,6 +13,9 @@
       "TXT": [
         "d68b056073697812f783fd805d6a0fd5"
       ]
+    },
+    "anshnarsale": {
+      "CNAME": "anshnarsale.netlify.app"
     }
   }
 }
