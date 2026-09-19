@@ -4,6 +4,8 @@
     "github": "iamgrootns"
   },
   "claimedAt": "2026-09-17T04:41:45.415Z",
-  "records": {},
+  "records": {
+    "CNAME": "candid-melba-c66dee.netlify.app"
+  },
   "country": "IN"
 }
