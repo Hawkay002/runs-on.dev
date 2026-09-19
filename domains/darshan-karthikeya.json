@@ -10,5 +10,12 @@
   "country": "IN",
   "profile": {
     "name": "karthikeya1220"
+  },
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=darshan-karthikeya.runs-on.dev,a9603b50c45e906cf060"
+      ]
+    }
   }
 }
