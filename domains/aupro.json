@@ -8,11 +8,7 @@
     "CNAME": "zingy-basbousa-c823ff.netlify.app"
   },
   "country": "IN",
-  "subdomains": {
-    "subdomain-owner-verification": {
-      "TXT": [
-        "a9b1aec6f7a31f9b01091a3d4d732546"
-      ]
-    }
+  "profile": {
+    "name": "Abiral"
   }
 }
