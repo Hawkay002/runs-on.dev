@@ -4,13 +4,16 @@
     "github": "hoshimiMiyabi-dev"
   },
   "claimedAt": "2026-09-19T14:10:17.083Z",
-  "records": {
-    "CNAME": "cname.vercel-dns.com"
-  },
+  "records": {},
   "subdomains": {
     "_discord": {
       "TXT": [
         "dh=8d7267eb2dd4d26c6f9201d89481fd67062a7c99"
+      ]
+    },
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=berries.runs-on.dev,434fe0d467b918d63184"
       ]
     }
   }
