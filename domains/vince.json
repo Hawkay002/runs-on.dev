@@ -4,9 +4,5 @@
     "github": "vincentwtln"
   },
   "claimedAt": "2026-09-01T15:45:15.378Z",
-  "records": {
-    "TXT": [
-      "vc-domain-verify=vince.runs-on.dev,22da7ca06e62bc0b51e2"
-    ]
-  }
+  "records": {}
 }
