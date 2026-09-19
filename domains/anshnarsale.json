@@ -4,6 +4,15 @@
     "github": "anshnarsale"
   },
   "claimedAt": "2026-09-19T09:34:12.418Z",
-  "records": {},
-  "country": "IN"
+  "records": {
+    "CNAME": "anshnarsale.netlify.app"
+  },
+  "country": "IN",
+  "subdomains": {
+    "subdomain-owner-verification": {
+      "TXT": [
+        "d68b056073697812f783fd805d6a0fd5"
+      ]
+    }
+  }
 }
