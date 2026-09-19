@@ -11,11 +11,6 @@
   },
   "country": "IN",
   "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=sagenav.runs-on.dev,8cc1de63e8a49a4cbd43"
-      ]
-    },
     "sagenav": {
       "CNAME": "1cdb20f1949f4927.vercel-dns-017.com"
     }

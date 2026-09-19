@@ -9,11 +9,6 @@
   },
   "country": "IN",
   "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=gulshantomar.runs-on.dev,6799a827e26cf724aa49"
-      ]
-    },
     "gulshantomar": {
       "CNAME": "a24ac578e9b5df62.vercel-dns-017.com"
     }

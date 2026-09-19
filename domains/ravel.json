@@ -9,11 +9,6 @@
   },
   "country": "IN",
   "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=ravel.runs-on.dev,49643d1da6b4ef4ee2ce"
-      ]
-    },
     "ravel": {
       "CNAME": "f6c650fb05adf9ec.vercel-dns-017.com"
     }

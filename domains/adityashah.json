@@ -10,12 +10,5 @@
   "country": "IN",
   "profile": {
     "name": "aditya25shah"
-  },
-  "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=adityashah.runs-on.ev,dfe1c4d763da38fefbe6"
-      ]
-    }
   }
 }

@@ -9,12 +9,5 @@
       "76.76.21.21"
     ]
   },
-  "country": "ID",
-  "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=nymmo.runs-on.dev,b1bda5a00a13facf3bba"
-      ]
-    }
-  }
+  "country": "ID"
 }
