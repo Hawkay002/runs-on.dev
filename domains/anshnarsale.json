@@ -4,9 +4,7 @@
     "github": "anshnarsale"
   },
   "claimedAt": "2026-09-19T09:34:12.418Z",
-  "records": {
-    "CNAME": "anshnarsale.netlify.app"
-  },
+  "records": {},
   "country": "IN",
   "subdomains": {
     "subdomain-owner-verification": {
@@ -17,5 +15,15 @@
     "anshnarsale": {
       "CNAME": "anshnarsale.netlify.app"
     }
+  },
+  "profile": {
+    "name": "anshnarsale",
+    "bio": "I like going beyond tutorials.\n\nI build things to understand how they work - from AI developer tools and security utilities to Linux experiments, networking projects and full-stack apps.",
+    "links": [
+      {
+        "label": "Portfolio",
+        "url": "https://anshnarsale.netlify.app/"
+      }
+    ]
   }
 }
