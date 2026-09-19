@@ -4,6 +4,12 @@
     "github": "Magraa"
   },
   "claimedAt": "2026-09-19T07:31:13.245Z",
-  "records": {},
-  "country": "IN"
+  "records": {
+    "URL": "https://magraa.github.io/"
+  },
+  "country": "IN",
+  "profile": {
+    "name": "Mayank",
+    "bio": "Backend developer turning repetitive workflows into automated systems. MERN · Python · AI."
+  }
 }
