@@ -4,7 +4,9 @@
     "github": "theskysid"
   },
   "claimedAt": "2026-09-19T09:36:31.008Z",
-  "records": {},
+  "records": {
+    "URL": "https://v1portfoliosid.netlify.app/"
+  },
   "country": "IN",
   "profile": {
     "name": "Siddhant Rastogi"
