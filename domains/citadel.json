@@ -5,5 +5,16 @@
   },
   "claimedAt": "2026-09-19T10:11:27.265Z",
   "records": {},
-  "country": "IN"
+  "country": "IN",
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=citadel.runs-on.dev,3b9e7cc02f9516fa6ff3"
+      ]
+    }
+  },
+  "profile": {
+    "name": "Swastik Gupta",
+    "bio": "Turning Coffee into Code⚡"
+  }
 }
