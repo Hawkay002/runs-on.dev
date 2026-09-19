@@ -11,11 +11,6 @@
         "dh=8d7267eb2dd4d26c6f9201d89481fd67062a7c99"
       ]
     },
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=berries.runs-on.dev,434fe0d467b918d63184"
-      ]
-    },
     "berries": {
       "CNAME": "2dde8a6ded0658ea.vercel-dns-017.com"
     }
