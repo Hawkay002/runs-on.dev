@@ -7,5 +7,12 @@
   "records": {
     "CNAME": "c3689c54acd92062.vercel-dns-017.com"
   },
-  "country": "DE"
+  "country": "DE",
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=gaurang.runs-on.dev,661e674b4485fb996e73"
+      ]
+    }
+  }
 }
