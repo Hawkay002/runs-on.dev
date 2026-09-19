@@ -4,7 +4,9 @@
     "github": "parkyishere"
   },
   "claimedAt": "2026-09-19T14:02:17.106Z",
-  "records": {},
+  "records": {
+    "CNAME": "parkyishere.github.io"
+  },
   "country": "IN",
   "profile": {
     "name": "Parky",
