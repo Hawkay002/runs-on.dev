@@ -4,6 +4,11 @@
     "github": "Finimus"
   },
   "claimedAt": "2026-09-19T10:03:59.794Z",
-  "records": {},
-  "country": "RO"
+  "records": {
+    "URL": "https://finimus.my.canva.site/"
+  },
+  "country": "RO",
+  "profile": {
+    "name": "Finimus"
+  }
 }
