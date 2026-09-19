@@ -4,6 +4,8 @@
     "github": "parth-dev1512"
   },
   "claimedAt": "2026-09-19T11:17:46.118Z",
-  "records": {},
+  "records": {
+    "CNAME": "parthagarwal.vercel.app"
+  },
   "country": "IN"
 }
