@@ -30,6 +30,14 @@
       "TXT": [
         "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDsQU57bCPaQjpiorAoNKtNZGDXN4FE5qwCIZEyZkgl1zGuI5n9M04wxSoLKvYf5yVczudqxqlJYUvjBYc7MCeVtD9JvPH40G6lOH0kiKEV5IUIJ9Sd1YeXZHHbqzsiNn0Eg95ChLHCZOsA7oo/jbyZLBsAamMDNbXrY7tzPmHCWwIDAQAB"
       ]
+    },
+    "faro": {
+      "MX": [
+        {
+          "priority": 10,
+          "value": "inbound-smtp.eu-west-1.amazonaws.com"
+        }
+      ]
     }
   }
 }
