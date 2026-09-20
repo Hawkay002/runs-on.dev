@@ -4,9 +4,7 @@
     "github": "imgeekk"
   },
   "claimedAt": "2026-09-20T04:11:08.094Z",
-  "records": {
-    "CNAME": "cname.vercel-dns.com"
-  },
+  "records": {},
   "country": "IN",
   "subdomains": {
     "_vercel": {
