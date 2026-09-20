@@ -9,8 +9,16 @@
   "profile": {
     "links": [
       {
-        "label": "My Stardance account",
+        "label": "Stardance",
         "url": "https://stardance.hackclub.com/@gabrielb"
+      },
+      {
+        "label": "Hackatime",
+        "url": "https://hackatime.hackclub.com/@gabrielb0742"
+      },
+      {
+        "label": "Lapse",
+        "url": "https://lapse.hackclub.com/user/@gabrielb"
       }
     ]
   }
