@@ -7,5 +7,12 @@
   "records": {
     "CNAME": "b0900961f6819caa.vercel-dns-017.com"
   },
-  "country": "IN"
+  "country": "IN",
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=niyaz.runs-on.dev,83d83d4a6ce983159072"
+      ]
+    }
+  }
 }
