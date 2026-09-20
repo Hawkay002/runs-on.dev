@@ -5,5 +5,14 @@
   },
   "claimedAt": "2026-09-20T15:24:48.538Z",
   "records": {},
-  "country": "IN"
+  "country": "IN",
+  "profile": {
+    "name": "Shahul",
+    "links": [
+      {
+        "label": "Github",
+        "url": "https://github.com/shahul-h007/"
+      }
+    ]
+  }
 }
