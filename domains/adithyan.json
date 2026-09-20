@@ -7,5 +7,8 @@
   "records": {
     "CNAME": "portfolio-2ll.pages.dev"
   },
-  "country": "NL"
+  "country": "NL",
+  "profile": {
+    "name": "portfolio-2ll.pages.dev"
+  }
 }
