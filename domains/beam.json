@@ -4,6 +4,8 @@
     "github": "theprojectmaker"
   },
   "claimedAt": "2026-09-20T04:24:33.901Z",
-  "records": {},
+  "records": {
+    "CNAME": "beam-gateway.pages.dev"
+  },
   "country": "US"
 }
