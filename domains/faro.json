@@ -4,7 +4,9 @@
     "github": "mattia494"
   },
   "claimedAt": "2026-09-19T17:05:20.698Z",
-  "records": {},
+  "records": {
+    "CNAME": "faro-7nuo.onrender.com"
+  },
   "country": "IT",
   "profile": {
     "name": "mattia494"
