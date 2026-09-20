@@ -5,5 +5,10 @@
   },
   "claimedAt": "2026-09-17T06:52:52.021Z",
   "records": {},
-  "country": "IN"
+  "country": "IN",
+  "subdomains": {
+    "api": {
+      "CNAME": "d3af7602-2b3e-475a-8b7e-1a1dbbd26dde.cfargotunnel.com"
+    }
+  }
 }
