@@ -13,7 +13,7 @@
   },
   "country": "IN",
   "subdomains": {
-    "speakupai": {
+    "_vercel": {
       "TXT": [
         "vc-domain-verify=speakupai.runs-on.dev,bed1d632d03cb87bf37d"
       ]
