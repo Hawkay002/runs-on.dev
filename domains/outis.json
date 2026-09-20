@@ -4,6 +4,10 @@
     "github": "StuKit"
   },
   "claimedAt": "2026-09-20T22:12:02.617Z",
-  "records": {},
+  "records": {
+    "A": [
+      "196.119.157.53"
+    ]
+  },
   "country": "MA"
 }
