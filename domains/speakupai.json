@@ -11,5 +11,12 @@
     "name": "mvvarmora",
     "bio": "tech driven profile  , innovator"
   },
-  "country": "IN"
+  "country": "IN",
+  "subdomains": {
+    "speakupai": {
+      "TXT": [
+        "vc-domain-verify=speakupai.runs-on.dev,bed1d632d03cb87bf37d"
+      ]
+    }
+  }
 }
