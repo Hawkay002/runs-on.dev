@@ -54,7 +54,7 @@ export default async function Footer() {
 
             {/* Desktop: the wordmark fills the empty space under the left
                 text block. Outlined at rest; fills white on hover or touch. */}
-            <FooterMark className="mt-8 hidden w-full max-w-[520px] sm:block" />
+            <FooterMark className="mt-8 hidden w-[560px] max-w-full sm:block" />
           </div>
 
           <nav aria-label="Footer" className="grid grid-cols-2 gap-x-12 gap-y-2.5">
@@ -78,7 +78,7 @@ export default async function Footer() {
           </nav>
 
           {/* Mobile: the wordmark closes out the footer. */}
-          <FooterMark className="mt-10 w-full max-w-[280px] sm:hidden" />
+          <FooterMark className="w-full max-w-[360px] sm:hidden" />
         </div>
       </div>
     </footer>
