@@ -8,7 +8,7 @@
     "CNAME": "cname.vercel-dns.com"
   },
   "subdomains": {
-    "orien": {
+    "presentation": {
       "CNAME": "df6f2136671ce258.vercel-dns-017.com"
     },
     "_vercel": {
