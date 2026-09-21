@@ -1,6 +1,6 @@
 import { appendFile, readFile, readdir } from 'node:fs/promises';
 import {
-  classifyClaim, planIssueClosures, planIssueOpens, diagnoseStuck, stuckIssueBody,
+  classifyClaim, planIssueClosures, planOrphanClosures, planIssueOpens, diagnoseStuck, stuckIssueBody,
   STUCK_LABEL, findDrift, normalizeAnswer, expectationKey,
 } from '../lib/health.js';
 import { planDnsChanges, planZoneVerificationRecords } from '../lib/dns.js';
@@ -104,7 +104,7 @@ if (process.env.GITHUB_STEP_SUMMARY) {
 // Everything here is best effort and deliberately cannot fail the run: the
 // probe result above is the point of this script, and losing it because the
 // issues API had a bad minute would be a poor trade.
-await closeRecoveredIssues(rows);
+await closeRecoveredIssues(rows, claims.map((claim) => claim.name));
 
 // The other half. Without this the check knew a name was broken and never
 // told the one person who could fix it.
@@ -212,7 +212,27 @@ async function lookup(resolver, type, host) {
   return [];
 }
 
-async function closeRecoveredIssues(statusRows) {
+// Read every page of an issues list. The lists here used to read a single
+// per_page=100 page and stop, and the labelled list only grows -- closed
+// nudges stay in it on purpose, so an owner who closed theirs is not
+// re-nudged -- so past 100 items the oldest entries fell off the end of the
+// page, and exactly the owners that rule protects would have started getting
+// a fresh nudge every morning. Every path passed in already carries
+// `per_page=100`, so `&page=` appends cleanly; the hard page cap keeps a
+// paging bug from looping the run forever.
+async function paginate(api, path) {
+  const items = [];
+  for (let page = 1; page <= 20; page++) {
+    const res = await api(`${path}&page=${page}`);
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    const batch = await res.json();
+    items.push(...batch);
+    if (batch.length < 100) return items;
+  }
+  return items;
+}
+
+async function closeRecoveredIssues(statusRows, registryNames) {
   const token = process.env.GITHUB_TOKEN;
   const repo = process.env.GITHUB_REPOSITORY;
   // Absent locally, which is why running this by hand probes and reports but
@@ -232,30 +252,40 @@ async function closeRecoveredIssues(statusRows) {
 
   let issues;
   try {
-    const res = await api(`/issues?state=open&labels=${STUCK_LABEL}&per_page=100`);
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    // The issues endpoint returns pull requests too; they are not nudges.
-    issues = (await res.json()).filter((issue) => !issue.pull_request);
+    issues = (await paginate(api, `/issues?state=open&labels=${STUCK_LABEL}&per_page=100`))
+      .filter((issue) => !issue.pull_request);
   } catch (err) {
     console.error(`health: could not list ${STUCK_LABEL} issues: ${err.message}`);
     return;
   }
 
-  for (const { number, name } of planIssueClosures(statusRows, issues)) {
+  // Two reasons to close, two comments. A recovered name gets told it is
+  // serving again. A name that has left the registry entirely -- a swap or a
+  // release deleted its record, so the probe queue will never include it
+  // again -- must not be told that, because it is not true: there is nothing
+  // left to probe, and the issue closed because it can never update on its
+  // own.
+  const orphans = new Map(
+    planOrphanClosures(issues, registryNames).map((closure) => [closure.number, closure]),
+  );
+  const closures = [...planIssueClosures(statusRows, issues), ...orphans.values()];
+
+  for (const { number, name } of closures) {
+    const gone = orphans.has(number);
+    const body = gone
+      ? `\`${name}.runs-on.dev\` is no longer part of the registry (the record was removed by a swap or a release), so the daily health check no longer probes it and this issue would never update on its own. Closed automatically.`
+      : `\`${name}.runs-on.dev\` is serving your site now, so this is resolved. Closed automatically by the daily health check — reopen if it regresses.`;
     try {
       await api(`/issues/${number}/comments`, {
         method: 'POST',
-        body: JSON.stringify({
-          body: `\`${name}.runs-on.dev\` is serving your site now, so this is resolved. `
-            + 'Closed automatically by the daily health check — reopen if it regresses.',
-        }),
+        body: JSON.stringify({ body }),
       });
       const res = await api(`/issues/${number}`, {
         method: 'PATCH',
         body: JSON.stringify({ state: 'closed', state_reason: 'completed' }),
       });
       if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-      console.log(`closed #${number} (${name} recovered)`);
+      console.log(`closed #${number} (${name}${gone ? ' no longer in the registry' : ' recovered'})`);
     } catch (err) {
       console.error(`health: could not close #${number}: ${err.message}`);
     }
@@ -290,12 +320,10 @@ async function openStuckIssues(statusRows, allClaims) {
   let issues;
   try {
     const [labelled, open] = await Promise.all([
-      api(`/issues?state=all&labels=${STUCK_LABEL}&per_page=100`),
-      api('/issues?state=open&per_page=100'),
+      paginate(api, `/issues?state=all&labels=${STUCK_LABEL}&per_page=100`),
+      paginate(api, '/issues?state=open&per_page=100'),
     ]);
-    if (!labelled.ok) throw new Error(`${labelled.status} ${labelled.statusText}`);
-    if (!open.ok) throw new Error(`${open.status} ${open.statusText}`);
-    issues = [...await labelled.json(), ...await open.json()].filter((issue) => !issue.pull_request);
+    issues = [...labelled, ...open].filter((issue) => !issue.pull_request);
   } catch (err) {
     console.error(`health: could not list issues to dedupe against: ${err.message}`);
     return;
