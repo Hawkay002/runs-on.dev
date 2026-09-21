@@ -7,12 +7,5 @@
   "records": {
     "CNAME": "da4566b6a25f04fd.vercel-dns-017.com"
   },
-  "country": "IN",
-  "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=ravindra.runs-on.dev,8ae057bd02848b7f79ea"
-      ]
-    }
-  }
+  "country": "IN"
 }
