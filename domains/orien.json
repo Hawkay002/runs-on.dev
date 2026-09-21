@@ -13,6 +13,9 @@
       "TXT": [
         "vc-domain-verify=orien.runs-on.dev,3d1a8c29b7062098777a"
       ]
+    },
+    "orien": {
+      "CNAME": "df6f2136671ce258.vercel-dns-017.com"
     }
   },
   "profile": {
