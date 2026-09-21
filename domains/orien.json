@@ -4,6 +4,18 @@
     "github": "ackerlex"
   },
   "claimedAt": "2026-09-17T18:10:58.292Z",
-  "records": {},
-  "country": "MA"
+  "records": {
+    "CNAME": "cname.vercel-dns.com"
+  },
+  "country": "MA",
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=orien.runs-on.dev,3d1a8c29b7062098777a"
+      ]
+    }
+  },
+  "profile": {
+    "name": "English"
+  }
 }
