@@ -670,7 +670,7 @@ export function SwapZone({ name }) {
 
       if (res.ok && body.ok) {
         setResult({ ok: true, text: body.message });
-        setTimeout(() => { window.location.href = '/manage'; }, 2000);
+        setTimeout(() => { window.location.href = '/manage/profile'; }, 2000);
       } else {
         setResult({ ok: false, text: body.detail ?? body.error ?? 'swap failed' });
       }
@@ -683,22 +683,28 @@ export function SwapZone({ name }) {
   const nameAvailable = validateNewName(newName);
 
   return (
-    <div className="slit-top px-6 py-5 sm:px-8">
-      {!open ? (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="font-(family-name:--font-mono) text-xs text-(--color-muted) underline transition-colors hover:text-(--color-ink)"
-        >
-          swap this name for a different one
-        </button>
-      ) : (
+    <section className="slit-frame mt-16 rounded-lg">
+      <div className="slit-bottom px-6 py-5 sm:px-8">
+        <p className="meta">Swap</p>
+        <p className="mt-2 text-sm leading-relaxed text-(--color-muted)">
+          Trade {name}.runs-on.dev for a new one. All your settings (CNAME, profile,
+          subdomains) carry over. The old name is released immediately and becomes
+          available to anyone.
+        </p>
+      </div>
+
+      <div className="px-6 py-5 sm:px-8">
+        {!open ? (
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="font-(family-name:--font-mono) text-xs text-(--color-muted) underline transition-colors hover:text-(--color-ink)"
+          >
+            swap this name for a different one
+          </button>
+        ) : (
         <div className="space-y-3">
           <p className="text-[14px] text-(--color-ink)">Swap {name}.runs-on.dev</p>
-          <p className="max-w-[600px] text-xs leading-relaxed text-(--color-muted)">
-            Trade this name for a new one. All your settings (CNAME, profile, subdomains)
-            carry over. The old name is released immediately and becomes available to anyone.
-          </p>
 
           <div className="space-y-2">
             <input
@@ -762,7 +768,8 @@ export function SwapZone({ name }) {
           )}
         </div>
       )}
-    </div>
+      </div>
+    </section>
   );
 }
 
@@ -798,23 +805,28 @@ export function ReleaseZone({ name }) {
   };
 
   return (
-    <div className="slit-top px-6 py-5 sm:px-8">
-      {!open ? (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="font-(family-name:--font-mono) text-xs text-(--color-flag) underline hover:opacity-80"
-        >
-          release this name
-        </button>
-      ) : (
+    <section className="slit-frame mt-16 rounded-lg">
+      <div className="slit-bottom px-6 py-5 sm:px-8">
+        <p className="meta">Release</p>
+        <p className="mt-2 text-sm leading-relaxed text-(--color-muted)">
+          This permanently deletes the claim. The name becomes available for anyone
+          to claim immediately. DNS records and the profile card are removed. This
+          cannot be undone.
+        </p>
+      </div>
+
+      <div className="px-6 py-5 sm:px-8">
+        {!open ? (
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="font-(family-name:--font-mono) text-xs text-(--color-flag) underline hover:opacity-80"
+          >
+            release this name
+          </button>
+        ) : (
         <div className="space-y-3">
           <p className="text-[14px] text-(--color-flag)">Release {name}.runs-on.dev?</p>
-          <p className="max-w-[600px] text-xs leading-relaxed text-(--color-muted)">
-            This permanently deletes your claim. The name becomes available for anyone
-            to claim immediately. DNS records and your profile card are removed.
-            This cannot be undone.
-          </p>
           {/* Stacked on mobile: the confirm input is flex-1 in the same row as
               two buttons, which squeezed it to a few characters on a phone --
               exactly the field someone has to type a name into exactly. Inline
@@ -854,7 +866,8 @@ export function ReleaseZone({ name }) {
           )}
         </div>
       )}
-    </div>
+      </div>
+    </section>
   );
 }
 

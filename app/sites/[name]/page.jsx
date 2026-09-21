@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import { getRecord } from '../../../lib/registry.js';
+import { claimNumber } from '../../../lib/claim-order.js';
 import { isValidRedirectUrl } from '../../../lib/schema.js';
 import { cardMetadata } from '../../../lib/metadata.js';
 import { REPO_URL } from '../../../lib/repo.js';
@@ -90,6 +91,7 @@ export default async function Site({ params }) {
   }
 
   const profile = await githubProfile(record.owner.github);
+  const serial = claimNumber(name);
 
   // The record's profile block overrides what GitHub reports, field by
   // field: an owner who set profile.name keeps their chosen display name
@@ -107,7 +109,18 @@ export default async function Site({ params }) {
         domains/{name}.json
       </p>
 
-      <div className="slit-frame mt-5 rounded-lg bg-(--color-card) p-6 sm:p-8">
+      {/* The claim serial: this name's number in the whole registry's
+          claimed history, same numbering the banner carries. Top-right of the
+          card, in the registry's mono voice. */}
+      <div className="slit-frame relative mt-5 rounded-lg bg-(--color-card) p-6 sm:p-8">
+        {serial != null && (
+          <span
+            aria-label={`claim number ${serial}`}
+            className="absolute right-4 top-4 font-(family-name:--font-mono) text-xs tracking-[0.08em] text-(--color-muted) sm:right-6 sm:top-6"
+          >
+            {`#${serial}`}
+          </span>
+        )}
         <div className="flex items-center gap-5">
           {profile?.avatar_url && (
             <span className="slit-frame inline-block shrink-0 rounded-full p-[3px]">

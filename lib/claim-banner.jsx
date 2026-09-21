@@ -26,10 +26,10 @@ const THEME = {
   verified: '#98FF38',
 };
 
-// Lucide's badge-check, the same mark the manage page shows for a verified
-// name, drawn inline because satori has no icon packages. Green: it says
-// "verified", and the palette's muted gold would not.
-function BadgeCheckIcon({ size }) {
+// The verified mark that rides beside the big name link — the owner's own
+// pick (lucide badge-check, this exact path data), stroked green like the
+// one by the display name.
+function VerifiedLinkIcon({ size }) {
   return (
     <svg
       width={size}
@@ -42,11 +42,39 @@ function BadgeCheckIcon({ size }) {
       strokeLinejoin="round"
       style={{ display: 'flex' }}
     >
-      <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.74 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
-      <path d="m9 12 2 2 4-4" />
+      <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
+      <path d="m16 9-5.5 5.5L8 12" />
     </svg>
   );
 }
+
+// The white pixel-dot texture: a faint grid of dots across the whole banner,
+// the claim map's dot-matrix idea as a background. Generated rather than a
+// pattern fill because satori's SVG support has no <pattern>.
+const DOT_PITCH = 48;
+const DOTS = [];
+for (let x = DOT_PITCH / 2; x < 1200; x += DOT_PITCH) {
+  for (let y = DOT_PITCH / 2; y < 630; y += DOT_PITCH) {
+    DOTS.push([x, y]);
+  }
+}
+
+// The frame: four corners only, each drawn as a horizontal and a vertical
+// hairline that cross past the corner point, so every corner reads as a
+// small intercrossed mark instead of a continuous border.
+const FRAME_INSET = 40;
+const FRAME_ARM = 26;
+const FRAME_BARS = [
+  // [left, top, width, height] — horizontal and vertical bar per corner
+  [FRAME_INSET - FRAME_ARM, FRAME_INSET - 1, FRAME_ARM * 2 + 2, 2], // TL h
+  [FRAME_INSET - 1, FRAME_INSET - FRAME_ARM, 2, FRAME_ARM * 2 + 2], // TL v
+  [1200 - FRAME_INSET - FRAME_ARM, FRAME_INSET - 1, FRAME_ARM * 2 + 2, 2], // TR h
+  [1200 - FRAME_INSET - 1, FRAME_INSET - FRAME_ARM, 2, FRAME_ARM * 2 + 2], // TR v
+  [FRAME_INSET - FRAME_ARM, 630 - FRAME_INSET - 1, FRAME_ARM * 2 + 2, 2], // BL h
+  [FRAME_INSET - 1, 630 - FRAME_INSET - FRAME_ARM, 2, FRAME_ARM * 2 + 2], // BL v
+  [1200 - FRAME_INSET - FRAME_ARM, 630 - FRAME_INSET - 1, FRAME_ARM * 2 + 2, 2], // BR h
+  [1200 - FRAME_INSET - 1, 630 - FRAME_INSET - FRAME_ARM, 2, FRAME_ARM * 2 + 2], // BR v
+];
 
 // One registry read + one GitHub read, shared by both render sites, with the
 // same short revalidate the card page uses so a banner reflects a fresh
@@ -104,6 +132,14 @@ export async function claimBannerData(name) {
 export function ClaimBanner({ name, login, displayName, bio, claimedYear, avatarUrl, serial }) {
   const t = THEME;
 
+  // Fit the pixel-font name line inside the banner for any name length:
+  // Bitcount glyphs run roughly 0.6em wide, the suffix adds 12 characters,
+  // and the icon plus gaps take about 90px.
+  const nameSize = Math.min(72, Math.floor(966 / (0.6 * (name.length + 12))));
+  // Bitcount glyphs measure ~0.5em per character at this size (measured off
+  // the rendered banner), so the underline hugs the whole name link.
+  const blueWidth = Math.round(nameSize * 0.5 * name.length);
+
   return (
     <div
       style={{
@@ -118,6 +154,22 @@ export function ClaimBanner({ name, login, displayName, bio, claimedYear, avatar
         fontFamily: 'Satoshi',
       }}
     >
+      {/* Obsidian dot field: white pixels on near-black, the claim map's
+          matrix as a background. */}
+      <svg width={0} height={0} style={{ position: 'absolute', top: 0, left: 0, display: 'none' }} aria-hidden="true">
+        {DOTS.map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r={2.2} fill="rgba(255,255,255,0.09)" />
+        ))}
+      </svg>
+
+      {/* The frame: four intercrossed corner marks, never a full border. */}
+      {FRAME_BARS.map(([left, top, width, height], i) => (
+        <div
+          key={i}
+          style={{ position: 'absolute', left, top, width, height, background: 'rgba(243,243,243,0.5)' }}
+        />
+      ))}
+
       {serial != null && (
         <span
           style={{
@@ -156,12 +208,9 @@ export function ClaimBanner({ name, login, displayName, bio, claimedYear, avatar
           />
         )}
         <div style={{ marginLeft: 28, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <span style={{ fontSize: 30, fontWeight: 500, color: t.ink, display: 'flex' }}>
-              {displayName ?? `@${login}`}
-            </span>
-            <BadgeCheckIcon size={30} />
-          </div>
+          <span style={{ fontSize: 30, fontWeight: 500, color: t.ink, display: 'flex' }}>
+            {displayName ?? `@${login}`}
+          </span>
           <span
             style={{
               fontSize: 20,
@@ -178,10 +227,23 @@ export function ClaimBanner({ name, login, displayName, bio, claimedYear, avatar
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <span style={{ fontSize: 88, fontWeight: 700, letterSpacing: -1, color: t.ink, display: 'flex' }}>
-          {name}
-          <span style={{ fontSize: 88, fontWeight: 400, letterSpacing: -1, color: t.muted, display: 'flex' }}>.runs-on.dev</span>
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <span style={{ fontFamily: 'Bitcount Prop Single', fontSize: nameSize, color: t.ink, display: 'flex' }}>
+                {name}
+              </span>
+              <span style={{ fontFamily: 'Bitcount Prop Single', fontSize: nameSize, color: t.muted, display: 'flex', marginLeft: Math.round(nameSize * 0.06) }}>
+                .runs-on.dev
+              </span>
+            </div>
+            {/* The blue line hugs the name itself — same width as the word above it. */}
+            <div style={{ display: 'flex', marginTop: 14, height: 5, width: Math.round(nameSize * 0.5 * name.length), background: '#4D7CFF' }} />
+          </div>
+          <div style={{ display: 'flex', marginLeft: 26, alignSelf: 'flex-start' }}>
+            <VerifiedLinkIcon size={62} />
+          </div>
+        </div>
         {bio ? (
           <span style={{ fontSize: 26, color: t.muted, marginTop: 20, display: 'flex', maxWidth: 900 }}>
             {bio.length > 120 ? `${bio.slice(0, 117)}…` : bio}

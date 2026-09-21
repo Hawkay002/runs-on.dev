@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 // The whole deploy workflow as a paste-and-go prompt for a coding agent. The
 // token rides inside it (or a placeholder before one exists), because the
@@ -68,6 +68,22 @@ NOTES
 
 // Small outlined action in the system's voice: a fading slit frame that
 // brightens on hover. Used for the secondary copy/regenerate controls.
+// Inline Lucide marks for the duration dropdown (no icon package in the
+// repo; the blog toolbar sets the same pattern).
+function ChevronDownIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+function DurationCheckIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
 const MINI = 'slit-frame rounded-[4px] px-2.5 py-1.5 font-(family-name:--font-mono) text-xs text-(--color-muted) hover:text-(--color-ink)';
 
 // The livespan options the mint offers. The server re-validates these, so a
@@ -79,7 +95,15 @@ const DURATIONS = [
   { days: 90, label: '90 days' },
 ];
 
-const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString() : '—');
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+// Day number, month name, year number — a locale's "9/22/2026" reads as
+// month-first in some countries and day-first in others, so the name is
+// spelled out to kill the ambiguity.
+const fmtDate = (iso) => {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+};
 
 // The deploy-token card. Account-scoped, unlike the record forms beside it,
 // which are per-name: one login mints one kind of credential, and the
@@ -99,6 +123,30 @@ export default function TokenZone({ login }) {
   const [keys, setKeys] = useState(null); // null = not loaded yet
   const [keysError, setKeysError] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [durationOpen, setDurationOpen] = useState(false);
+  const durationRef = useRef(null);
+
+  // Click outside (or Escape) closes the duration menu.
+  useEffect(() => {
+    if (!durationOpen) return;
+    const onPointerDown = (e) => {
+      if (durationRef.current && !durationRef.current.contains(e.target)) setDurationOpen(false);
+    };
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setDurationOpen(false);
+    };
+    // Scrolling the page also closes the menu, so an open menu can never
+    // slide beneath the sticky navbar and end up with the logo on top of it.
+    const onScroll = () => setDurationOpen(false);
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('scroll', onScroll);
+    };
+  }, [durationOpen]);
 
   const refreshKeys = useCallback(async () => {
     try {
@@ -192,20 +240,42 @@ export default function TokenZone({ login }) {
         {state !== 'minted' && (
           <div className="mt-5 flex flex-wrap items-center gap-3">
             {/* Auto-delete duration: the key stops working on its own after
-                this long, without anyone having to remember to revoke it. */}
-            <label className="flex items-center gap-2 font-(family-name:--font-mono) text-xs text-(--color-muted)">
-              auto delete after
-              <select
-                value={durationDays}
-                onChange={(e) => setDurationDays(Number(e.target.value))}
-                aria-label="Token lifetime"
-                className="slit-frame rounded-[4px] bg-(--color-paper) px-2 py-1.5 font-(family-name:--font-mono) text-xs text-(--color-ink)"
+                this long, without anyone having to remember to revoke it.
+                Custom dropdown — no native select chrome. */}
+            <span className="font-(family-name:--font-mono) text-xs text-(--color-muted)">Expire After</span>
+            <div className="relative" ref={durationRef}>
+              <button
+                type="button"
+                onClick={() => setDurationOpen((o) => !o)}
+                aria-haspopup="listbox"
+                aria-expanded={durationOpen}
+                className="slit-frame flex items-center gap-2 rounded-[4px] px-2.5 py-1.5 font-(family-name:--font-mono) text-xs text-(--color-ink)"
               >
-                {DURATIONS.map((d) => (
-                  <option key={d.days} value={d.days}>{d.label}</option>
-                ))}
-              </select>
-            </label>
+                {DURATIONS.find((d) => d.days === durationDays)?.label}
+                <ChevronDownIcon />
+              </button>
+              {durationOpen && (
+                <div
+                  role="listbox"
+                  aria-label="Token lifetime"
+                  className="absolute left-0 top-[calc(100%+6px)] z-30 w-40 rounded-[4px] border border-(--color-rule) bg-(--color-paper) p-1 shadow-xl"
+                >
+                  {DURATIONS.map((d) => (
+                    <button
+                      key={d.days}
+                      type="button"
+                      role="option"
+                      aria-selected={durationDays === d.days}
+                      onClick={() => { setDurationDays(d.days); setDurationOpen(false); }}
+                      className={`flex w-full items-center justify-between rounded-[3px] px-2.5 py-1.5 text-left font-(family-name:--font-mono) text-xs ${durationDays === d.days ? 'bg-(--color-card) text-(--color-ink)' : 'text-(--color-muted) hover:text-(--color-ink)'}`}
+                    >
+                      {d.label}
+                      {durationDays === d.days && <DurationCheckIcon />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <button
               type="button"
               onClick={mint}
@@ -240,7 +310,7 @@ export default function TokenZone({ login }) {
               </div>
             </div>
             <p className="max-w-[540px] text-xs leading-relaxed text-(--color-muted)">
-              Expires {expiresAt ? new Date(expiresAt).toLocaleDateString() : 'soon'}.
+              Expires {expiresAt ? fmtDate(expiresAt) : 'soon'}.
               Treat it like a password: it can publish to your name and nothing else.
               Delete it below any time, or let it age out on its own.
             </p>
@@ -291,7 +361,7 @@ export default function TokenZone({ login }) {
         {(() => {
           const live = state === 'minted';
           const expiresNote = live
-            ? `expires ${expiresAt ? new Date(expiresAt).toLocaleDateString() : 'soon'}`
+            ? `expires ${expiresAt ? fmtDate(expiresAt) : 'soon'}`
             : 'expires after the lifetime you pick';
           const text = agentPrompt(
             live ? token : 'rod1.YOUR_TOKEN (generate one above first)',

@@ -74,10 +74,27 @@ export default function BannerModal({ name }) {
           aria-modal="true"
           aria-label={`Banner for ${name}.runs-on.dev`}
         >
+          {/* The modal frame: no scrollbars anywhere, and four pointy corner
+              marks that cross past the corners, matching the banner's own
+              frame. The image is height-capped so the modal can never
+              outgrow the viewport. */}
           <div
-            className="slit-frame max-h-full w-full max-w-3xl overflow-y-auto rounded-lg bg-(--color-paper) p-4 sm:p-6"
+            className="relative w-full max-w-3xl bg-(--color-paper) p-4 sm:p-6"
             onClick={(e) => e.stopPropagation()}
           >
+            {[
+              { left: -14, top: -1, width: 28, height: 2 },
+              { left: -1, top: -14, width: 2, height: 28 },
+              { right: -14, top: -1, width: 28, height: 2 },
+              { right: -1, top: -14, width: 2, height: 28 },
+              { left: -14, bottom: -1, width: 28, height: 2 },
+              { left: -1, bottom: -14, width: 2, height: 28 },
+              { right: -14, bottom: -1, width: 28, height: 2 },
+              { right: -1, bottom: -14, width: 2, height: 28 },
+            ].map((style, i) => (
+              <div key={i} aria-hidden="true" className="absolute bg-(--color-muted)" style={style} />
+            ))}
+
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="font-(family-name:--font-mono) text-xs text-(--color-muted)">
                 {'// banner · '}{name}.runs-on.dev
@@ -86,7 +103,7 @@ export default function BannerModal({ name }) {
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close"
-                className="slit-frame rounded-[4px] px-2.5 py-1 font-(family-name:--font-mono) text-xs text-(--color-muted) hover:text-(--color-ink)"
+                className="font-(family-name:--font-mono) text-xs text-(--color-muted) underline transition-colors hover:text-(--color-ink)"
               >
                 close
               </button>
@@ -94,11 +111,12 @@ export default function BannerModal({ name }) {
 
             {/* The image itself. A plain <img>, not next/image: the source is
                 a route on another host in production, and the banner is
-                already the exact size it is served at. */}
+                already the exact size it is served at. Height-capped so the
+                modal always fits the viewport. */}
             <img
               src={url}
               alt={`${name}.runs-on.dev claim banner`}
-              className="mt-4 w-full rounded-lg border border-(--color-rule)"
+              className="mx-auto mt-4 max-h-[52vh] w-auto max-w-full"
             />
 
             <div className="mt-4 flex flex-wrap items-center gap-3">

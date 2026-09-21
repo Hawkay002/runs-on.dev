@@ -173,7 +173,7 @@ export default function ManageShell({ login, children }) {
           onClick={() => setOpen((o) => !o)}
           aria-label={open ? 'Close menu' : 'Open menu'}
           aria-expanded={open}
-          className="group relative z-50 -ml-2 rounded-lg p-2 text-(--color-muted) transition-colors hover:text-(--color-ink)"
+          className="group relative z-30 -ml-2 rounded-lg p-2 text-(--color-muted) transition-colors hover:text-(--color-ink)"
         >
           {open ? (
             <span className="block">
