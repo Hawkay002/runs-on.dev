@@ -5,11 +5,9 @@ import { commitUrl, shortSha } from '../../lib/repo.js';
 import {
   modeOf, mxToLines, buildRecords,
   SUBDOMAIN_TYPES, buildSubdomains, subdomainsToRows,
-  buildProfile, profileToRows,
 } from '../../lib/record-fields.js';
 
 const MAX_SUBDOMAINS = 10;
-const MAX_LINKS = 8;
 
 // The one input look for the whole form: transparent field inside a slit
 // outline, chalk text, the line brightening on focus. Contrast carries the
@@ -104,8 +102,9 @@ function pageState(check, { cname, url, hasDns }) {
   return { ok: false, text: 'no answer yet. DNS may still be propagating' };
 }
 
+// The three DNS shapes this form edits. The profile card is not one of them:
+// it lives on its own page (/manage/profile) and has no tile here.
 const PROVIDERS = [
-  { id: 'card', label: 'Profile Card', hint: 'Serve a card built from your GitHub profile. No DNS needed.', icon: 'M3 10h18M7 15h.01M11 15h.01M15 15h.01M7 19h10a4 4 0 0 0 4-4V8a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v7a4 4 0 0 0 4 4Z' },
   { id: 'cname', label: 'Custom Domain', hint: 'Point at any host your provider gave you via CNAME.', icon: 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71' },
   { id: 'url', label: 'Redirect', hint: 'Send visitors to any URL. Simple and fast.', icon: 'M15 3h6v6M10 14L21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6' },
   { id: 'advanced', label: 'Advanced DNS', hint: 'A, TXT, and MX records. For power users.', icon: 'M4 6h16M4 12h16M4 18h16' },
@@ -182,7 +181,12 @@ const PRESETS = [
 ];
 
 export default function RecordForm({ name, record }) {
-  const [mode, setMode] = useState(() => modeOf(record.records));
+  // A name with no DNS opens on Custom Domain, ready to point somewhere,
+  // rather than on a card tab this form no longer has.
+  const [mode, setMode] = useState(() => {
+    const initial = modeOf(record.records);
+    return initial === 'card' ? 'cname' : initial;
+  });
   const [cname, setCname] = useState(record.records?.CNAME ?? '');
   // Highlight the preset the loaded CNAME already matches (a Vercel user
   // returning to their record sees the Vercel steps, not bare fields). Only
@@ -201,9 +205,6 @@ export default function RecordForm({ name, record }) {
   const [errors, setErrors] = useState([]);
   const [commit, setCommit] = useState(null);
   const [subRows, setSubRows] = useState(() => subdomainsToRows(record.subdomains));
-  const [displayName, setDisplayName] = useState(record.profile?.name ?? '');
-  const [bio, setBio] = useState(record.profile?.bio ?? '');
-  const [linkRows, setLinkRows] = useState(() => profileToRows(record.profile));
   const [dnsStatus, setDnsStatus] = useState(null);
 
   // What the record held when the page loaded, not what the form currently
@@ -261,6 +262,10 @@ export default function RecordForm({ name, record }) {
     event.preventDefault();
     setStatus('saving');
     setErrors([]);
+    // No `profile` key in the payload: the profile card is edited on its own
+    // page (/manage/profile), and the API's contract is that a key absent
+    // from the body is left exactly as the file holds it — so this form
+    // cannot touch the card, only the DNS and subdomains it shows.
     const res = await fetch('/api/records', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -268,7 +273,6 @@ export default function RecordForm({ name, record }) {
         name,
         records: buildRecords(mode, { cname, url, a, txt, mx }),
         subdomains: buildSubdomains(subRows),
-        profile: buildProfile({ name: displayName, bio, linkRows }) ?? null,
       }),
     });
     const body = await res.json().catch(() => ({}));
@@ -311,7 +315,7 @@ export default function RecordForm({ name, record }) {
           reserved icon color; the active tile is traced in white instead. */}
       <div className="px-8 py-6 sm:px-10">
         <p className="text-[14px] text-(--color-ink)">Where does your name go?</p>
-        <div className="mt-4 grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-8">
+        <div className="mt-4 grid grid-cols-2 gap-6 sm:grid-cols-3 sm:gap-8">
           {PROVIDERS.map((p) => (
             <button key={p.id} type="button" onClick={() => selectProvider(p.id)}
               className={`slit-frame flex flex-col items-center gap-2.5 rounded-lg p-4 text-center sm:p-5 ${mode === p.id ? 'slit-frame-bright' : ''}`}
@@ -325,20 +329,6 @@ export default function RecordForm({ name, record }) {
         </div>
         <p className="mt-3 text-xs leading-relaxed text-(--color-muted)">{PROVIDERS.find((p) => p.id === mode)?.hint}</p>
       </div>
-
-      {/* Mode-specific section. The profile editor lives outside this
-          switch (further down) because `profile` and `records` are
-          independent keys — gating the bio behind this mode meant anyone
-          with a CNAME who wanted to edit their bio silently lost their
-          records. */}
-      {mode === 'card' && (
-        <div className="slit-top px-6 py-5 sm:px-8">
-          <p className="text-[14px] text-(--color-ink)">Profile card</p>
-          <p className="mt-1.5 text-xs leading-relaxed text-(--color-muted)">
-            Your name serves a card built from your GitHub profile. No DNS records are published.
-          </p>
-        </div>
-      )}
 
       {/* Warn when a save in this mode would remove records the file
           currently holds. The WYSIWYG model makes switching mode drop
@@ -445,37 +435,9 @@ export default function RecordForm({ name, record }) {
         </div>
       )}
 
-      {/* Profile card fields. Always available, whatever the records mode:
-          `profile` is its own key on the record and is served by the card, so
-          editing a bio must never require touching where the name points. */}
-      <div className="slit-top px-6 py-5 sm:px-8">
-        <p className="text-[14px] text-(--color-ink)">Profile card details</p>
-        <p className="mt-1.5 text-xs leading-relaxed text-(--color-muted)">
-          {mode === 'card'
-            ? 'Override any field below. Blank falls back to your GitHub profile.'
-            : 'Saved with your name and shown if you ever switch to the profile card. Editing these does not change your DNS.'}
-        </p>
-        <div className="mt-5 space-y-4">
-          <label className="block">
-            <span className="meta normal-case">display name</span>
-            <input value={displayName} onChange={(e) => { setDisplayName(e.target.value); setStatus(null); }} placeholder="GitHub profile name" className={`mt-2 ${INPUT}`} />
-          </label>
-          <label className="block">
-            <span className="meta normal-case">bio</span>
-            <textarea value={bio} onChange={(e) => { setBio(e.target.value); setStatus(null); }} placeholder="GitHub profile bio" rows={2} className={`mt-2 ${INPUT} resize-y`} />
-          </label>
-          {linkRows.map((row, i) => (
-            <div key={i} className="flex flex-wrap items-center gap-2">
-              <input value={row.label} onChange={(e) => setLinkRow(i, { label: e.target.value })} placeholder="My portfolio" aria-label="Link label" className={`w-36 ${INPUT}`} />
-              <input value={row.url} onChange={(e) => setLinkRow(i, { url: e.target.value })} placeholder="https://…" aria-label="Link URL" spellCheck={false} className={`min-w-0 flex-1 ${INPUT}`} />
-              <button type="button" onClick={() => removeLink(i)} className="font-(family-name:--font-mono) text-xs text-(--color-muted) underline transition-colors hover:text-(--color-ink)">remove</button>
-            </div>
-          ))}
-          {linkRows.length < MAX_LINKS && (
-            <button type="button" onClick={() => { setLinkRows((rows) => [...rows, { label: '', url: '' }]); setStatus(null); }} className="slit-frame rounded-[4px] px-3 py-1.5 font-(family-name:--font-mono) text-xs text-(--color-muted) hover:text-(--color-ink)">+ add a link</button>
-          )}
-        </div>
-      </div>
+      {/* The profile card fields moved to /manage/profile, their own page:
+          `profile` is its own key on the record, and this form's payload no
+          longer carries it, so DNS editing here cannot touch the card. */}
 
       {/* Save */}
       <div className="flex flex-wrap items-center gap-4 slit-top px-6 py-5 sm:px-8">
@@ -504,16 +466,13 @@ export default function RecordForm({ name, record }) {
             .flatMap((r) => r.value.split('\n').map((v) => v.trim()).filter(Boolean))}
         />
       )}
-
-      {/* Danger zone: release the name back to the pool */}
-      <SwapZone name={name} />
-      <ReleaseZone name={name} />
     </form>
   );
 }
 
-// ── Swap zone (trade this name for a different one) ─────────
-function SwapZone({ name }) {
+// Swap and release live on the profile page (/manage/profile), next to the
+// card they affect — exported so that page can render them directly.
+export function SwapZone({ name }) {
   const [open, setOpen] = useState(false);
   const [newName, setNewName] = useState('');
   const [confirmText, setConfirmText] = useState('');
@@ -642,7 +601,7 @@ function SwapZone({ name }) {
 }
 
 // ── Release zone (give the name back to the pool) ───────────
-function ReleaseZone({ name }) {
+export function ReleaseZone({ name }) {
   const [open, setOpen] = useState(false);
   const [confirmText, setConfirmText] = useState('');
   const [releasing, setReleasing] = useState(false);

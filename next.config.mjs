@@ -6,6 +6,10 @@ export default {
   // explicitly or the read comes up empty in production.
   outputFileTracingIncludes: {
     '/': ['./domains/**'],
+    // The banner reads the registry on disk for its claim serial and loads
+    // the site's TTF faces for satori; both are runtime file reads that
+    // tracing cannot see.
+    '/banner/[name]': ['./domains/**', './app/fonts/*.ttf'],
   },
   // Every page (and the markdown twin) varies by Accept: agents negotiating
   // text/markdown get /llms-md content while browsers get HTML, and a cache

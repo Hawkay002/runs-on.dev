@@ -1,19 +1,44 @@
-import { signSiteToken, SITE_TOKEN_SCOPE, SITE_TOKEN_TTL_MS } from '../../../lib/tokens.js';
+import { signSiteToken, SITE_TOKEN_SCOPE } from '../../../lib/tokens.js';
+import { normalizeDuration, recordToken, listTokens, revokeToken, tokenId } from '../../../lib/token-registry.js';
 import { sessionFromRequest } from '../../../lib/session.js';
 import { createRateLimiter, rateLimitHeaders } from '../../../lib/throttle.js';
 
-// Minting is a no-op on the registry (the token is stateless), but it should
-// still not be free: a leaned-on button or a stuck loop minting thousands of
-// valid 30-day credentials is its own kind of incident. Tight enough that a
-// human generating, copying, and pasting never trips it.
+// Minting is a no-op on the wire (the token is signed, not stored), but it
+// writes one registry entry and should still not be free: a leaned-on button
+// or a stuck loop minting thousands of valid credentials is its own kind of
+// incident. Tight enough that a human generating, copying, and pasting never
+// trips it.
 const MINT_WINDOW_MS = 10 * 60 * 1000;
 const MINT_MAX = 5;
 const takeMint = createRateLimiter({ windowMs: MINT_WINDOW_MS, max: MINT_MAX });
 
-// The only way a deploy token comes into existence: the browser session says
-// who the login is, the server signs it, the response shows it once. There is
-// deliberately no GET: stateless tokens cannot be listed, and a "does one
-// exist" oracle would only ever return yes after the first mint anyway.
+// Every route here is session-gated: listing and revoking speak for the
+// signed-in login and nobody else's, and minting records under that login.
+
+// The list half. Previously created keys, live ones only -- entries expire
+// out of the registry on read, which is the "auto delete" half -- each with
+// its id (for the delete button), its creation date, and its expiry. The
+// tokens themselves never come back: they were shown once at mint.
+export async function GET(request) {
+  const session = sessionFromRequest(request, process.env.SESSION_SECRET);
+  if (!session?.login) {
+    return Response.json({ error: 'signin_required' }, { status: 401 });
+  }
+
+  try {
+    const listed = await listTokens(session.login, { token: process.env.REGISTRY_TOKEN });
+    return Response.json({
+      tokens: (listed?.tokens ?? []).map(({ id, createdAt, exp }) => ({
+        id,
+        createdAt: createdAt ?? null,
+        expiresAt: new Date(exp).toISOString(),
+      })),
+    });
+  } catch {
+    return Response.json({ error: 'busy' }, { status: 503, headers: { 'Retry-After': '4' } });
+  }
+}
+
 export async function POST(request) {
   const session = sessionFromRequest(request, process.env.SESSION_SECRET);
   if (!session?.login) {
@@ -35,17 +60,71 @@ export async function POST(request) {
     // every token forgeable by anyone who guesses the failure mode.
     return Response.json({ error: 'not_configured' }, { status: 503 });
   }
+  if (!process.env.REGISTRY_TOKEN) {
+    // A mint the registry cannot record would hand out a credential the list
+    // cannot show and the delete button cannot reach. Same fail-closed rule
+    // as the secret.
+    return Response.json({ error: 'not_configured' }, { status: 503 });
+  }
+
+  // The duration rides in the body from the manage panel's dropdown; anything
+  // off the menu falls back to the default rather than trusting the client.
+  const body = await request.json().catch(() => ({}));
+  const days = normalizeDuration(body.durationDays);
 
   const now = Date.now();
+  const ttlMs = days * 24 * 60 * 60 * 1000;
   const token = signSiteToken(
     { login: session.login, scope: SITE_TOKEN_SCOPE },
     secret,
-    { now },
+    { now, ttlMs },
   );
+
+  // Record before answering: once tracking exists for this login, an
+  // unrecorded token would fail the front door's membership check, so a mint
+  // that cannot be recorded must not succeed.
+  const recorded = await recordToken(session.login, {
+    id: tokenId(token),
+    createdAt: now,
+    exp: now + ttlMs,
+  }, { token: process.env.REGISTRY_TOKEN });
+  if (!recorded.ok) {
+    return Response.json(
+      { error: recorded.reason === 'ratelimited' ? 'busy' : 'server_error' },
+      { status: recorded.reason === 'ratelimited' ? 503 : 500 },
+    );
+  }
 
   return Response.json({
     token,
     scope: SITE_TOKEN_SCOPE,
-    expiresAt: new Date(now + SITE_TOKEN_TTL_MS).toISOString(),
+    durationDays: days,
+    expiresAt: new Date(now + ttlMs).toISOString(),
   });
+}
+
+// The manual delete: one id, removed from this login's registry file. An id
+// that is already gone (expired out, deleted from another tab) answers ok
+// rather than 404 -- the end state is what the caller asked for.
+export async function DELETE(request) {
+  const session = sessionFromRequest(request, process.env.SESSION_SECRET);
+  if (!session?.login) {
+    return Response.json({ error: 'signin_required' }, { status: 401 });
+  }
+
+  const body = await request.json().catch(() => ({}));
+  const id = typeof body.id === 'string' ? body.id : '';
+  if (!/^[0-9a-f]{16}$/.test(id)) {
+    return Response.json({ error: 'invalid_id' }, { status: 400 });
+  }
+
+  try {
+    const result = await revokeToken(session.login, id, { token: process.env.REGISTRY_TOKEN });
+    if (!result.ok) {
+      return Response.json({ error: result.reason === 'stale' ? 'stale' : 'server_error' }, { status: result.reason === 'stale' ? 409 : 500 });
+    }
+    return Response.json({ deleted: result.had ? id : null });
+  } catch {
+    return Response.json({ error: 'busy' }, { status: 503, headers: { 'Retry-After': '4' } });
+  }
 }

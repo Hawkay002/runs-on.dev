@@ -1,37 +1,52 @@
 import { getRecord } from './registry.js';
 import { REPO_URL } from './repo.js';
+import { claimNumber } from './claim-order.js';
 
-// The per-claim banner artwork, rendered by next/og from two places:
-// app/banner/[name]/route.js (the downloadable/shareable image, both themes)
-// and app/sites/[name]/opengraph-image.js (the light card, as the social
-// preview for a claimed name's own page). One component so the two can never
-// drift apart — the same contract lib/banner-card.jsx holds for the
-// registry's own artwork.
+// The per-claim banner artwork, rendered by next/og from
+// app/banner/[name]/route.js (the downloadable/shareable image, dark only
+// since the light theme was retired).
 //
 // Satori (what next/og renders with) supports a subset of CSS: flexbox only,
-// no shorthand, explicit sizes on images. Everything here stays inside that
-// subset on purpose.
+// no shorthand, explicit sizes on images, and TTF/OTF/WOFF fonts passed in
+// explicitly. The typefaces here are the site's own -- Satoshi for display,
+// IBM Plex Mono for the machine lines -- handed in by the route through
+// lib/banner-fonts.js, because satori ships only Inter by default. Everything
+// else stays inside that subset on purpose.
 
 // Re-exported so existing importers keep working; the number lives in
 // lib/banner-size.js.
 export { BANNER_SIZE } from './banner-size.js';
 
-const THEMES = {
-  light: {
-    ground: '#101010',
-    muted: '#9C9C9C',
-    ink: '#F3F3F3',
-    rule: '#212121',
-    signal: '#F3F3F3',
-  },
-  dark: {
-    ground: '#080808',
-    muted: '#9C9C9C',
-    ink: '#F3F3F3',
-    rule: '#212121',
-    signal: '#8A8172',
-  },
+const THEME = {
+  ground: '#080808',
+  muted: '#9C9C9C',
+  ink: '#F3F3F3',
+  rule: '#212121',
+  signal: '#8A8172',
+  verified: '#98FF38',
 };
+
+// Lucide's badge-check, the same mark the manage page shows for a verified
+// name, drawn inline because satori has no icon packages. Green: it says
+// "verified", and the palette's muted gold would not.
+function BadgeCheckIcon({ size }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={THEME.verified}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ display: 'flex' }}
+    >
+      <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.74 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
+      <path d="m9 12 2 2 4-4" />
+    </svg>
+  );
+}
 
 // One registry read + one GitHub read, shared by both render sites, with the
 // same short revalidate the card page uses so a banner reflects a fresh
@@ -82,11 +97,12 @@ export async function claimBannerData(name) {
     bio: overrides.bio ?? profile?.bio ?? null,
     claimedYear: (record.claimedAt ?? '').slice(0, 4) || null,
     avatarUrl,
+    serial: claimNumber(name),
   };
 }
 
-export function ClaimBanner({ name, login, displayName, bio, claimedYear, avatarUrl, theme = 'light' }) {
-  const t = THEMES[theme] ?? THEMES.light;
+export function ClaimBanner({ name, login, displayName, bio, claimedYear, avatarUrl, serial }) {
+  const t = THEME;
 
   return (
     <div
@@ -98,8 +114,27 @@ export function ClaimBanner({ name, login, displayName, bio, claimedYear, avatar
         justifyContent: 'space-between',
         padding: 72,
         background: t.ground,
+        position: 'relative',
+        fontFamily: 'Satoshi',
       }}
     >
+      {serial != null && (
+        <span
+          style={{
+            position: 'absolute',
+            top: 44,
+            right: 64,
+            display: 'flex',
+            fontFamily: 'IBM Plex Mono',
+            fontSize: 26,
+            letterSpacing: 2,
+            color: t.muted,
+          }}
+        >
+          {`#${serial}`}
+        </span>
+      )}
+
       <div style={{ display: 'flex', alignItems: 'center' }}>
         {avatarUrl ? (
           <img
@@ -121,17 +156,29 @@ export function ClaimBanner({ name, login, displayName, bio, claimedYear, avatar
           />
         )}
         <div style={{ marginLeft: 28, display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontSize: 30, color: t.ink, display: 'flex' }}>
-            {displayName ?? `@${login}`}
-          </span>
-          <span style={{ fontSize: 22, color: t.muted, marginTop: 6, display: 'flex' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <span style={{ fontSize: 30, fontWeight: 500, color: t.ink, display: 'flex' }}>
+              {displayName ?? `@${login}`}
+            </span>
+            <BadgeCheckIcon size={30} />
+          </div>
+          <span
+            style={{
+              fontSize: 20,
+              color: t.muted,
+              marginTop: 6,
+              display: 'flex',
+              fontFamily: 'IBM Plex Mono',
+              letterSpacing: 1,
+            }}
+          >
             {claimedYear ? `claimed ${claimedYear}` : `@${login}`}
           </span>
         </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <span style={{ fontSize: 88, fontWeight: 400, letterSpacing: -1, color: t.ink, display: 'flex' }}>
+        <span style={{ fontSize: 88, fontWeight: 700, letterSpacing: -1, color: t.ink, display: 'flex' }}>
           {name}
           <span style={{ fontSize: 88, fontWeight: 400, letterSpacing: -1, color: t.muted, display: 'flex' }}>.runs-on.dev</span>
         </span>
@@ -145,8 +192,8 @@ export function ClaimBanner({ name, login, displayName, bio, claimedYear, avatar
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span
           style={{
-            fontFamily: 'monospace',
-            fontSize: 22,
+            fontFamily: 'IBM Plex Mono',
+            fontSize: 20,
             letterSpacing: 4,
             textTransform: 'uppercase',
             color: t.muted,
@@ -155,7 +202,16 @@ export function ClaimBanner({ name, login, displayName, bio, claimedYear, avatar
         >
           A FREE SUBDOMAIN REGISTRY
         </span>
-        <span style={{ fontSize: 24, color: t.signal, display: 'flex' }}>{REPO_URL.replace('https://', '')}</span>
+        <span
+          style={{
+            fontFamily: 'IBM Plex Mono',
+            fontSize: 22,
+            color: t.signal,
+            display: 'flex',
+          }}
+        >
+          {REPO_URL.replace('https://', '')}
+        </span>
       </div>
     </div>
   );

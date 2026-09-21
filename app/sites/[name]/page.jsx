@@ -4,6 +4,8 @@ import { isValidRedirectUrl } from '../../../lib/schema.js';
 import { cardMetadata } from '../../../lib/metadata.js';
 import { REPO_URL } from '../../../lib/repo.js';
 import { StatusBadge } from '../../components/ui.jsx';
+import ManageLink from './manage-link.jsx';
+import BannerModal from './banner-modal.jsx';
 
 // Record freshness, not the GitHub profile's: a name claimed just now must
 // stop serving a cached 404 within seconds, not up to an hour.
@@ -130,12 +132,9 @@ export default async function Site({ params }) {
                   {name}.runs-on.dev
                 </a>
               </h1>
-              <a
-                href="/manage"
-                className="slit-frame [--slit-over:8px] rounded-full px-3 py-1 font-(family-name:--font-mono) text-xs text-(--color-muted) transition-colors hover:text-(--color-ink)"
-              >
-                manage
-              </a>
+              {/* Owner-only: the manage shortcut renders for the card's own
+                  owner and for nobody else visiting the card. */}
+              <ManageLink owner={record.owner.github} />
             </div>
             {displayName && <p className="mt-1.5 text-sm text-(--color-muted)">{displayName}</p>}
           </div>
@@ -179,30 +178,16 @@ export default async function Site({ params }) {
               <dd className="text-(--color-ink)">{record.claimedAt}</dd>
             </div>
           )}
-          {/* The banner links must be absolute to the apex: this page renders
-              on <name>.runs-on.dev hosts, where a relative /banner/<name>
-              would be rewritten by proxy.js into /sites/<name>/banner/... and
-              404. The banner route lives on runs-on.dev itself. */}
+          {/* The banner opens in a modal rather than a weblink, but the
+              link path it shows stays absolute to the apex: this page
+              renders on <name>.runs-on.dev hosts, where a relative
+              /banner/<name> would be rewritten by proxy.js into
+              /sites/<name>/banner/... and 404. The banner route lives on
+              runs-on.dev itself. */}
           <div className="flex gap-4">
-            <dt className="w-24 shrink-0 text-(--color-muted)">share</dt>
+            <dt className="w-24 shrink-0 text-(--color-muted)">share banner</dt>
             <dd className="text-(--color-muted)">
-              <a
-                className="text-(--color-ink) underline"
-                href={`https://runs-on.dev/banner/${name}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                banner
-              </a>
-              {' / '}
-              <a
-                className="text-(--color-ink) underline"
-                href={`https://runs-on.dev/banner/${name}?theme=dark`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                dark
-              </a>
+              <BannerModal name={name} />
             </dd>
           </div>
         </dl>

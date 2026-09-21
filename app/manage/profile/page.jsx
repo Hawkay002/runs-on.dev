@@ -1,17 +1,18 @@
 import { cookies } from 'next/headers';
-import { readSession } from '../../lib/session.js';
-import { getOwnerIndex } from '../../lib/owners.js';
-import { getRecord } from '../../lib/registry.js';
-import RecordForm from './record-form.jsx';
+import { readSession } from '../../../lib/session.js';
+import { getOwnerIndex } from '../../../lib/owners.js';
+import { getRecord } from '../../../lib/registry.js';
+import ProfileForm from '../profile-form.jsx';
+import BadgeZone from '../badge-zone.jsx';
+import { SwapZone, ReleaseZone } from '../record-form.jsx';
 
 const TOKEN = () => process.env.REGISTRY_TOKEN;
 
-// The manage landing: where the name points. The profile card has its own
-// page (/manage/profile) — card fields, badge, swap, and release all live
-// there — and the deploy tokens live at /manage/api. This page is only about
-// DNS: the record form's tabs (custom domain, redirect, advanced DNS,
-// subdomain records).
-export default async function Manage() {
+// The profile card's own page: display name, bio, and links — nothing that
+// touches DNS. The name's badge preview, swap, and release live here too,
+// each in its own section, since they all describe the card rather than the
+// DNS. The record forms on /manage handle where the name points.
+export default async function ProfilePage() {
   const raw = (await cookies()).get('session')?.value;
   const session = raw ? readSession(raw, process.env.SESSION_SECRET) : null;
   const login = session?.login ?? '';
@@ -27,26 +28,25 @@ export default async function Manage() {
     <>
       <p className="meta">Manage</p>
       <h1 className="mt-3 text-[34px] leading-[1.03] font-normal tracking-[-0.005em] text-(--color-ink) sm:text-[44px] sm:tracking-[-0.007em]">
-        Your name
+        Profile
       </h1>
       <p className="mt-4 max-w-[540px] text-[16px] leading-[1.5] text-(--color-muted)">
-        Record changes save straight to the registry and DNS follows within
-        seconds. Your profile card, badge, swap, and release live on the{' '}
-        <a className="text-(--color-ink) underline" href="/manage/profile">Profile page</a>.
+        The card your name serves: display name, bio, links, badge, swap, and
+        release. Saving here never changes where the name points — that lives
+        on the Manage page.
       </p>
 
       <div className="mt-12 space-y-12">
         {records.map((record, i) =>
           record ? (
             <div key={names[i]}>
-              <RecordForm name={names[i]} record={record} />
+              <ProfileForm name={names[i]} record={record} />
+              <BadgeZone name={names[i]} />
+              <SwapZone name={names[i]} />
+              <ReleaseZone name={names[i]} />
             </div>
           ) : null,
         )}
-        {/* An indexed name whose file cannot be read is skipped rather than
-            replacing the whole page with an error: one unreadable record must
-            not hide the others, and "reload to try again" was a promise the
-            stale-index window after a swap could not keep. */}
         {unreadable.length > 0 && (
           <p className="font-(family-name:--font-mono) text-xs text-(--color-muted)">
             {'// not shown just now: '}
