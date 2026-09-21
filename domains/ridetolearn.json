@@ -7,5 +7,15 @@
   "records": {
     "CNAME": "ridetolearn.freebuff.app"
   },
-  "country": "SE"
+  "country": "SE",
+  "subdomains": {
+    "ridetolearn": {
+      "CNAME": "cname.vercel-dns.com"
+    },
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=ridetolearn.runs-on.dev,459e1141f11a47e8c3ec"
+      ]
+    }
+  }
 }
