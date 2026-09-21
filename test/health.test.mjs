@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  classifyClaim, issueName, planIssueClosures, planIssueOpens, diagnoseStuck, stuckIssueBody,
+  classifyClaim, issueName, planIssueClosures, planOrphanClosures, planIssueOpens, diagnoseStuck, stuckIssueBody,
   normalizeAnswer, findDrift,
 } from '../lib/health.js';
 
@@ -91,6 +91,33 @@ test('never closes an issue whose title it cannot parse', () => {
 test('a down name keeps its issue open', () => {
   const rows = [{ name: 'dexi', status: 'down' }];
   assert.deepEqual(planIssueClosures(rows, [{ number: 35, title: 'dexi.runs-on.dev x' }]), []);
+});
+
+// --- orphans: a swap deletes the record file, so the name can never be
+// probed again and its nudge could never close itself (#244) ---
+
+test('an orphaned nudge whose name has left the registry is closable', () => {
+  const issues = [
+    { number: 162, title: 'shriansh.runs-on.dev is pointing at Vercel but not serving your project' },
+  ];
+  assert.deepEqual(
+    planOrphanClosures(issues, ['dexi', 'kite']),
+    [{ number: 162, name: 'shriansh' }],
+  );
+});
+
+test('a name still in the registry is never an orphan, whatever its status', () => {
+  const issues = [
+    { number: 1, title: 'dexi.runs-on.dev x' },
+    { number: 2, title: 'shrey.runs-on.dev x' },
+  ];
+  // 'card' is the deliberate human-in-the-loop case: the name exists, its
+  // records were removed, and only a person can tell intent from damage.
+  assert.deepEqual(planOrphanClosures(issues, ['dexi', 'shrey']), []);
+});
+
+test('an unparseable title is never closed as an orphan', () => {
+  assert.deepEqual(planOrphanClosures([{ number: 3, title: 'Add a dark mode toggle' }], []), []);
 });
 
 test('normalizeAnswer strips the trailing dot and case from hostnames', () => {
