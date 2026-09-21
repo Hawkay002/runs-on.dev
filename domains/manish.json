@@ -5,7 +5,7 @@
   },
   "claimedAt": "2026-09-17T13:36:42.713Z",
   "records": {
-    "CNAME": "cname.vercel-dns.com"
+    "CNAME": "b79f7d52ad469400.vercel-dns-017.com"
   },
   "country": "NP",
   "profile": {
@@ -15,11 +15,8 @@
   "subdomains": {
     "_vercel": {
       "TXT": [
-        "vc-domain-verify=runs-on.dev,2e4260517694679583a3"
+        "vc-domain-verify=manish.runs-on.dev,ad6a701ec19e545a8f11"
       ]
-    },
-    "manish": {
-      "CNAME": "b79f7d52ad469400.vercel-dns-017.com"
     }
   }
 }
