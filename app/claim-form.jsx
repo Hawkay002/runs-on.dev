@@ -16,6 +16,7 @@ export default function ClaimForm({ signedIn }) {
   const [status, setStatus] = useState(null);
   const [commit, setCommit] = useState(null);
   const [ownedName, setOwnedName] = useState(null);
+  const [heldWarning, setHeldWarning] = useState(null);
   const [inputWidth, setInputWidth] = useState(null);
   const [animKey, setAnimKey] = useState(0);
 
@@ -92,7 +93,13 @@ export default function ClaimForm({ signedIn }) {
     }
 
     const body = await res.json();
-    if (res.ok) setCommit(body.commit ?? null);
+    if (res.ok) {
+      setCommit(body.commit ?? null);
+      // The claim can succeed while the hostname is still held by a previous
+      // holder's provider attachment (#245). The API only sends this when it
+      // is real, and any earlier warning belongs to a different name.
+      setHeldWarning(typeof body.warning === 'string' ? body.warning : null);
+    }
     // A limit_reached rejection carries the name this account already holds,
     // so the message below can point at it instead of dead-ending.
     if (Array.isArray(body.owned) && body.owned.length) setOwnedName(body.owned[0]);
@@ -205,7 +212,7 @@ export default function ClaimForm({ signedIn }) {
 
       <div className="mt-6 flex justify-center">
         {status === 'claimed' ? (
-          <Claimed name={displayName} commit={commit} />
+          <Claimed name={displayName} commit={commit} warning={heldWarning} />
         ) : status === 'limit_reached' ? (
           // Being told "you already have a name" is only useful if it comes
           // with a way to reach that name. This is where a returning owner
@@ -233,7 +240,7 @@ export default function ClaimForm({ signedIn }) {
 // under their name, in a log anyone can read -- and only then asks for the
 // star. The commit sha is best-effort: if the write succeeded but the response
 // body could not be read, fall back to the record file, which always exists.
-function Claimed({ name, commit }) {
+function Claimed({ name, commit, warning }) {
   const sha = shortSha(commit);
   const receipt = commitUrl(commit) ?? `${REPO_URL}/blob/main/domains/${name}.json`;
 
@@ -246,6 +253,12 @@ function Claimed({ name, commit }) {
         </a>
         {sha ? '. Your name is in the log now.' : '. Your record is in the registry now.'}
       </p>
+
+      {warning && (
+        <p className="mx-auto mt-4 max-w-[520px] border-l-2 border-(--color-flag) pl-3 text-left text-xs leading-relaxed text-(--color-muted)" role="status">
+          {warning}
+        </p>
+      )}
 
       <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-5">
         <a
