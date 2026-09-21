@@ -18,6 +18,9 @@
     },
     "irc": {
       "CNAME": "xmpp.runs-on.dev"
+    },
+    "max": {
+      "CNAME": "xmpp.runs-on.dev"
     }
   }
 }
