@@ -4,10 +4,13 @@
     "github": "VishalGCode"
   },
   "claimedAt": "2026-09-21T13:27:22.687Z",
-  "records": {},
+  "records": {
+    "CNAME": "cname.vercel-dns.com"
+  },
   "country": "IN",
   "profile": {
     "name": "VISHAL GUPTA",
+    "bio": "Full-Stack Developer | Building web applications with React, Next.js & Node.js 🚀\n\n🌐 Portfolio: vishalgupta.runs-on.dev",
     "links": [
       {
         "label": "My Portfolio",
