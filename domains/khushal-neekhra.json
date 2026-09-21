@@ -4,6 +4,8 @@
     "github": "volt-l18"
   },
   "claimedAt": "2026-09-21T06:34:43.882Z",
-  "records": {},
+  "records": {
+    "CNAME": "cname.vercel-dns.com"
+  },
   "country": "IN"
 }
