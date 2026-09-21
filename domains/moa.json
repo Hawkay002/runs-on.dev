@@ -4,6 +4,8 @@
     "github": "MOA-Creator"
   },
   "claimedAt": "2026-09-21T11:06:53.492Z",
-  "records": {},
+  "records": {
+    "CNAME": "moa-creator.github.io"
+  },
   "country": "IL"
 }
