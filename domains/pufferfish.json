@@ -9,5 +9,9 @@
       "104.243.38.18"
     ]
   },
-  "country": "SG"
+  "country": "SG",
+  "profile": {
+    "name": "pufferfish",
+    "bio": "hellp"
+  }
 }
