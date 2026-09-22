@@ -40,6 +40,8 @@ name, so it can't be used to take any other name. Current entries:
   an open-source keyboard-sound app.
 - `ninebrains` (@zordhalo): [Ninebrains](https://github.com/Advance-Labs/ninebrains),
   an open-source desktop workbench for running coding agents in parallel.
+- `gdg` (@zordhalo): [Bean Bash](https://github.com/GDG-on-Campus-Seneca-Polytechnic/info/tree/main/sessions/2026-fall/2026-09-23-info-session/bean-bash),
+  the audience trivia game for GDG on Campus @ Seneca Polytechnic's events.
 
 ## Who is responsible
 
