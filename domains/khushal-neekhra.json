@@ -11,5 +11,10 @@
   "profile": {
     "name": "volt-l18",
     "bio": "i am kinda dumb... :P"
+  },
+  "subdomains": {
+    "khushal-neekhra": {
+      "CNAME": "c37a76e3a4c73927.vercel-dns-017.com"
+    }
   }
 }
