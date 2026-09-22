@@ -10,12 +10,5 @@
   "country": "IT",
   "profile": {
     "name": "mattia494"
-  },
-  "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=faro.runs-on.dev,76731bd76da16fa0f07d"
-      ]
-    }
   }
 }

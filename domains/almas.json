@@ -7,12 +7,5 @@
   "records": {
     "CNAME": "81d9cf864c8359b2.vercel-dns-017.com"
   },
-  "country": "ID",
-  "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=almas.runs-on.dev,f91ddbdb71abcac18b83"
-      ]
-    }
-  }
+  "country": "ID"
 }

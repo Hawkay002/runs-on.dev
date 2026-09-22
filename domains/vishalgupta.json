@@ -17,12 +17,5 @@
         "url": "https://vishalgdev.vercel.app/"
       }
     ]
-  },
-  "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=vishalgupta.runs-on.dev,c75ea8453cd17cddb073"
-      ]
-    }
   }
 }

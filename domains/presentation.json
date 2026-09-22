@@ -10,11 +10,6 @@
   "subdomains": {
     "presentation": {
       "CNAME": "df6f2136671ce258.vercel-dns-017.com"
-    },
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=presentation.runs-on.dev,a84f42d683e0bd292ecc"
-      ]
     }
   },
   "profile": {
