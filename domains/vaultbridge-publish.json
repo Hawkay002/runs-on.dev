@@ -4,6 +4,20 @@
     "github": "Luvendorf"
   },
   "claimedAt": "2026-09-22T14:39:14.162Z",
-  "records": {},
-  "country": "PL"
+  "records": {
+    "CNAME": "custom-domains.chatgpt.site"
+  },
+  "country": "PL",
+  "subdomains": {
+    "_openai-site-verification": {
+      "TXT": [
+        "openai-site-verification=UOBwo_jbFUzvu92wK2veb7nZN2m7qWs3_nGeN3gUGvg"
+      ]
+    },
+    "_cf-custom-hostname": {
+      "TXT": [
+        "d08e76ac-2d3c-4a23-80f2-2e7c801147ca"
+      ]
+    }
+  }
 }
