@@ -4,6 +4,10 @@
     "github": "argonaut0"
   },
   "claimedAt": "2026-09-22T16:15:37.435Z",
-  "records": {},
+  "records": {
+    "A": [
+      "1.1.1.1"
+    ]
+  },
   "country": "CA"
 }
