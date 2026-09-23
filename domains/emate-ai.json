@@ -5,5 +5,12 @@
   },
   "claimedAt": "2026-09-23T01:55:45.965Z",
   "records": {},
-  "country": "IN"
+  "country": "IN",
+  "subdomains": {
+    "_vercel": {
+      "TXT": [
+        "vc-domain-verify=emate-ai.runs-on.dev,58de8fd9161b1406f46c"
+      ]
+    }
+  }
 }
