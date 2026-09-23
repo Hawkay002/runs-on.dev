@@ -4,6 +4,8 @@
     "github": "cadsch24"
   },
   "claimedAt": "2026-09-23T02:34:51.758Z",
-  "records": {},
+  "records": {
+    "CNAME": "3275877e9c40d941.vercel-dns-017.com"
+  },
   "country": "US"
 }
