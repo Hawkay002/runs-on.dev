@@ -1,5 +1,6 @@
 import { sessionFromRequest } from '../../../lib/session.js';
 import { evaluateClaim } from '../../../lib/claim.js';
+import { classifyAbsentName, heldClaimWarning } from '../../../lib/health.js';
 import { putRecord } from '../../../lib/registry.js';
 import { getOwnerIndex, putOwnerIndex } from '../../../lib/owners.js';
 import { createRateLimiter, rateLimitHeaders } from '../../../lib/throttle.js';
@@ -69,6 +70,27 @@ export async function POST(request) {
     return Response.json({ error: decision.code, owned }, { status: decision.status });
   }
 
+  // Held-name check (#245): a name freed by a swap or a release can still
+  // serve a third party's site, because the provider attachment that serves
+  // it lives on the previous holder's own account and survives our record
+  // deletion. Warn, never block: the claim is genuinely theirs, and a probe
+  // that fails or times out stays silent rather than standing between an
+  // owner and their claim.
+  let heldTitle;
+  try {
+    const res = await fetch(`https://${name}.runs-on.dev/`, {
+      redirect: 'follow',
+      signal: AbortSignal.timeout(3000),
+      headers: { 'user-agent': 'runs-on-dev-claim-check (github.com/zordhalo/runs-on.dev)' },
+    });
+    const body = await res.text();
+    const title = /<title[^>]*>([^<]*)<\/title>/i.exec(body)?.[1]?.trim() ?? '';
+    const probe = { ok: true, finalHost: new URL(res.url).hostname, title };
+    if (classifyAbsentName(name, probe) === 'held') heldTitle = title;
+  } catch {
+    // Fail open: no probe answer, no warning, no block.
+  }
+
   const result = await putRecord(decision.record, { token: TOKEN() });
 
   if (result.ok) {
@@ -103,7 +125,11 @@ export async function POST(request) {
       // Never fail the request over an index bookkeeping problem.
       console.warn(`owner index write threw for ${session.login}: ${err.message}`);
     }
-    return Response.json({ claimed: name, commit: result.commit ?? null });
+    return Response.json({
+      claimed: name,
+      commit: result.commit ?? null,
+      ...(heldTitle !== undefined ? { warning: heldClaimWarning(name, heldTitle) } : {}),
+    });
   }
 
   if (result.reason === 'exists') {

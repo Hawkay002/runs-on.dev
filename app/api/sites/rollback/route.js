@@ -16,7 +16,7 @@ const takeRollback = createRateLimiter({ windowMs: ROLLBACK_WINDOW_MS, max: ROLL
 export async function POST(request) {
   // Credential and budget before the body, for the same reason as the deploy
   // route: an unauthenticated caller gets neither parsing nor a registry read.
-  const auth = authorizeBearer(request, takeRollback);
+  const auth = await authorizeBearer(request, takeRollback);
   if (auth.response) return auth.response;
 
   const body = await request.json().catch(() => ({}));

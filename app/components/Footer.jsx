@@ -1,5 +1,6 @@
 import { REPO_URL } from '../../lib/repo.js';
 import { getStarCount } from '../../lib/stars.js';
+import FooterMark from './footer-mark.jsx';
 
 const LINKS = [
   { href: '/blog', label: 'Blog' },
@@ -20,7 +21,7 @@ export default async function Footer() {
   return (
     <footer className="slit-top mt-32">
       <div className="mx-auto max-w-[1200px] px-6 py-10">
-        <div className="flex flex-col gap-10 sm:flex-row sm:items-start sm:justify-between">
+        <div className="mt-10 flex flex-col gap-10 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-[14px] text-(--color-ink)">
               runs-on.dev, a free subdomain registry by{' '}
@@ -50,6 +51,10 @@ export default async function Footer() {
                 <span> ({stars.toLocaleString('en-US')} ★)</span>
               )}
             </p>
+
+            {/* Desktop: the wordmark fills the empty space under the left
+                text block. Outlined at rest; fills white on hover or touch. */}
+            <FooterMark className="mt-8 hidden w-[560px] max-w-full sm:block" />
           </div>
 
           <nav aria-label="Footer" className="grid grid-cols-2 gap-x-12 gap-y-2.5">
@@ -71,6 +76,9 @@ export default async function Footer() {
               GitHub ↗
             </a>
           </nav>
+
+          {/* Mobile: the wordmark closes out the footer. */}
+          <FooterMark className="w-full max-w-[360px] sm:hidden" />
         </div>
       </div>
     </footer>

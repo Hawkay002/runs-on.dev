@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 // The whole deploy workflow as a paste-and-go prompt for a coding agent. The
 // token rides inside it (or a placeholder before one exists), because the
@@ -68,11 +68,48 @@ NOTES
 
 // Small outlined action in the system's voice: a fading slit frame that
 // brightens on hover. Used for the secondary copy/regenerate controls.
+// Inline Lucide marks for the duration dropdown (no icon package in the
+// repo; the blog toolbar sets the same pattern).
+function ChevronDownIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+function DurationCheckIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
 const MINI = 'slit-frame rounded-[4px] px-2.5 py-1.5 font-(family-name:--font-mono) text-xs text-(--color-muted) hover:text-(--color-ink)';
 
-// The deploy-token card. Account-scoped, unlike the record forms above it,
+// The livespan options the mint offers. The server re-validates these, so a
+// tampered dropdown just falls back to 30 days.
+const DURATIONS = [
+  { days: 1, label: '1 day' },
+  { days: 7, label: '7 days' },
+  { days: 30, label: '30 days' },
+  { days: 90, label: '90 days' },
+];
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+// Day number, month name, year number — a locale's "9/22/2026" reads as
+// month-first in some countries and day-first in others, so the name is
+// spelled out to kill the ambiguity.
+const fmtDate = (iso) => {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+};
+
+// The deploy-token card. Account-scoped, unlike the record forms beside it,
 // which are per-name: one login mints one kind of credential, and the
-// deployment it unlocks is always that account's own name.
+// deployment it unlocks is always that account's own name. Tokens are
+// tracked in the registry since the list arrived, so they can be shown,
+// aged out automatically, and deleted by hand before they expire.
 export default function TokenZone({ login }) {
   const [state, setState] = useState('idle'); // idle | minting | minted | error
   const [token, setToken] = useState('');
@@ -80,23 +117,90 @@ export default function TokenZone({ login }) {
   const [copied, setCopied] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [errorCode, setErrorCode] = useState(null);
+  const [durationDays, setDurationDays] = useState(30);
+
+  // The key list: what the registry holds for this login right now.
+  const [keys, setKeys] = useState(null); // null = not loaded yet
+  const [keysError, setKeysError] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [durationOpen, setDurationOpen] = useState(false);
+  const durationRef = useRef(null);
+
+  // Click outside (or Escape) closes the duration menu.
+  useEffect(() => {
+    if (!durationOpen) return;
+    const onPointerDown = (e) => {
+      if (durationRef.current && !durationRef.current.contains(e.target)) setDurationOpen(false);
+    };
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setDurationOpen(false);
+    };
+    // Scrolling the page also closes the menu, so an open menu can never
+    // slide beneath the sticky navbar and end up with the logo on top of it.
+    const onScroll = () => setDurationOpen(false);
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('scroll', onScroll);
+    };
+  }, [durationOpen]);
+
+  const refreshKeys = useCallback(async () => {
+    try {
+      const res = await fetch('/api/tokens');
+      const body = res.ok ? await res.json().catch(() => null) : null;
+      if (body && Array.isArray(body.tokens)) {
+        setKeys(body.tokens);
+        setKeysError(false);
+      } else {
+        setKeysError(true);
+      }
+    } catch {
+      setKeysError(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshKeys();
+  }, [refreshKeys]);
 
   async function mint() {
     setState('minting');
     setCopied(false);
     try {
-      const res = await fetch('/api/tokens', { method: 'POST' });
+      const res = await fetch('/api/tokens', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ durationDays }),
+      });
       const body = await res.json().catch(() => ({}));
       if (res.ok && body.token) {
         setToken(body.token);
         setExpiresAt(body.expiresAt);
         setState('minted');
+        refreshKeys();
       } else {
         setState('error');
       }
     } catch {
       setState('error');
     }
+  }
+
+  async function removeKey(id) {
+    setDeletingId(id);
+    try {
+      const res = await fetch('/api/tokens', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) setKeys((list) => (list ?? []).filter((k) => k.id !== id));
+    } catch {}
+    setDeletingId(null);
   }
 
   async function copy() {
@@ -125,7 +229,7 @@ export default function TokenZone({ login }) {
       <div className="px-6 py-6 sm:px-8">
         <p className="max-w-[540px] text-sm leading-relaxed text-(--color-muted)">
           Publish a static site to your name from a terminal or a coding agent, no browser
-          needed. Generate a token, then:
+          needed. Pick how long the key should live, generate it, then:
         </p>
         <pre className="slit-frame mt-4 rounded-lg bg-(--color-card) px-3 py-2.5 font-(family-name:--font-mono) text-xs leading-relaxed whitespace-pre-wrap [overflow-wrap:break-word] text-(--color-ash)">
 {`curl -X POST https://runs-on.dev/api/sites/deploy \\
@@ -135,6 +239,43 @@ export default function TokenZone({ login }) {
 
         {state !== 'minted' && (
           <div className="mt-5 flex flex-wrap items-center gap-3">
+            {/* Auto-delete duration: the key stops working on its own after
+                this long, without anyone having to remember to revoke it.
+                Custom dropdown — no native select chrome. */}
+            <span className="font-(family-name:--font-mono) text-xs text-(--color-muted)">Expire After</span>
+            <div className="relative" ref={durationRef}>
+              <button
+                type="button"
+                onClick={() => setDurationOpen((o) => !o)}
+                aria-haspopup="listbox"
+                aria-expanded={durationOpen}
+                className="slit-frame flex items-center gap-2 rounded-[4px] px-2.5 py-1.5 font-(family-name:--font-mono) text-xs text-(--color-ink)"
+              >
+                {DURATIONS.find((d) => d.days === durationDays)?.label}
+                <ChevronDownIcon />
+              </button>
+              {durationOpen && (
+                <div
+                  role="listbox"
+                  aria-label="Token lifetime"
+                  className="absolute left-0 top-[calc(100%+6px)] z-30 w-40 rounded-[4px] border border-(--color-rule) bg-(--color-paper) p-1 shadow-xl"
+                >
+                  {DURATIONS.map((d) => (
+                    <button
+                      key={d.days}
+                      type="button"
+                      role="option"
+                      aria-selected={durationDays === d.days}
+                      onClick={() => { setDurationDays(d.days); setDurationOpen(false); }}
+                      className={`flex w-full items-center justify-between rounded-[3px] px-2.5 py-1.5 text-left font-(family-name:--font-mono) text-xs ${durationDays === d.days ? 'bg-(--color-card) text-(--color-ink)' : 'text-(--color-muted) hover:text-(--color-ink)'}`}
+                    >
+                      {d.label}
+                      {durationDays === d.days && <DurationCheckIcon />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <button
               type="button"
               onClick={mint}
@@ -153,8 +294,8 @@ export default function TokenZone({ login }) {
 
         {state === 'minted' && (
           <div className="mt-5 space-y-3">
-            {/* Shown exactly once: the server stores nothing, so there is no
-                list to come back to and no way to show it again later. */}
+            {/* Shown exactly once: the secret itself is never stored, so the
+                list below can show that a key exists but never its value. */}
             <div className="slit-bar-l rounded-r-lg bg-(--color-card) p-3 pl-4">
               <p className="font-(family-name:--font-mono) text-xs text-(--color-muted)">
                 shown once · copy it now
@@ -169,9 +310,9 @@ export default function TokenZone({ login }) {
               </div>
             </div>
             <p className="max-w-[540px] text-xs leading-relaxed text-(--color-muted)">
-              Expires {expiresAt ? new Date(expiresAt).toLocaleDateString() : 'in 30 days'}.
+              Expires {expiresAt ? fmtDate(expiresAt) : 'soon'}.
               Treat it like a password: it can publish to your name and nothing else.
-              Generating another does not revoke this one; old tokens simply expire.
+              Delete it below any time, or let it age out on its own.
             </p>
             <button type="button" onClick={mint} className={MINI}>
               generate another
@@ -179,16 +320,49 @@ export default function TokenZone({ login }) {
           </div>
         )}
 
+        {/* Previously created keys, straight from the registry. Deleting one
+            revokes it immediately: the deploy front door checks this list. */}
+        <div className="slit-top mt-6 pt-4">
+          <p className="font-(family-name:--font-mono) text-xs text-(--color-muted)">your keys</p>
+          {keysError && (
+            <p className="mt-2 font-(family-name:--font-mono) text-xs text-(--color-flag)">
+              could not load your keys right now
+            </p>
+          )}
+          {keys !== null && !keysError && keys.length === 0 && (
+            <p className="mt-2 text-xs text-(--color-muted)">no live keys.</p>
+          )}
+          {keys !== null && keys.length > 0 && (
+            <ul className="mt-3 space-y-2">
+              {keys.map((key) => (
+                <li key={key.id} className="slit-frame flex flex-wrap items-center gap-x-4 gap-y-1 rounded-[4px] px-3 py-2 font-(family-name:--font-mono) text-xs">
+                  <span className="text-(--color-ink)">#{key.id.slice(0, 8)}</span>
+                  <span className="text-(--color-muted)">created {fmtDate(key.createdAt)}</span>
+                  <span className="text-(--color-muted)">expires {fmtDate(key.expiresAt)}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeKey(key.id)}
+                    disabled={deletingId === key.id}
+                    className="ml-auto text-(--color-muted) underline hover:text-(--color-flag) disabled:opacity-40"
+                  >
+                    {deletingId === key.id ? 'deleting…' : 'delete'}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
         {/* The paste-and-go agent prompt. Embeds the real token only while
             this render has one (the mint response is shown once); after a
-            reload it falls back to the placeholder, because stateless tokens
-            cannot be listed or shown again. The runbook panel is a plain
-            carbon fill (no frame) so its vertical scroll never clips a tail. */}
+            reload it falls back to the placeholder, because the secret never
+            comes back from the list. The runbook panel is a plain carbon
+            fill (no frame) so its vertical scroll never clips a tail. */}
         {(() => {
           const live = state === 'minted';
           const expiresNote = live
-            ? `expires ${expiresAt ? new Date(expiresAt).toLocaleDateString() : 'in 30 days'}`
-            : 'expires 30 days after you generate it';
+            ? `expires ${expiresAt ? fmtDate(expiresAt) : 'soon'}`
+            : 'expires after the lifetime you pick';
           const text = agentPrompt(
             live ? token : 'rod1.YOUR_TOKEN (generate one above first)',
             expiresNote,

@@ -5,11 +5,9 @@ import { commitUrl, shortSha } from '../../lib/repo.js';
 import {
   modeOf, mxToLines, buildRecords,
   SUBDOMAIN_TYPES, buildSubdomains, subdomainsToRows,
-  buildProfile, profileToRows,
 } from '../../lib/record-fields.js';
 
 const MAX_SUBDOMAINS = 10;
-const MAX_LINKS = 8;
 
 // The one input look for the whole form: transparent field inside a slit
 // outline, chalk text, the line brightening on focus. Contrast carries the
@@ -18,23 +16,32 @@ const INPUT =
   'slit-input w-full bg-transparent px-3 py-2 font-(family-name:--font-mono) text-sm text-(--color-ink) placeholder:text-(--color-muted)/70';
 
 // The "did it work?" panel: polls /api/dns-check after a save and compares
-// live DNS against what was committed.
+// live DNS against what the record now holds.
 function VerifyPanel({ name, cname, url, hasDns, vercelTxt }) {
   const [check, setCheck] = useState(null);
 
   useEffect(() => {
     let alive = true;
+    let timer = null;
+    // `check` deliberately stays out of the dependency list: a state update
+    // from inside the effect re-running the effect is an unconditional fetch
+    // per round trip. One fetch on mount, then every 8s, stopping when the
+    // live DNS matches the file.
+    const satisfied = (c) => c && cnameOk(c, cname) && pageOk(c, { cname, url, hasDns, vercelTxt });
     const tick = async () => {
       try {
         const res = await fetch(`/api/dns-check?name=${encodeURIComponent(name)}`);
-        if (res.ok && alive) setCheck(await res.json());
+        if (res.ok && alive) {
+          const data = await res.json();
+          setCheck(data);
+          if (satisfied(data) && timer) clearInterval(timer);
+        }
       } catch {}
     };
     tick();
-    const done = check && cnameOk(check, cname) && pageOk(check, { cname, url, hasDns, vercelTxt });
-    const timer = done ? null : setInterval(tick, 8000);
+    timer = setInterval(tick, 8000);
     return () => { alive = false; if (timer) clearInterval(timer); };
-  }, [name, cname, url, hasDns, vercelTxt, check]);
+  }, [name, cname, url, hasDns, vercelTxt]);
 
   if (!check) {
     return (
@@ -104,12 +111,31 @@ function pageState(check, { cname, url, hasDns }) {
   return { ok: false, text: 'no answer yet. DNS may still be propagating' };
 }
 
+// Tabs, in the order the form offers them. Each is an editor for one portion
+// of domains/<name>.json — opening one has no effect on what a save writes,
+// because every section submits only the key it owns.
 const PROVIDERS = [
-  { id: 'card', label: 'Profile Card', hint: 'Serve a card built from your GitHub profile. No DNS needed.', icon: 'M3 10h18M7 15h.01M11 15h.01M15 15h.01M7 19h10a4 4 0 0 0 4-4V8a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v7a4 4 0 0 0 4 4Z' },
   { id: 'cname', label: 'Custom Domain', hint: 'Point at any host your provider gave you via CNAME.', icon: 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71' },
   { id: 'url', label: 'Redirect', hint: 'Send visitors to any URL. Simple and fast.', icon: 'M15 3h6v6M10 14L21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6' },
   { id: 'advanced', label: 'Advanced DNS', hint: 'A, TXT, and MX records. For power users.', icon: 'M4 6h16M4 12h16M4 18h16' },
 ];
+
+// What the stored record currently makes the name do, in one line. Derived
+// from the file, never from which tab is open.
+function servingSummary(records = {}) {
+  if ('URL' in records) return `a redirect to ${records.URL}`;
+  if ('CNAME' in records) return `a custom domain (CNAME → ${records.CNAME})`;
+  const types = ['A', 'TXT', 'MX'].filter((t) => t in records);
+  if (types.length) return `advanced DNS (${types.join(', ')})`;
+  return 'the profile card (no DNS)';
+}
+
+// The _vercel TXT values the record holds, for the verify panel. Read from
+// the stored record, so the panel checks what the file actually has.
+function vercelTxtFromSubdomains(subdomains) {
+  const txt = (subdomains ?? {})._vercel?.TXT;
+  return Array.isArray(txt) ? txt : [];
+}
 
 // Provider presets for CNAME mode. Each one knows the target shape the
 // provider actually needs and the steps that provider requires beyond DNS —
@@ -163,8 +189,8 @@ const PRESETS = [
     steps: (name) => [
       `In your Vercel project: Settings → Domains → Add, enter ${name}.runs-on.dev`,
       'It will show a verification TXT starting with vc-domain-verify= — copy the whole value',
-      'Add it below as a subdomain record: label _vercel, type TXT',
-      'Save here. Vercel needs one re-check after the TXT is live, so give it a minute',
+      'Add it in the subdomain records section below: label _vercel, type TXT',
+      'Save there. Vercel needs one re-check after the TXT is live, so give it a minute',
     ],
   },
   {
@@ -181,43 +207,94 @@ const PRESETS = [
   },
 ];
 
-export default function RecordForm({ name, record }) {
-  const [mode, setMode] = useState(() => modeOf(record.records));
-  const [cname, setCname] = useState(record.records?.CNAME ?? '');
+// The per-section save row: one button per tab, each showing only its own
+// save's outcome. `disabled` + `hint` is how a guard talks: the button stays
+// clickable-looking-but-off with the reason spelled out underneath, so an
+// empty field can never be read as "clear the record".
+function SaveRow({ section, label, status, commit, disabled, hint, onSave }) {
+  const mine = status?.section === section ? status : null;
+  return (
+    <div className="mt-5">
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={disabled || mine?.kind === 'saving'}
+          className="btn-pill disabled:opacity-40"
+        >
+          {mine?.kind === 'saving' ? 'Saving…' : label}
+        </button>
+        {mine?.kind === 'unchanged' && (
+          <span className="font-(family-name:--font-mono) text-xs text-(--color-muted)">no changes to save</span>
+        )}
+        {mine?.kind === 'saved' && (
+          <span className="font-(family-name:--font-mono) text-xs text-(--color-muted)">
+            {commit ? <a className="text-(--color-ink) underline" href={commitUrl(commit)} target="_blank" rel="noopener noreferrer">commit {shortSha(commit)}</a> : 'saved'}
+          </span>
+        )}
+      </div>
+      {disabled && hint && <p className="mt-2 max-w-[600px] text-xs leading-relaxed text-(--color-muted)">{hint}</p>}
+      {mine?.kind === 'error' && (
+        <ul className="mt-2 space-y-1 font-(family-name:--font-mono) text-xs text-(--color-flag)">
+          {(mine.errors ?? ['Could not save just now.']).map((e) => <li key={e}>{e}</li>)}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+export default function RecordForm({ name, record: loaded }) {
+  // The record as the file holds it right now. Every successful save merges
+  // exactly the keys it sent back into this baseline (the same merge the API
+  // performs), so every warning and guard below is computed against what is
+  // actually committed — never against a copy frozen at page load.
+  const [stored, setStored] = useState(loaded);
+  const storedRecords = stored.records ?? {};
+  const storedTypes = Object.keys(storedRecords);
+  const dnsInFile = storedTypes.length > 0;
+
+  // Tabs are editors, not a serving choice. The tab a record already lives
+  // in opens first; moving between tabs carries no data consequences.
+  // A name with no DNS opens on Custom Domain, ready to point somewhere,
+  // rather than on a card tab this form no longer has.
+  const [tab, setTab] = useState(() => {
+    const initial = modeOf(loaded.records);
+    return initial === 'card' ? 'cname' : initial;
+  });
+  const [cname, setCname] = useState(loaded.records?.CNAME ?? '');
   // Highlight the preset the loaded CNAME already matches (a Vercel user
   // returning to their record sees the Vercel steps, not bare fields). Only
   // derivable values match; anything hand-typed leaves no chip active.
   const [selectedPreset, setSelectedPreset] = useState(() => {
-    const initial = record.records?.CNAME ?? '';
+    const initial = loaded.records?.CNAME ?? '';
     if (!initial) return null;
-    const ownerLogin = record.owner?.github;
+    const ownerLogin = loaded.owner?.github;
     return PRESETS.find((p) => p.prefillFor?.(ownerLogin) === initial)?.id ?? null;
   });
-  const [url, setUrl] = useState(record.records?.URL ?? '');
-  const [a, setA] = useState((record.records?.A ?? []).join('\n'));
-  const [txt, setTxt] = useState((record.records?.TXT ?? []).join('\n'));
-  const [mx, setMx] = useState(mxToLines(record.records?.MX));
+  const [url, setUrl] = useState(loaded.records?.URL ?? '');
+  const [a, setA] = useState((loaded.records?.A ?? []).join('\n'));
+  const [txt, setTxt] = useState((loaded.records?.TXT ?? []).join('\n'));
+  const [mx, setMx] = useState(mxToLines(loaded.records?.MX));
   const [status, setStatus] = useState(null);
-  const [errors, setErrors] = useState([]);
   const [commit, setCommit] = useState(null);
-  const [subRows, setSubRows] = useState(() => subdomainsToRows(record.subdomains));
-  const [displayName, setDisplayName] = useState(record.profile?.name ?? '');
-  const [bio, setBio] = useState(record.profile?.bio ?? '');
-  const [linkRows, setLinkRows] = useState(() => profileToRows(record.profile));
+  const [subRows, setSubRows] = useState(() => subdomainsToRows(loaded.subdomains));
   const [dnsStatus, setDnsStatus] = useState(null);
 
-  // What the record held when the page loaded, not what the form currently
-  // builds: the point is to warn that saving in a mode that drops records the
-  // file already has — card wipes everything, redirect drops a CNAME, cname
-  // drops A/TXT/MX — before the user hits Save.
-  const existingTypes = Object.keys(record.records ?? {});
-  const MODE_LABEL = { card: 'Profile Card', cname: 'Custom Domain', url: 'Redirect', advanced: 'Advanced DNS' };
-  // buildRecords(mode) returns exactly the types that mode can express, so
-  // any record type the file holds that the mode cannot keep is one that
-  // save would remove.
-  const kept = new Set(Object.keys(buildRecords(mode, { cname, url, a, txt, mx })));
-  const dropped = existingTypes.filter((t) => !kept.has(t));
-  const willDropRecords = dropped.length > 0;
+  // What each DNS tab would write right now, built from that tab's fields
+  // alone. No tab reads another tab's fields, and no save sends them.
+  const cnameShape = buildRecords('cname', { cname });
+  const urlShape = buildRecords('url', { url });
+  const advancedShape = buildRecords('advanced', { a, txt, mx });
+  const shapeOfTab = { cname: cnameShape, url: urlShape, advanced: advancedShape };
+
+  // Saving a DNS shape replaces whatever incompatible shape the file holds —
+  // schema.js forbids CNAME beside A/TXT/MX and URL beside anything. That
+  // replacement is the one deliberate way a save removes records, so the tab
+  // that does it says so, computed from the stored baseline.
+  const replacing =
+    tab === 'card' || Object.keys(shapeOfTab[tab] ?? {}).length === 0
+      ? []
+      : storedTypes.filter((t) => !(t in shapeOfTab[tab]));
 
   useEffect(() => {
     fetch(`/api/dns-check?name=${encodeURIComponent(name)}`)
@@ -225,12 +302,6 @@ export default function RecordForm({ name, record }) {
       .then((data) => { if (data) setDnsStatus(data.serving?.status); })
       .catch(() => {});
   }, [name]);
-
-  function selectProvider(id) {
-    setMode(id);
-    setStatus(null);
-    setErrors([]);
-  }
 
   // Picking a preset swaps the placeholder and, when the preset can derive a
   // target (GitHub Pages from the owner's login, Vercel's generic), prefills
@@ -241,50 +312,112 @@ export default function RecordForm({ name, record }) {
     setSelectedPreset(deselecting ? null : preset.id);
     setStatus(null);
     if (deselecting) return;
-    const prefill = preset.prefillFor?.(record.owner?.github);
+    const prefill = preset.prefillFor?.(loaded.owner?.github);
     if (!prefill) return;
-    const presetValues = PRESETS.map((p) => p.prefillFor?.(record.owner?.github)).filter(Boolean);
+    const presetValues = PRESETS.map((p) => p.prefillFor?.(loaded.owner?.github)).filter(Boolean);
     if (!cname.trim() || presetValues.includes(cname.trim())) setCname(prefill);
   }
 
   function setRow(i, patch) {
     setSubRows((rows) => rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
     setStatus(null);
-    setErrors([]);
   }
   function addRow() { setSubRows((rows) => [...rows, { label: '', type: 'TXT', value: '' }]); setStatus(null); }
   function removeRow(i) { setSubRows((rows) => rows.filter((_, j) => j !== i)); setStatus(null); }
   function setLinkRow(i, patch) { setLinkRows((rows) => rows.map((r, j) => (j === i ? { ...r, ...patch } : r))); setStatus(null); }
   function removeLink(i) { setLinkRows((rows) => rows.filter((_, j) => j !== i)); setStatus(null); }
 
-  async function save(event) {
-    event.preventDefault();
-    setStatus('saving');
-    setErrors([]);
-    const res = await fetch('/api/records', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name,
-        records: buildRecords(mode, { cname, url, a, txt, mx }),
-        subdomains: buildSubdomains(subRows),
-        profile: buildProfile({ name: displayName, bio, linkRows }) ?? null,
-      }),
-    });
-    const body = await res.json().catch(() => ({}));
-    if (res.ok) { setCommit(body.commit ?? null); setStatus(body.unchanged ? 'unchanged' : 'saved'); return; }
-    setErrors(body.details ?? ['Could not save just now.']);
-    setStatus('error');
+  // One POST runner for every section. The payload carries only the keys the
+  // calling section owns; the API's contract is that a key absent from the
+  // body is left exactly as the file has it, which is what makes a profile
+  // edit structurally incapable of touching a CNAME.
+  async function post(payload, section, onSuccess) {
+    setStatus({ section, kind: 'saving' });
+    try {
+      const res = await fetch('/api/records', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, ...payload }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setCommit(body.commit ?? null);
+        setStatus({ section, kind: body.unchanged ? 'unchanged' : 'saved' });
+        setStored((prev) => {
+          const head = { ...prev };
+          if ('records' in payload) head.records = payload.records;
+          if ('subdomains' in payload) {
+            const subs = payload.subdomains;
+            const empty = subs === null || (typeof subs === 'object' && Object.keys(subs).length === 0);
+            if (empty) delete head.subdomains;
+            else head.subdomains = subs;
+          }
+          if ('profile' in payload) {
+            if (payload.profile === null) delete head.profile;
+            else head.profile = payload.profile;
+          }
+          return head;
+        });
+        // The file changed shape, so fields belonging to the shapes it can no
+        // longer hold go blank — what each tab shows must stay equal to what
+        // the file holds. Skipped when the API reported no change: nothing
+        // moved, so nothing needs clearing.
+        if (!body.unchanged && onSuccess) onSuccess();
+        return;
+      }
+      const errors = res.status === 409
+        ? ['the record changed elsewhere a moment ago — reload the page, then save again']
+        : (body.details ?? ['Could not save just now.']);
+      setStatus({ section, kind: 'error', errors });
+    } catch {
+      setStatus({ section, kind: 'error', errors: ['network error — try again'] });
+    }
   }
 
-  const sha = shortSha(commit);
+  const saveCname = () => {
+    const shape = buildRecords('cname', { cname });
+    if (!shape.CNAME) return;
+    post({ records: shape }, 'cname', () => {
+      setCname(shape.CNAME);
+      setSelectedPreset(null);
+      setUrl(''); setA(''); setTxt(''); setMx('');
+    });
+  };
+
+  const saveUrl = () => {
+    const shape = buildRecords('url', { url });
+    if (!shape.URL) return;
+    post({ records: shape }, 'url', () => {
+      setCname(''); setSelectedPreset(null); setA(''); setTxt(''); setMx('');
+    });
+  };
+
+  const saveAdvanced = () => {
+    const shape = buildRecords('advanced', { a, txt, mx });
+    if (Object.keys(shape).length === 0) return;
+    post({ records: shape }, 'advanced', () => {
+      setCname(''); setSelectedPreset(null); setUrl('');
+    });
+  };
+
+  const saveSubdomains = () => post({ subdomains: buildSubdomains(subRows) }, 'subdomains');
+
+  // Enter in an input saves the section the input belongs to.
+  const activeSaver =
+    tab === 'cname' ? saveCname
+    : tab === 'url' ? saveUrl
+    : saveAdvanced;
+
   const statusPill = dnsStatus === 'ok' ? { label: 'Verified', tone: 'ok' }
     : dnsStatus === 'stuck' ? { label: 'Pending', tone: 'pending' }
     : dnsStatus === 'redirect' ? { label: 'Redirect', tone: 'redirect' }
     : { label: 'Card', tone: 'neutral' };
 
   return (
-    <form onSubmit={save} className="slit-frame rounded-lg">
+    <form
+      onSubmit={(event) => { event.preventDefault(); activeSaver(); }}
+      className="slit-frame rounded-lg"
+    >
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 slit-bottom px-6 py-5 sm:px-8">
         <div>
@@ -307,133 +440,143 @@ export default function RecordForm({ name, record }) {
         </span>
       </div>
 
-      {/* Provider tiles. Icon strokes sit in Compass Gold, the reference's
-          reserved icon color; the active tile is traced in white instead. */}
+      {/* Section tabs. The line above them is the serving state, read from
+          the file; the tabs below it are editors for one key each. */}
       <div className="px-8 py-6 sm:px-10">
-        <p className="text-[14px] text-(--color-ink)">Where does your name go?</p>
-        <div className="mt-4 grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-8">
+        <p className="text-[14px] text-(--color-ink)">
+          Right now this name serves {servingSummary(storedRecords)}.
+        </p>
+        <p className="mt-1.5 text-xs leading-relaxed text-(--color-muted)">
+          Each section saves separately and writes only its own part of the record —
+          saving one can never remove another.
+        </p>
+        <div className="mt-4 grid grid-cols-2 gap-6 sm:grid-cols-3 sm:gap-8">
           {PROVIDERS.map((p) => (
-            <button key={p.id} type="button" onClick={() => selectProvider(p.id)}
-              className={`slit-frame flex flex-col items-center gap-2.5 rounded-lg p-4 text-center sm:p-5 ${mode === p.id ? 'slit-frame-bright' : ''}`}
+            <button key={p.id} type="button" aria-pressed={tab === p.id}
+              onClick={() => { setTab(p.id); setStatus(null); }}
+              className={`slit-frame flex flex-col items-center gap-2.5 rounded-lg p-4 text-center sm:p-5 ${tab === p.id ? 'slit-frame-bright' : ''}`}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={mode === p.id ? 'text-(--color-ink)' : 'text-(--color-gold)'}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={tab === p.id ? 'text-(--color-ink)' : 'text-(--color-gold)'}>
                 <path d={p.icon} />
               </svg>
-              <span className={`text-[11px] tracking-[0.02em] uppercase ${mode === p.id ? 'text-(--color-ink)' : 'text-(--color-muted)'}`}>{p.label}</span>
+              <span className={`text-[11px] tracking-[0.02em] uppercase ${tab === p.id ? 'text-(--color-ink)' : 'text-(--color-muted)'}`}>{p.label}</span>
             </button>
           ))}
         </div>
-        <p className="mt-3 text-xs leading-relaxed text-(--color-muted)">{PROVIDERS.find((p) => p.id === mode)?.hint}</p>
+        <p className="mt-3 text-xs leading-relaxed text-(--color-muted)">{PROVIDERS.find((p) => p.id === tab)?.hint}</p>
       </div>
 
-      {/* Mode-specific section. The profile editor lives outside this
-          switch (further down) because `profile` and `records` are
-          independent keys — gating the bio behind this mode meant anyone
-          with a CNAME who wanted to edit their bio silently lost their
-          records. */}
-      {mode === 'card' && (
+      {/* Custom Domain tab: owns the CNAME target. */}
+      {tab === 'cname' && (
         <div className="slit-top px-6 py-5 sm:px-8">
-          <p className="text-[14px] text-(--color-ink)">Profile card</p>
-          <p className="mt-1.5 text-xs leading-relaxed text-(--color-muted)">
-            Your name serves a card built from your GitHub profile. No DNS records are published.
-          </p>
-        </div>
-      )}
+          <span className="text-[14px] text-(--color-ink)">CNAME target</span>
 
-      {/* Warn when a save in this mode would remove records the file
-          currently holds. The WYSIWYG model makes switching mode drop
-          anything the new mode can't express; the banner makes that
-          visible rather than silent, for every destructive transition
-          (card, redirect, and cname each drop whatever the record had). */}
-      {willDropRecords && (
-        <div className="slit-top px-6 py-3 sm:px-8">
-          <p className="slit-bar-l rounded-r-lg bg-(--color-card) px-3 py-2.5 pl-5 font-(family-name:--font-mono) text-xs leading-relaxed text-(--color-flag)">
-            Saving in {MODE_LABEL[mode]} mode removes the {dropped.join(', ')} record(s)
-            on this name. To edit your card or redirect without changing where the name points,
-            edit the profile section below or keep your current mode.
-          </p>
-        </div>
-      )}
-
-      {/* Custom Domain mode */}
-      {mode === 'cname' && (
-        <>
-          <div className="slit-top px-6 py-5 sm:px-8">
-            <span className="text-[14px] text-(--color-ink)">CNAME target</span>
-
-            {/* Provider presets: fill the target shape and walk the steps
-                that provider needs beyond DNS. Optional — a plain hostname
-                typed below works exactly as before. */}
-            <div className="mt-3 flex flex-wrap gap-2">
-              {PRESETS.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => selectPreset(p)}
-                  aria-pressed={selectedPreset === p.id}
-                  className={`border px-3 py-1.5 font-(family-name:--font-mono) text-xs transition-colors ${
-                    selectedPreset === p.id
-                      ? 'border-(--color-signal) bg-(--color-signal)/10 text-(--color-signal)'
-                      : 'border-(--color-rule) text-(--color-muted) hover:border-(--color-muted) hover:text-(--color-ink)'
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-
-            <label className="block">
-              <input
-                value={cname}
-                onChange={(e) => { setCname(e.target.value); setStatus(null); }}
-                placeholder={PRESETS.find((p) => p.id === selectedPreset)?.placeholder ?? 'your-provider.example.com'}
-                aria-label="CNAME target"
-                spellCheck={false}
-                autoCapitalize="off"
-                className={`mt-3 ${INPUT}`}
-              />
-            </label>
-            <p className="mt-2 text-xs text-(--color-muted)">Copy the exact value from your provider.</p>
-
-            {(() => {
-              const preset = PRESETS.find((p) => p.id === selectedPreset);
-              if (!preset) return null;
-              return (
-                <div className="mt-4 border border-(--color-rule) bg-(--color-card) px-4 py-3">
-                  <p className="font-(family-name:--font-mono) text-xs text-(--color-muted)">{'// '}{preset.label} setup</p>
-                  <ol className="mt-2 space-y-1.5 text-xs leading-relaxed text-(--color-ink)">
-                    {preset.steps(name, record.owner?.github).map((step, i) => (
-                      <li key={i} className="flex gap-2">
-                        <span className="font-(family-name:--font-mono) text-(--color-muted)">{i + 1}.</span>
-                        <span>{step}</span>
-                      </li>
-                    ))}
-                  </ol>
-                  {preset.guide && (
-                    <a href={preset.guide} className="mt-3 inline-block font-(family-name:--font-mono) text-xs text-(--color-signal) underline">
-                      full guide →
-                    </a>
-                  )}
-                </div>
-              );
-            })()}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {PRESETS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => selectPreset(p)}
+                aria-pressed={selectedPreset === p.id}
+                className={`border px-3 py-1.5 font-(family-name:--font-mono) text-xs transition-colors ${
+                  selectedPreset === p.id
+                    ? 'border-(--color-signal) bg-(--color-signal)/10 text-(--color-signal)'
+                    : 'border-(--color-rule) text-(--color-muted) hover:border-(--color-muted) hover:text-(--color-ink)'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
           </div>
-          <SubdomainRecords name={name} subRows={subRows} setRow={setRow} addRow={addRow} removeRow={removeRow} />
-        </>
+
+          <label className="block">
+            <input
+              value={cname}
+              onChange={(e) => { setCname(e.target.value); setStatus(null); }}
+              placeholder={PRESETS.find((p) => p.id === selectedPreset)?.placeholder ?? 'your-provider.example.com'}
+              aria-label="CNAME target"
+              spellCheck={false}
+              autoCapitalize="off"
+              className={`mt-3 ${INPUT}`}
+            />
+          </label>
+          <p className="mt-2 text-xs text-(--color-muted)">Copy the exact value from your provider.</p>
+
+          {replacing.length > 0 && (
+            <p className="mt-3 slit-bar-l rounded-r-lg bg-(--color-card) px-3 py-2.5 pl-5 font-(family-name:--font-mono) text-xs leading-relaxed text-(--color-flag)">
+              Saving here replaces the {replacing.join(', ')} record(s) the name has now —
+              DNS allows a name to point only one way at a time.
+            </p>
+          )}
+
+          {(() => {
+            const preset = PRESETS.find((p) => p.id === selectedPreset);
+            if (!preset) return null;
+            return (
+              <div className="mt-4 border border-(--color-rule) bg-(--color-card) px-4 py-3">
+                <p className="font-(family-name:--font-mono) text-xs text-(--color-muted)">{'// '}{preset.label} setup</p>
+                <ol className="mt-2 space-y-1.5 text-xs leading-relaxed text-(--color-ink)">
+                  {preset.steps(name, loaded.owner?.github).map((step, i) => (
+                    <li key={i} className="flex gap-2">
+                      <span className="font-(family-name:--font-mono) text-(--color-muted)">{i + 1}.</span>
+                      <span>{step}</span>
+                    </li>
+                  ))}
+                </ol>
+                {preset.guide && (
+                  <a href={preset.guide} className="mt-3 inline-block font-(family-name:--font-mono) text-xs text-(--color-signal) underline">
+                    full guide →
+                  </a>
+                )}
+              </div>
+            );
+          })()}
+
+          <SaveRow
+            section="cname"
+            label="Save custom domain"
+            status={status}
+            commit={commit}
+            disabled={Object.keys(cnameShape).length === 0}
+            hint={'CNAME' in storedRecords
+              ? 'The target is empty, so saving is off — clearing the field does not remove the record. To stop using DNS, use “turn off DNS” in the Profile Card tab.'
+              : 'Enter a target above to save.'}
+            onSave={saveCname}
+          />
+        </div>
       )}
 
-      {/* Redirect mode */}
-      {mode === 'url' && (
+      {/* Redirect tab: owns the URL record. */}
+      {tab === 'url' && (
         <div className="slit-top px-6 py-5 sm:px-8">
           <label className="block">
             <span className="text-[14px] text-(--color-ink)">Redirect URL</span>
             <input value={url} onChange={(e) => { setUrl(e.target.value); setStatus(null); }} placeholder="https://your-site.com" spellCheck={false} className={`mt-2 ${INPUT}`} />
           </label>
+
+          {replacing.length > 0 && (
+            <p className="mt-3 slit-bar-l rounded-r-lg bg-(--color-card) px-3 py-2.5 pl-5 font-(family-name:--font-mono) text-xs leading-relaxed text-(--color-flag)">
+              Saving here replaces the {replacing.join(', ')} record(s) the name has now —
+              DNS allows a name to point only one way at a time.
+            </p>
+          )}
+
+          <SaveRow
+            section="url"
+            label="Save redirect"
+            status={status}
+            commit={commit}
+            disabled={Object.keys(urlShape).length === 0}
+            hint={'URL' in storedRecords
+              ? 'The URL is empty, so saving is off — clearing the field does not remove the record. To stop using DNS, use “turn off DNS” in the Profile Card tab.'
+              : 'Enter a URL above to save.'}
+            onSave={saveUrl}
+          />
         </div>
       )}
 
-      {/* Advanced DNS mode */}
-      {mode === 'advanced' && (
+      {/* Advanced DNS tab: owns A, TXT, and MX. */}
+      {tab === 'advanced' && (
         <div className="slit-top px-6 py-5 sm:px-8">
           <p className="text-[14px] text-(--color-ink)">DNS records</p>
           <div className="mt-4 space-y-4">
@@ -441,79 +584,61 @@ export default function RecordForm({ name, record }) {
             <TextArea label="TXT" value={txt} onChange={(v) => { setTxt(v); setStatus(null); }} placeholder="v=spf1 -all" hint="One string per line." />
             <TextArea label="MX" value={mx} onChange={(v) => { setMx(v); setStatus(null); }} placeholder="10 mx.example.com" hint="One per line, up to 5." />
           </div>
-          <SubdomainRecords name={name} subRows={subRows} setRow={setRow} addRow={addRow} removeRow={removeRow} />
+
+          {replacing.length > 0 && (
+            <p className="mt-3 slit-bar-l rounded-r-lg bg-(--color-card) px-3 py-2.5 pl-5 font-(family-name:--font-mono) text-xs leading-relaxed text-(--color-flag)">
+              Saving here replaces the {replacing.join(', ')} record(s) the name has now —
+              DNS allows a name to point only one way at a time.
+            </p>
+          )}
+
+          <SaveRow
+            section="advanced"
+            label="Save DNS records"
+            status={status}
+            commit={commit}
+            disabled={Object.keys(advancedShape).length === 0}
+            hint={['A', 'TXT', 'MX'].some((t) => t in storedRecords)
+              ? 'All fields are empty, so saving is off — emptying the fields does not remove the records. To stop using DNS, use “turn off DNS” in the Profile Card tab.'
+              : 'Add at least one record above to save.'}
+            onSave={saveAdvanced}
+          />
         </div>
       )}
 
-      {/* Profile card fields. Always available, whatever the records mode:
-          `profile` is its own key on the record and is served by the card, so
-          editing a bio must never require touching where the name points. */}
-      <div className="slit-top px-6 py-5 sm:px-8">
-        <p className="text-[14px] text-(--color-ink)">Profile card details</p>
-        <p className="mt-1.5 text-xs leading-relaxed text-(--color-muted)">
-          {mode === 'card'
-            ? 'Override any field below. Blank falls back to your GitHub profile.'
-            : 'Saved with your name and shown if you ever switch to the profile card. Editing these does not change your DNS.'}
-        </p>
-        <div className="mt-5 space-y-4">
-          <label className="block">
-            <span className="meta normal-case">display name</span>
-            <input value={displayName} onChange={(e) => { setDisplayName(e.target.value); setStatus(null); }} placeholder="GitHub profile name" className={`mt-2 ${INPUT}`} />
-          </label>
-          <label className="block">
-            <span className="meta normal-case">bio</span>
-            <textarea value={bio} onChange={(e) => { setBio(e.target.value); setStatus(null); }} placeholder="GitHub profile bio" rows={2} className={`mt-2 ${INPUT} resize-y`} />
-          </label>
-          {linkRows.map((row, i) => (
-            <div key={i} className="flex flex-wrap items-center gap-2">
-              <input value={row.label} onChange={(e) => setLinkRow(i, { label: e.target.value })} placeholder="My portfolio" aria-label="Link label" className={`w-36 ${INPUT}`} />
-              <input value={row.url} onChange={(e) => setLinkRow(i, { url: e.target.value })} placeholder="https://…" aria-label="Link URL" spellCheck={false} className={`min-w-0 flex-1 ${INPUT}`} />
-              <button type="button" onClick={() => removeLink(i)} className="font-(family-name:--font-mono) text-xs text-(--color-muted) underline transition-colors hover:text-(--color-ink)">remove</button>
-            </div>
-          ))}
-          {linkRows.length < MAX_LINKS && (
-            <button type="button" onClick={() => { setLinkRows((rows) => [...rows, { label: '', url: '' }]); setStatus(null); }} className="slit-frame rounded-[4px] px-3 py-1.5 font-(family-name:--font-mono) text-xs text-(--color-muted) hover:text-(--color-ink)">+ add a link</button>
-          )}
-        </div>
-      </div>
+      {/* Subdomain records: their own section with their own save, outside
+          every tab so nothing is ever hidden or shown twice. Sending
+          `subdomains` never carries `records` or `profile`, and vice versa. */}
+      <SubdomainRecords name={name} subRows={subRows} setRow={setRow} addRow={addRow} removeRow={removeRow}>
+        <SaveRow
+          section="subdomains"
+          label="Save subdomain records"
+          status={status}
+          commit={commit}
+          onSave={saveSubdomains}
+        />
+      </SubdomainRecords>
 
-      {/* Save */}
-      <div className="flex flex-wrap items-center gap-4 slit-top px-6 py-5 sm:px-8">
-        <button type="submit" disabled={status === 'saving'} className="btn-pill">
-          {status === 'saving' ? 'Saving…' : 'Save changes'}
-        </button>
-        {status === 'unchanged' && <span className="font-(family-name:--font-mono) text-xs text-(--color-muted)">no changes to save</span>}
-        {status === 'saved' && (
-          <span className="font-(family-name:--font-mono) text-xs text-(--color-muted)">
-            {sha ? <a className="text-(--color-ink) underline" href={commitUrl(commit)} target="_blank" rel="noopener noreferrer">commit {sha}</a> : 'saved'}
-          </span>
-        )}
-        {errors.length > 0 && <ul className="mt-2 space-y-1 font-(family-name:--font-mono) text-xs text-(--color-flag)">{errors.map((e) => <li key={e}>{e}</li>)}</ul>}
-      </div>
-
-      {/* Verify panel: the "did it work?" feedback after a save, part of
-          the manage page since PR #57. */}
-      {status === 'saved' && (
+      {/* Verify panel: the "did it work?" feedback after a save that touched
+          DNS, checking what the file now holds. */}
+      {status?.kind === 'saved' && (
         <VerifyPanel
           name={name}
-          cname={mode === 'cname' ? cname.trim() : null}
-          url={mode === 'url' ? url.trim() : null}
-          hasDns={mode === 'advanced'}
-          vercelTxt={subRows
-            .filter((r) => r.label.trim().toLowerCase() === '_vercel' && r.type === 'TXT')
-            .flatMap((r) => r.value.split('\n').map((v) => v.trim()).filter(Boolean))}
+          cname={storedRecords.CNAME ?? null}
+          url={storedRecords.URL ?? null}
+          hasDns={['A', 'TXT', 'MX'].some((t) => t in storedRecords)}
+          vercelTxt={vercelTxtFromSubdomains(stored.subdomains)}
         />
       )}
 
-      {/* Danger zone: release the name back to the pool */}
-      <SwapZone name={name} />
-      <ReleaseZone name={name} />
     </form>
   );
 }
 
 // ── Swap zone (trade this name for a different one) ─────────
-function SwapZone({ name }) {
+// Lives on the profile page (/manage/profile), alongside the card, badge,
+// and release. Exported so that page can render it directly.
+export function SwapZone({ name }) {
   const [open, setOpen] = useState(false);
   const [newName, setNewName] = useState('');
   const [confirmText, setConfirmText] = useState('');
@@ -545,7 +670,7 @@ function SwapZone({ name }) {
 
       if (res.ok && body.ok) {
         setResult({ ok: true, text: body.message });
-        setTimeout(() => { window.location.href = '/manage'; }, 2000);
+        setTimeout(() => { window.location.href = '/manage/profile'; }, 2000);
       } else {
         setResult({ ok: false, text: body.detail ?? body.error ?? 'swap failed' });
       }
@@ -558,22 +683,28 @@ function SwapZone({ name }) {
   const nameAvailable = validateNewName(newName);
 
   return (
-    <div className="slit-top px-6 py-5 sm:px-8">
-      {!open ? (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="font-(family-name:--font-mono) text-xs text-(--color-muted) underline transition-colors hover:text-(--color-ink)"
-        >
-          swap this name for a different one
-        </button>
-      ) : (
+    <section className="slit-frame mt-16 rounded-lg">
+      <div className="slit-bottom px-6 py-5 sm:px-8">
+        <p className="meta">Swap</p>
+        <p className="mt-2 text-sm leading-relaxed text-(--color-muted)">
+          Trade {name}.runs-on.dev for a new one. All your settings (CNAME, profile,
+          subdomains) carry over. The old name is released immediately and becomes
+          available to anyone.
+        </p>
+      </div>
+
+      <div className="px-6 py-5 sm:px-8">
+        {!open ? (
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="font-(family-name:--font-mono) text-xs text-(--color-muted) underline transition-colors hover:text-(--color-ink)"
+          >
+            swap this name for a different one
+          </button>
+        ) : (
         <div className="space-y-3">
           <p className="text-[14px] text-(--color-ink)">Swap {name}.runs-on.dev</p>
-          <p className="max-w-[600px] text-xs leading-relaxed text-(--color-muted)">
-            Trade this name for a new one. All your settings (CNAME, profile, subdomains)
-            carry over. The old name is released immediately and becomes available to anyone.
-          </p>
 
           <div className="space-y-2">
             <input
@@ -637,12 +768,13 @@ function SwapZone({ name }) {
           )}
         </div>
       )}
-    </div>
+      </div>
+    </section>
   );
 }
 
 // ── Release zone (give the name back to the pool) ───────────
-function ReleaseZone({ name }) {
+export function ReleaseZone({ name }) {
   const [open, setOpen] = useState(false);
   const [confirmText, setConfirmText] = useState('');
   const [releasing, setReleasing] = useState(false);
@@ -673,23 +805,28 @@ function ReleaseZone({ name }) {
   };
 
   return (
-    <div className="slit-top px-6 py-5 sm:px-8">
-      {!open ? (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="font-(family-name:--font-mono) text-xs text-(--color-flag) underline hover:opacity-80"
-        >
-          release this name
-        </button>
-      ) : (
+    <section className="slit-frame mt-16 rounded-lg">
+      <div className="slit-bottom px-6 py-5 sm:px-8">
+        <p className="meta">Release</p>
+        <p className="mt-2 text-sm leading-relaxed text-(--color-muted)">
+          This permanently deletes the claim. The name becomes available for anyone
+          to claim immediately. DNS records and the profile card are removed. This
+          cannot be undone.
+        </p>
+      </div>
+
+      <div className="px-6 py-5 sm:px-8">
+        {!open ? (
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="font-(family-name:--font-mono) text-xs text-(--color-flag) underline hover:opacity-80"
+          >
+            release this name
+          </button>
+        ) : (
         <div className="space-y-3">
           <p className="text-[14px] text-(--color-flag)">Release {name}.runs-on.dev?</p>
-          <p className="max-w-[600px] text-xs leading-relaxed text-(--color-muted)">
-            This permanently deletes your claim. The name becomes available for anyone
-            to claim immediately. DNS records and your profile card are removed.
-            This cannot be undone.
-          </p>
           {/* Stacked on mobile: the confirm input is flex-1 in the same row as
               two buttons, which squeezed it to a few characters on a phone --
               exactly the field someone has to type a name into exactly. Inline
@@ -729,17 +866,19 @@ function ReleaseZone({ name }) {
           )}
         </div>
       )}
-    </div>
+      </div>
+    </section>
   );
 }
 
 // ── Subdomain records ────────────────────────────────────────
-function SubdomainRecords({ name, subRows, setRow, addRow, removeRow }) {
+function SubdomainRecords({ name, subRows, setRow, addRow, removeRow, children }) {
   return (
     <div className="slit-top px-6 py-5 sm:px-8">
       <p className="text-[14px] text-(--color-ink)">Subdomain records</p>
       <p className="mt-1.5 text-xs leading-relaxed text-(--color-muted)">
         Records a provider asks for at a different name, like <code className="font-(family-name:--font-mono)">_vercel</code> for verification.
+        They save separately from the tabs above — either can change without touching the other.
       </p>
       {subRows.map((row, i) => (
         <div key={i} className="slit-frame mt-12 rounded-lg p-3">
@@ -757,6 +896,7 @@ function SubdomainRecords({ name, subRows, setRow, addRow, removeRow }) {
       {subRows.length < MAX_SUBDOMAINS && (
         <button type="button" onClick={addRow} className="mt-6 slit-frame rounded-[4px] px-3 py-1.5 font-(family-name:--font-mono) text-xs text-(--color-muted) hover:text-(--color-ink)">+ add a subdomain record</button>
       )}
+      {children}
     </div>
   );
 }

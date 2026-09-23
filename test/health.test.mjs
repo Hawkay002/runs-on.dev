@@ -1,8 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  classifyClaim, issueName, planIssueClosures, planIssueOpens, diagnoseStuck, stuckIssueBody,
+  classifyClaim, issueName, planIssueClosures, planOrphanClosures, planIssueOpens, diagnoseStuck, stuckIssueBody,
   normalizeAnswer, findDrift,
+  HELD_LABEL, classifyAbsentName, planHeldIssues, planHeldClosures, heldIssueBody, heldClaimWarning,
 } from '../lib/health.js';
 
 const base = { name: 'lucas', owner: { github: 'zordhalo' }, claimedAt: '2026-08-30T00:00:00Z' };
@@ -91,6 +92,33 @@ test('never closes an issue whose title it cannot parse', () => {
 test('a down name keeps its issue open', () => {
   const rows = [{ name: 'dexi', status: 'down' }];
   assert.deepEqual(planIssueClosures(rows, [{ number: 35, title: 'dexi.runs-on.dev x' }]), []);
+});
+
+// --- orphans: a swap deletes the record file, so the name can never be
+// probed again and its nudge could never close itself (#244) ---
+
+test('an orphaned nudge whose name has left the registry is closable', () => {
+  const issues = [
+    { number: 162, title: 'shriansh.runs-on.dev is pointing at Vercel but not serving your project' },
+  ];
+  assert.deepEqual(
+    planOrphanClosures(issues, ['dexi', 'kite']),
+    [{ number: 162, name: 'shriansh' }],
+  );
+});
+
+test('a name still in the registry is never an orphan, whatever its status', () => {
+  const issues = [
+    { number: 1, title: 'dexi.runs-on.dev x' },
+    { number: 2, title: 'shrey.runs-on.dev x' },
+  ];
+  // 'card' is the deliberate human-in-the-loop case: the name exists, its
+  // records were removed, and only a person can tell intent from damage.
+  assert.deepEqual(planOrphanClosures(issues, ['dexi', 'shrey']), []);
+});
+
+test('an unparseable title is never closed as an orphan', () => {
+  assert.deepEqual(planOrphanClosures([{ number: 3, title: 'Add a dark mode toggle' }], []), []);
 });
 
 test('normalizeAnswer strips the trailing dot and case from hostnames', () => {
@@ -292,4 +320,109 @@ test('the claim\'s own challenge still reads as awaiting verification', () => {
     subdomains: { _vercel: { TXT: ['vc-domain-verify=saiom.runs-on.dev,bc31'] } },
   };
   assert.equal(diagnoseStuck(claim), 'vercel-awaiting-verification');
+});
+
+// --- held names: unclaimed, but a third party still serves them (#245) ---
+
+test('an absent name answering with the availability card is gone', () => {
+  assert.equal(
+    classifyAbsentName('fluentai', { ok: true, finalHost: 'fluentai.runs-on.dev', title: 'fluentai.runs-on.dev is available · runs-on.dev' }),
+    'gone',
+  );
+});
+
+test('an absent name answering with a foreign page is held', () => {
+  assert.equal(
+    classifyAbsentName('dexi', { ok: true, finalHost: 'dexi.runs-on.dev', title: 'DEXI : Fantasy Sports Trading on Solana' }),
+    'held',
+  );
+});
+
+test('an absent name that redirects away is held', () => {
+  assert.equal(
+    classifyAbsentName('shriansh', { ok: true, finalHost: 'shriansh.vercel.app', title: 'Shriansh Vikram Singh' }),
+    'held',
+  );
+});
+
+test('a failed probe of an absent name is gone, not held', () => {
+  assert.equal(classifyAbsentName('dexi', { ok: false }), 'gone');
+  assert.equal(classifyAbsentName('dexi', undefined), 'gone');
+});
+
+const heldIssues = [
+  { number: 250, title: 'dexi.runs-on.dev is unclaimed but still serving someone else\'s site' },
+  { number: 9, title: 'Add a dark mode toggle' },
+];
+
+test('files an issue for a held name the tracker does not speak for', () => {
+  // Only the unrelated issue is in the dedupe list: heldIssues[0] is the one
+  // that already speaks for dexi, and the next test covers it.
+  assert.deepEqual(planHeldIssues(['dexi'], [heldIssues[1]]), [{ name: 'dexi' }]);
+  assert.deepEqual(planHeldIssues([], heldIssues), []);
+});
+
+test('a held name already spoken for is not filed twice', () => {
+  assert.deepEqual(planHeldIssues(['dexi', 'new'], heldIssues).map((x) => x.name), ['new']);
+});
+
+test('the cap bounds how many held issues a single run files', () => {
+  const many = 'abcdef'.split('');
+  assert.equal(planHeldIssues(many, []).length, 5);
+  assert.equal(planHeldIssues(many, [], { cap: 2 }).length, 2);
+});
+
+test('a held name claimed again closes its issue', () => {
+  assert.deepEqual(
+    planHeldClosures(heldIssues, { registryNames: ['dexi'], probedNames: ['dexi'], heldNames: [] }),
+    [{ number: 250, name: 'dexi', reason: 'claimed' }],
+  );
+});
+
+test('a held name serving the card again closes its issue', () => {
+  assert.deepEqual(
+    planHeldClosures(heldIssues, { registryNames: [], probedNames: ['dexi'], heldNames: [] }),
+    [{ number: 250, name: 'dexi', reason: 'released' }],
+  );
+});
+
+// No evidence this run (the name was not probed) must never close a held
+// issue: the probe list depends on the open nudges, so silence is "no
+// evidence", not "all clear".
+test('an unprobed held name keeps its issue open', () => {
+  assert.deepEqual(
+    planHeldClosures(heldIssues, { registryNames: [], probedNames: [], heldNames: [] }),
+    [],
+  );
+});
+
+test('a still-held name keeps its issue open', () => {
+  assert.deepEqual(
+    planHeldClosures(heldIssues, { registryNames: [], probedNames: ['dexi'], heldNames: ['dexi'] }),
+    [],
+  );
+});
+
+test('the held issue body names the hostname and quotes what answers', () => {
+  const body = heldIssueBody('dexi', { ok: true, finalHost: 'dexi.runs-on.dev', title: 'DEXI : Fantasy Sports Trading on Solana' });
+  assert.ok(body.includes('dexi.runs-on.dev'));
+  assert.ok(body.includes('"DEXI : Fantasy Sports Trading on Solana"'));
+  assert.ok(!body.includes('undefined'));
+  const bare = heldIssueBody('dexi', null);
+  assert.ok(bare.includes('dexi.runs-on.dev'));
+  assert.ok(!bare.includes('undefined'));
+});
+
+test('the claim warning names the hostname, with or without a title', () => {
+  assert.ok(heldClaimWarning('dexi', 'DEXI').includes('dexi.runs-on.dev'));
+  assert.ok(heldClaimWarning('dexi', 'DEXI').includes('"DEXI"'));
+  const bare = heldClaimWarning('dexi', '');
+  assert.ok(bare.includes('dexi.runs-on.dev'));
+  assert.ok(!bare.includes('""'));
+  assert.ok(!bare.includes('undefined'));
+});
+
+test('the held label is a plain string the script can pass to the API', () => {
+  assert.equal(typeof HELD_LABEL, 'string');
+  assert.ok(HELD_LABEL.length > 0);
 });

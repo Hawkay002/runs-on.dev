@@ -1,9 +1,12 @@
 import { notFound, redirect } from 'next/navigation';
 import { getRecord } from '../../../lib/registry.js';
+import { claimNumber } from '../../../lib/claim-order.js';
 import { isValidRedirectUrl } from '../../../lib/schema.js';
 import { cardMetadata } from '../../../lib/metadata.js';
 import { REPO_URL } from '../../../lib/repo.js';
 import { StatusBadge } from '../../components/ui.jsx';
+import ManageLink from './manage-link.jsx';
+import BannerModal from './banner-modal.jsx';
 
 // Record freshness, not the GitHub profile's: a name claimed just now must
 // stop serving a cached 404 within seconds, not up to an hour.
@@ -88,6 +91,7 @@ export default async function Site({ params }) {
   }
 
   const profile = await githubProfile(record.owner.github);
+  const serial = claimNumber(name);
 
   // The record's profile block overrides what GitHub reports, field by
   // field: an owner who set profile.name keeps their chosen display name
@@ -105,7 +109,18 @@ export default async function Site({ params }) {
         domains/{name}.json
       </p>
 
-      <div className="slit-frame mt-5 rounded-lg bg-(--color-card) p-6 sm:p-8">
+      {/* The claim serial: this name's number in the whole registry's
+          claimed history, same numbering the banner carries. Top-right of the
+          card, in the registry's mono voice. */}
+      <div className="slit-frame relative mt-5 rounded-lg bg-(--color-card) p-6 sm:p-8">
+        {serial != null && (
+          <span
+            aria-label={`claim number ${serial}`}
+            className="absolute right-4 top-4 font-(family-name:--font-mono) text-xs tracking-[0.08em] text-(--color-muted) sm:right-6 sm:top-6"
+          >
+            {`#${serial}`}
+          </span>
+        )}
         <div className="flex items-center gap-5">
           {profile?.avatar_url && (
             <span className="slit-frame inline-block shrink-0 rounded-full p-[3px]">
@@ -130,12 +145,9 @@ export default async function Site({ params }) {
                   {name}.runs-on.dev
                 </a>
               </h1>
-              <a
-                href="/manage"
-                className="slit-frame [--slit-over:8px] rounded-full px-3 py-1 font-(family-name:--font-mono) text-xs text-(--color-muted) transition-colors hover:text-(--color-ink)"
-              >
-                manage
-              </a>
+              {/* Owner-only: the manage shortcut renders for the card's own
+                  owner and for nobody else visiting the card. */}
+              <ManageLink owner={record.owner.github} />
             </div>
             {displayName && <p className="mt-1.5 text-sm text-(--color-muted)">{displayName}</p>}
           </div>
@@ -179,30 +191,16 @@ export default async function Site({ params }) {
               <dd className="text-(--color-ink)">{record.claimedAt}</dd>
             </div>
           )}
-          {/* The banner links must be absolute to the apex: this page renders
-              on <name>.runs-on.dev hosts, where a relative /banner/<name>
-              would be rewritten by proxy.js into /sites/<name>/banner/... and
-              404. The banner route lives on runs-on.dev itself. */}
+          {/* The banner opens in a modal rather than a weblink, but the
+              link path it shows stays absolute to the apex: this page
+              renders on <name>.runs-on.dev hosts, where a relative
+              /banner/<name> would be rewritten by proxy.js into
+              /sites/<name>/banner/... and 404. The banner route lives on
+              runs-on.dev itself. */}
           <div className="flex gap-4">
-            <dt className="w-24 shrink-0 text-(--color-muted)">share</dt>
+            <dt className="w-24 shrink-0 text-(--color-muted)">share banner</dt>
             <dd className="text-(--color-muted)">
-              <a
-                className="text-(--color-ink) underline"
-                href={`https://runs-on.dev/banner/${name}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                banner
-              </a>
-              {' / '}
-              <a
-                className="text-(--color-ink) underline"
-                href={`https://runs-on.dev/banner/${name}?theme=dark`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                dark
-              </a>
+              <BannerModal name={name} />
             </dd>
           </div>
         </dl>

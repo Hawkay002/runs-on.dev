@@ -37,7 +37,7 @@ export async function POST(request) {
   // Credential and budget before the body: an unauthenticated caller must
   // not be able to make the server parse anything, only spend its own
   // (now-consumed) allowance.
-  const auth = authorizeBearer(request, takeDeploy);
+  const auth = await authorizeBearer(request, takeDeploy);
   if (auth.response) return auth.response;
 
   const form = await request.formData().catch(() => null);

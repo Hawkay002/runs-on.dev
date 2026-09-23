@@ -306,6 +306,16 @@ export default function PostToolbar({ slug, title, description, markdown, headin
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      {/* Backdrop for the dropdowns: the page blurs the instant a menu is
+          open, with no fade. The open menu's own wrapper lifts above it, so
+          its trigger stays sharp next to its panel; every other toolbar
+          control blurs with the page. The backdrop sits outside both menu
+          refs, so a pointerdown on it is an outside click and closes the
+          menu. */}
+      {openMenu !== null && (
+        <div aria-hidden="true" className="fixed inset-0 z-30 backdrop-blur-[6px]" />
+      )}
+
       <div className="flex items-center gap-1">
         <a href="/blog" className={`${ghostButton} -ml-2.5`} aria-label="Back to all posts">
           <ArrowLeftIcon size={15} />
@@ -317,7 +327,7 @@ export default function PostToolbar({ slug, title, description, markdown, headin
 
       <div className="flex items-center gap-1">
         {headings.length > 0 && (
-          <div className="relative" ref={tocRef}>
+          <div className={`relative ${openMenu === 'toc' ? 'z-40' : ''}`} ref={tocRef}>
             <button
               type="button"
               onClick={() => setOpenMenu((m) => (m === 'toc' ? null : 'toc'))}
@@ -357,7 +367,7 @@ export default function PostToolbar({ slug, title, description, markdown, headin
           </div>
         )}
 
-        <div className="relative" ref={copyRef}>
+        <div className={`relative ${openMenu === 'copy' ? 'z-40' : ''}`} ref={copyRef}>
           {/* Split control: the label copies the page itself; the chevron is
               the only thing that opens the menu. */}
           <div className="inline-flex items-center rounded-lg">
