@@ -5,5 +5,8 @@
   },
   "claimedAt": "2026-09-23T01:21:48.994Z",
   "records": {},
-  "country": "US"
+  "country": "US",
+  "profile": {
+    "name": "https://github.com/Nicholas7536"
+  }
 }
