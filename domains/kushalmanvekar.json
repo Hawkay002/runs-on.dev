@@ -7,12 +7,5 @@
   "records": {
     "CNAME": "website1-187a9jaqk-kushalongit-hubs-projects.vercel.app"
   },
-  "country": "IN",
-  "subdomains": {
-    "_vercel": {
-      "TXT": [
-        "vc-domain-verify=kushalmanvekar.runs-on.dev,d6bcb4eee8e27941c01"
-      ]
-    }
-  }
+  "country": "IN"
 }
