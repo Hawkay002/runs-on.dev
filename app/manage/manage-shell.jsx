@@ -163,10 +163,11 @@ export default function ManageShell({ login, children }) {
 
       </div>
 
-      {/* The menu button leads the page, above the heading, with no frame:
-          the icon alone carries it. Closed shows panel-left and flips to
-          panel-left-open on hover purely in CSS; open shows panel-left-close,
-          since pressing closes. */}
+      {/* The menu button leads the page, above the heading. Closed shows
+          panel-left and flips to panel-left-open on hover purely in CSS; open
+          shows panel-left-close, since pressing closes. It wears the same
+          rounded border-(--color-rule) frame as the blog toolbar's dropdown
+          panels. */}
       <div>
         <button
           ref={buttonRef}
@@ -174,7 +175,7 @@ export default function ManageShell({ login, children }) {
           onClick={() => setOpen((o) => !o)}
           aria-label={open ? 'Close menu' : 'Open menu'}
           aria-expanded={open}
-          className="group relative z-30 -ml-2 rounded-lg p-2 text-(--color-muted) transition-colors hover:text-(--color-ink)"
+          className="group relative z-30 -ml-2 rounded-lg border border-(--color-rule) p-2 text-(--color-muted) transition-colors hover:text-(--color-ink)"
         >
           {open ? (
             <span className="block">

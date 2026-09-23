@@ -77,8 +77,9 @@ export default async function Footer() {
             </a>
           </nav>
 
-          {/* Mobile: the wordmark closes out the footer. */}
-          <FooterMark className="w-full max-w-[360px] sm:hidden" />
+          {/* Mobile: the wordmark closes out the footer, centred — the column
+              would otherwise hug it left. */}
+          <FooterMark className="mx-auto w-full max-w-[360px] sm:hidden" />
         </div>
       </div>
     </footer>

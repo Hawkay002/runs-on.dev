@@ -23,7 +23,10 @@ for (let j = 0; j < TILES_Y; j++) {
 // by the aspect quotient until its height fills the box; the overflow crops
 // symmetrically. Everything is in percentages of a tile half, which is why
 // the img is taller-wider than 100% and shifted by LEFT_BASE tile widths.
-const ART_ASPECT = 2044.8 / 592;
+// The artwork ships as a raster (rendered from public/ascii-art.svg at 2x
+// via headless Chrome) because 448 tile imgs rasterizing 3k SVG text glyphs
+// janks the flip; a PNG decodes once into a single cached texture.
+const ART_ASPECT = 4090 / 1184;
 const MAP_ASPECT = 1120 / 500;
 const IMG_W_PCT = 100 * TILES_X * (ART_ASPECT / MAP_ASPECT);
 const LEFT_BASE = (TILES_X / 2) * (1 - ART_ASPECT / MAP_ASPECT);
@@ -93,7 +96,7 @@ export default function FlapFrame({ children }) {
                 <div key={`${i}-${j}`} className="flap-tile" style={{ '--d': `${delay}ms` }}>
                   <div className="flap-half flap-top">
                     <img
-                      src="/ascii-art.svg"
+                      src="/ascii-art.png"
                       alt=""
                       style={{
                         width: `${IMG_W_PCT}%`,
@@ -105,7 +108,7 @@ export default function FlapFrame({ children }) {
                   </div>
                   <div className="flap-half flap-bottom">
                     <img
-                      src="/ascii-art.svg"
+                      src="/ascii-art.png"
                       alt=""
                       style={{
                         width: `${IMG_W_PCT}%`,
